@@ -207,7 +207,15 @@ function ChatRow({ item, active }: { item: ChatListItem; active: boolean }) {
   const lastBody = item.lastMessage?.deleted_for_everyone
     ? '🚫 message deleted'
     : item.lastMessage?.body
-    ? item.lastMessage.body
+    ? (() => {
+        const b = item.lastMessage.body
+        if (b.includes('🎤 Voice note')) return '🎤 Voice note'
+        const lines = b.split('\n')
+        if (lines.length >= 2 && lines[lines.length - 1].trim().startsWith('http')) {
+          return lines.slice(0, -1).join(' ').trim()
+        }
+        return b
+      })()
     : isHermes
     ? 'Ask me anything ✨'
     : 'No messages yet'

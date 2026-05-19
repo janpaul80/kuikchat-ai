@@ -15,6 +15,7 @@ export type MessageType =
   | 'location'
   | 'contact'
   | 'poll'
+  | 'event'
   | 'call_log'
   | 'system'
   | 'hermes'
@@ -57,6 +58,7 @@ export interface MessageRow {
   sender_id: string | null
   type: MessageType
   body: string | null
+  metadata?: Record<string, any> | null
   reply_to_id: string | null
   edited_at: string | null
   deleted_at: string | null
@@ -87,6 +89,70 @@ export interface RepliedToPreview {
   sender_id: string | null
   body: string | null
   deleted_for_everyone: boolean
+}
+
+// Slice B: polls
+export interface PollOption {
+  id: string
+  text: string
+}
+
+export interface PollRow {
+  id: string
+  chat_id: string
+  message_id: string | null
+  question: string
+  options: PollOption[]
+  is_multiple: boolean
+  is_anonymous: boolean
+  closes_at: string | null
+  created_by: string | null
+  created_at: string
+}
+
+export interface PollVoteRow {
+  id: string
+  poll_id: string
+  user_id: string
+  option_id: string
+  voted_at: string
+}
+
+export interface LiveLocationSessionRow {
+  id: string
+  message_id: string
+  user_id: string
+  chat_id: string
+  latitude: number
+  longitude: number
+  is_active: boolean
+  expires_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface EventRow {
+  id: string
+  message_id: string
+  chat_id: string
+  title: string
+  description: string | null
+  location: string | null
+  start_time: string
+  end_time: string | null
+  meeting_link?: string | null
+  timezone?: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface EventRSVPRow {
+  id: string
+  event_id: string
+  user_id: string
+  status: 'going' | 'maybe' | 'declined'
+  updated_at: string
 }
 
 // Composed view used by the chat list UI

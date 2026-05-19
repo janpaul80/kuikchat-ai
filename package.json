@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start -p 3100",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "qa:auth:seed": "node scripts/qa-auth-seed.mjs",
+    "qa:runtime": "node scripts/qa-runtime-validate.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

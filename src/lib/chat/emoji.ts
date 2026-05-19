@@ -26,7 +26,7 @@ export const REACTION_EMOJIS: readonly string[] = [
  * Keep this short — 5–6 is the sweet spot visually.
  */
 export const QUICK_REACTIONS: readonly string[] = [
-  '👍', '❤️', '😂', '😮', '😢', '🙏',
+  '👍', '👎', '❤️', '😂', '😮', '😢',
 ] as const
 
 export function isValidReactionEmoji(emoji: string): boolean {

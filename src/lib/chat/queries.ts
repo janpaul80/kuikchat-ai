@@ -102,7 +102,11 @@ export async function fetchChatList(
     }
   })
 
-  // Sort: pinned first, then by most recent activity
+  // Deduplicate direct chats by other user ID (keep the most recent one)
+  const dedupedItems: ChatListItem[] = []
+  const directChatSeen = new Set<string>()
+
+  // Sort first so we keep the newest when deduplicating
   items.sort((a, b) => {
     if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1
     const ta = a.lastMessage?.created_at || a.chat?.last_message_at || a.chat?.created_at || ''
@@ -110,7 +114,17 @@ export async function fetchChatList(
     return tb.localeCompare(ta)
   })
 
-  return items
+  for (const item of items) {
+    if (item.chat.type === 'direct' && item.otherMember) {
+      if (directChatSeen.has(item.otherMember.id)) {
+        continue // Skip duplicate direct chat
+      }
+      directChatSeen.add(item.otherMember.id)
+    }
+    dedupedItems.push(item)
+  }
+
+  return dedupedItems
 }
 
 /**
@@ -191,6 +205,88 @@ export async function sendTextMessage(
 
   if (error) throw error
   return data as MessageRow
+}
+
+/**
+ * Insert a new poll message and poll data.
+ */
+export async function createPoll(
+  supabase: SupabaseClient,
+  chatId: string,
+  senderId: string,
+  pollData: {
+    question: string
+    options: { id: string; text: string }[]
+    isMultiple: boolean
+    isAnonymous: boolean
+    closesAt: string | null
+  }
+): Promise<MessageRow> {
+  // Insert the poll message first
+  const { data: msgData, error: msgError } = await supabase
+    .from('messages')
+    .insert({
+      chat_id: chatId,
+      sender_id: senderId,
+      type: 'poll',
+      body: '📊 Poll: ' + pollData.question,
+    })
+    .select(
+      'id, chat_id, sender_id, type, body, reply_to_id, edited_at, deleted_at, deleted_for_everyone, created_at'
+    )
+    .single()
+
+  if (msgError) throw msgError
+
+  const messageId = msgData.id
+
+  // Then create the poll
+  const { error: pollError } = await supabase
+    .from('polls')
+    .insert({
+      chat_id: chatId,
+      message_id: messageId,
+      question: pollData.question,
+      options: pollData.options,
+      is_multiple: pollData.isMultiple,
+      is_anonymous: pollData.isAnonymous,
+      closes_at: pollData.closesAt,
+      created_by: senderId,
+    })
+
+  if (pollError) {
+    // Attempt rollback
+    await supabase.rpc('delete_message_for_everyone', { p_message_id: messageId })
+    throw pollError
+  }
+
+  return msgData as MessageRow
+}
+
+/**
+ * Fetch contacts for the current user.
+ * Joins with profiles to get display names and avatars.
+ */
+export async function fetchContacts(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<(ProfileLite & { nickname: string | null; is_favorite: boolean })[]> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select(`
+      nickname,
+      is_favorite,
+      profile:profiles!contact_id (id, username, display_name, avatar_url)
+    `)
+    .eq('user_id', userId)
+
+  if (error) throw error
+
+  return (data || []).map((c: any) => ({
+    ...c.profile,
+    nickname: c.nickname,
+    is_favorite: c.is_favorite,
+  }))
 }
 
 // ─── Slice B: mutations ──────────────────────────────────────────────────────

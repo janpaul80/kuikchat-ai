@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useAuthUser } from '@/hooks/useAuthUser'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
-import type { MessageRow, ReactionRow, ReadRow, RepliedToPreview } from '@/lib/chat/types'
+import type { MessageRow, ReactionRow, ReadRow, RepliedToPreview, ProfileLite } from '@/lib/chat/types'
 import {
   fetchMessagesPage,
   sendTextMessage,
@@ -16,12 +16,13 @@ import {
   fetchReadsBulk,
   fetchRepliedToBatch,
 } from '@/lib/chat/queries'
-import { loadDraft, saveDraft, clearDraft } from '@/lib/chat/drafts'
+import { loadDraft, clearDraft } from '@/lib/chat/drafts'
+import { processChatIntent } from '@/lib/chat/media-service'
+import type { ChatIntentPayload } from '@/lib/chat/media-service'
 import { MessageBubble } from './MessageBubble'
 import { ReplyPreview } from './ReplyPreview'
 import { TypingIndicator } from './TypingIndicator'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { ChatInputArea } from './input/ChatInputArea'
 
 const TYPING_TIMEOUT_MS = 3000
 
@@ -31,7 +32,6 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
 
   const [messages, setMessages] = useState<MessageRow[]>([])
   const [pendingSends, setPendingSends] = useState<Record<string, MessageRow>>({})
-  const [body, setBody] = useState('')
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null)
   const [reactionsByMsg, setReactionsByMsg] = useState<Record<string, ReactionRow[]>>({})
   const [readsByMsg, setReadsByMsg] = useState<Record<string, ReadRow[]>>({})
@@ -87,13 +87,11 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
 
         await markChatAsRead(supabase, chatId)
 
+        // Restore replyTo from draft (text body is owned by ChatInputArea)
         const draft = loadDraft(chatId)
-        if (draft) {
-          setBody(draft.body || '')
-          if (draft.replyToId) {
-            const target = sorted.find((m) => m.id === draft.replyToId) || null
-            setReplyTo(target)
-          }
+        if (draft?.replyToId) {
+          const target = sorted.find((m) => m.id === draft.replyToId) || null
+          setReplyTo(target)
         }
       } catch (e: any) {
         setError(e?.message || 'Failed to load chat')
@@ -110,8 +108,16 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
   const upsertMessages = useCallback((rows: MessageRow[]) => {
     setMessages((prev) => {
       const map = new Map<string, MessageRow>()
-      for (const m of prev) map.set(m.id, m)
-      for (const m of rows) map.set(m.id, { ...(map.get(m.id) || {}), ...m })
+      // First, add all existing messages to the map
+      for (const m of prev) {
+        map.set(m.id, m)
+      }
+      // Then, overlay the new/updated rows
+      for (const m of rows) {
+        // If it's a real server message, it should overwrite any optimistic version
+        // We handle the specific optimistic -> server reconciliation in the realtime handler
+        map.set(m.id, { ...(map.get(m.id) || {}), ...m })
+      }
       return Array.from(map.values()).sort((a, b) => a.created_at.localeCompare(b.created_at))
     })
   }, [])
@@ -163,26 +169,31 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
       { event: '*', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` },
       async (payload: any) => {
         const newRow = payload.new as MessageRow
-        if (payload.eventType === 'INSERT' && newRow?.id) {
-          upsertMessages([newRow])
+        const oldRow = payload.old as MessageRow
 
-          if (newRow.sender_id === user.id) {
-            setPendingSends((prev) => {
-              const next = { ...prev }
-              for (const [k, v] of Object.entries(next)) {
-                if (
-                  v.sender_id === newRow.sender_id &&
-                  v.chat_id === newRow.chat_id &&
-                  v.body === newRow.body &&
-                  v.reply_to_id === newRow.reply_to_id
-                ) {
-                  delete next[k]
-                  break
-                }
+        if (payload.eventType === 'INSERT' && newRow?.id) {
+          // Priority 1 & 2: Reconciliation
+          setPendingSends((prev) => {
+            const next = { ...prev }
+            let reconciled = false
+            for (const [k, v] of Object.entries(next)) {
+              // Match by content and metadata to find the optimistic twin
+              if (
+                v.sender_id === newRow.sender_id &&
+                v.body === newRow.body &&
+                v.reply_to_id === newRow.reply_to_id
+              ) {
+                delete next[k]
+                reconciled = true
+                // Remove the optimistic one from the messages array immediately
+                setMessages((curr) => curr.filter((m) => m.id !== k))
+                break
               }
-              return next
-            })
-          }
+            }
+            return next
+          })
+
+          upsertMessages([newRow])
 
           if (newRow.reply_to_id) {
             const map = await fetchRepliedToBatch(supabase, [newRow.reply_to_id])
@@ -194,6 +205,10 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
         if (payload.eventType === 'UPDATE' && newRow?.id) {
           upsertMessages([newRow])
         }
+
+        if (payload.eventType === 'DELETE' && oldRow?.id) {
+          setMessages((prev) => prev.filter((m) => m.id !== oldRow.id))
+        }
       }
     )
 
@@ -201,21 +216,49 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
       'postgres_changes',
       { event: '*', schema: 'public', table: 'message_reactions' },
       async (payload: any) => {
-        const row = (payload.new || payload.old) as ReactionRow | undefined
+        const newRow = payload.new as ReactionRow
+        const oldRow = payload.old as ReactionRow
+        const row = newRow || oldRow
         if (!row?.message_id) return
-        const rs = await fetchReactionsBulk(supabase, [row.message_id])
-        setReactionsByMsg((prev) => ({ ...prev, [row.message_id]: rs.filter((x) => x.message_id === row.message_id) }))
+
+        // Priority 3: Incremental local updates instead of bulk refetch
+        setReactionsByMsg((prev) => {
+          const current = prev[row.message_id] || []
+          if (payload.eventType === 'INSERT') {
+            // Only add if not already there
+            if (current.some(r => r.id === newRow.id)) return prev
+            return { ...prev, [row.message_id]: [...current, newRow] }
+          }
+          if (payload.eventType === 'DELETE') {
+            return { ...prev, [row.message_id]: current.filter(r => r.id !== oldRow.id) }
+          }
+          return prev
+        })
       }
     )
-
+    
     channel.on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'message_reads' },
       async (payload: any) => {
-        const row = (payload.new || payload.old) as ReadRow | undefined
+        const newRow = payload.new as ReadRow
+        const oldRow = payload.old as ReadRow
+        const row = newRow || oldRow
         if (!row?.message_id) return
-        const rs = await fetchReadsBulk(supabase, [row.message_id])
-        setReadsByMsg((prev) => ({ ...prev, [row.message_id]: rs.filter((x) => x.message_id === row.message_id) }))
+
+        // Priority 3: Incremental local updates
+        setReadsByMsg((prev) => {
+          const current = prev[row.message_id] || []
+          if (payload.eventType === 'INSERT') {
+            if (current.some(r => r.id === newRow.id)) return prev
+            return { ...prev, [row.message_id]: [...current, newRow] }
+          }
+          // Reads are usually only inserted, but handle DELETE just in case
+          if (payload.eventType === 'DELETE') {
+            return { ...prev, [row.message_id]: current.filter(r => r.id !== oldRow.id) }
+          }
+          return prev
+        })
       }
     )
 
@@ -239,22 +282,21 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
     }
   }, [chatId, supabase, user?.id, refreshTypingUsers, throttledMarkRead, upsertMessages])
 
-  // Persist draft
-  useEffect(() => {
-    saveDraft(chatId, body, replyTo?.id || null)
-  }, [body, chatId, replyTo?.id])
-
   // Scroll to bottom on new messages
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages.length])
 
-  async function handleSend() {
+  // Intent router — called by ChatInputArea for all message types
+  const handleIntent = useCallback(async (payload: ChatIntentPayload) => {
     if (!user?.id) return
-    const trimmed = body.trim()
-    if (!trimmed) return
-    try {
-      const optimisticId = `optimistic-${Date.now()}`
+
+    // --- Text message (fast path with optimistic UI) ---
+    if (payload.type === 'text') {
+      const trimmed = payload.text?.trim()
+      if (!trimmed) return
+
+      const optimisticId = `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
       const optimistic: MessageRow = {
         id: optimisticId,
         chat_id: chatId,
@@ -267,19 +309,175 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
         deleted_for_everyone: false,
         reply_to_id: replyTo?.id ?? null,
       }
-      setPendingSends((prev) => ({ ...prev, [optimisticId]: optimistic }))
-      upsertMessages([optimistic])
 
-      await sendTextMessage(supabase, chatId, user.id, trimmed, replyTo?.id ?? null)
-      await emitTyping(false)
-      setBody('')
+      try {
+        setPendingSends((prev) => ({ ...prev, [optimisticId]: optimistic }))
+        upsertMessages([optimistic])
+        setReplyTo(null)
+        clearDraft(chatId)
+
+        await sendTextMessage(supabase, chatId, user.id, trimmed, optimistic.reply_to_id)
+        await emitTyping(false)
+        await throttledMarkRead()
+      } catch (e: any) {
+        setError(e?.message || 'Send failed')
+        setPendingSends((prev) => {
+          const next = { ...prev }
+          delete next[optimisticId]
+          return next
+        })
+        setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+      }
+      return
+    }
+
+    // --- Media / file intents (voice, image, video, document) ---
+    if (payload.file) {
+      const optimisticId = `optimistic-media-${Date.now()}`
+      const blobUrl = URL.createObjectURL(payload.file)
+      const isVoice = payload.type === 'voice'
+      const label = isVoice ? '🎤 Voice note' : `📎 Uploading ${payload.file.name}...`
+      
+      const optimisticMsg: MessageRow = {
+        id: optimisticId,
+        chat_id: chatId,
+        sender_id: user.id,
+        body: `${label}\n${blobUrl}`,
+        type: 'text',
+        created_at: new Date().toISOString(),
+        edited_at: null,
+        deleted_at: null,
+        deleted_for_everyone: false,
+        reply_to_id: replyTo?.id ?? null,
+      }
+
+      setPendingSends((prev) => ({ ...prev, [optimisticId]: optimisticMsg }))
+      upsertMessages([optimisticMsg])
       setReplyTo(null)
       clearDraft(chatId)
-      await throttledMarkRead()
-    } catch (e: any) {
-      setError(e?.message || 'Send failed')
+
+      try {
+        const { url, error: uploadError } = await processChatIntent(chatId, payload, supabase)
+        if (uploadError) throw uploadError
+        if (url) {
+          const finalLabel = isVoice ? '🎤 Voice note' : `📎 ${payload.file.name}`
+          await sendTextMessage(supabase, chatId, user.id, `${finalLabel}\n${url}`, optimisticMsg.reply_to_id)
+        }
+      } catch (e: any) {
+        setError(e?.message || 'Media upload failed')
+        setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+        setPendingSends((prev) => {
+          const next = { ...prev }
+          delete next[optimisticId]
+          return next
+        })
+      } finally {
+        URL.revokeObjectURL(blobUrl)
+      }
+      return
     }
-  }
+
+    // --- Poll intent ---
+    if (payload.type === 'poll' && payload.metadata) {
+      const { question, options, isMultiple, isAnonymous, closesInHours } = payload.metadata
+      const pollOptions = options.map((text: string, i: number) => ({ id: `opt-${i}`, text }))
+      
+      const closesAt = closesInHours 
+        ? new Date(Date.now() + closesInHours * 3600000).toISOString() 
+        : null
+
+      try {
+        const msg = await import('@/lib/chat/queries').then(q => 
+          q.createPoll(supabase, chatId, user.id, {
+            question,
+            options: pollOptions,
+            isMultiple,
+            isAnonymous,
+            closesAt
+          })
+        )
+        // No optimistic UI for polls yet, let the realtime channel pick it up
+      } catch (e: any) {
+        setError(e?.message || 'Poll creation failed')
+      }
+      return
+    }
+
+    // --- Contact intent ---
+    if (payload.type === 'contact' && payload.metadata) {
+      const contact = payload.metadata as ProfileLite
+      try {
+        await supabase.from('messages').insert({
+          chat_id: chatId,
+          sender_id: user.id,
+          type: 'contact',
+          body: `📎 Shared contact: ${contact.display_name || contact.username}`,
+          metadata: contact
+        })
+      } catch (e: any) {
+        setError(e?.message || 'Contact sharing failed')
+      }
+      return
+    }
+
+    // --- Location intent ---
+    if (payload.type === 'location' && payload.metadata) {
+      const { type, latitude, longitude, address, durationMinutes } = payload.metadata
+      try {
+        const { data: msg, error: msgError } = await supabase
+          .from('messages')
+          .insert({
+            chat_id: chatId,
+            sender_id: user.id,
+            type: 'location',
+            body: `📍 ${type === 'live' ? 'Live Location' : 'Location'}: ${address}`,
+            metadata: payload.metadata
+          })
+          .select()
+          .single()
+
+        if (msgError) throw msgError
+
+        if (type === 'live' && durationMinutes) {
+          const expiresAt = new Date(Date.now() + durationMinutes * 60000).toISOString()
+          await supabase.from('live_location_sessions').insert({
+            message_id: msg.id,
+            user_id: user.id,
+            chat_id: chatId,
+            latitude,
+            longitude,
+            expires_at: expiresAt
+          })
+        }
+      } catch (e: any) {
+        setError(e?.message || 'Location sharing failed')
+      }
+      return
+    }
+
+    // --- Event intent ---
+    if (payload.type === 'event' && payload.metadata) {
+      const { title, description, location, meetingLink, timezone, startTime, endTime } = payload.metadata
+      try {
+        const { error: eventError } = await supabase.rpc('create_event_with_message', {
+          p_chat_id: chatId,
+          p_sender_id: user.id,
+          p_title: title,
+          p_description: description || null,
+          p_location: location || null,
+          p_start_time: startTime,
+          p_end_time: endTime || null,
+          p_meeting_link: meetingLink || null,
+          p_timezone: timezone || null,
+        })
+        if (eventError) throw eventError
+      } catch (e: any) {
+        setError(e?.message || 'Event creation failed')
+      }
+      return
+    }
+
+  }, [chatId, supabase, user?.id, replyTo?.id, upsertMessages, throttledMarkRead])
 
   async function handleEdit(msg: MessageRow) {
     const next = window.prompt('Edit message', msg.body || '')
@@ -323,18 +521,18 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
     }
   }
 
-  function onInputChange(v: string) {
-    setBody(v)
-
-    emitTyping(true)
-    if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
-    typingTimerRef.current = setTimeout(() => {
-      emitTyping(false)
-    }, TYPING_TIMEOUT_MS)
+  function onTypingChange(isTyping: boolean) {
+    emitTyping(isTyping)
+    if (isTyping) {
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
+      typingTimerRef.current = setTimeout(() => {
+        emitTyping(false)
+      }, TYPING_TIMEOUT_MS)
+    }
   }
 
-  if (!user?.id) return <div className="p-4 text-sm text-muted-foreground">Please log in</div>
   if (loading) return <div className="p-4 text-sm text-muted-foreground">Loading chat…</div>
+  if (!user?.id) return <div className="p-4 text-sm text-muted-foreground">Please log in</div>
 
   return (
     <div className="flex h-full flex-col">
@@ -355,6 +553,7 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
               replyTo={msg.reply_to_id ? repliedToMap.get(msg.reply_to_id) || null : null}
               reactions={reactionsByMsg[msg.id] || []}
               wasReadByOther={wasReadByOther}
+              currentUserId={user.id}
               onEdit={handleEdit}
               onDeleteForMe={handleDeleteForMe}
               onDeleteForEveryone={handleDeleteForEveryone}
@@ -367,38 +566,22 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
 
       <TypingIndicator typingUsers={typingUsers} className="border-t" />
 
-      <div className="border-t px-3 py-3">
-        {replyTo ? (
-          <div className="mb-2">
-            <ReplyPreview
-              label="Replying to"
-              body={replyTo.body}
-              onClear={() => setReplyTo(null)}
-            />
-          </div>
-        ) : null}
-
-        <div className="flex items-center gap-2">
-          <Input
-            value={body}
-            onChange={(e) => onInputChange(e.target.value)}
-            onBlur={() => {
-              void emitTyping(false)
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                void emitTyping(false)
-                handleSend()
-              }
-            }}
-            placeholder="Type a message"
+      {replyTo ? (
+        <div className="border-t px-4 pt-2">
+          <ReplyPreview
+            label="Replying to"
+            body={replyTo.body}
+            onClear={() => setReplyTo(null)}
           />
-          <Button type="button" onClick={handleSend}>
-            Send
-          </Button>
         </div>
-      </div>
+      ) : null}
+
+      <ChatInputArea
+        onIntent={handleIntent}
+        onTypingChange={onTypingChange}
+        disabled={loading}
+        currentUserId={user.id}
+      />
     </div>
   )
 }
