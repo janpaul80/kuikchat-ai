@@ -51,16 +51,11 @@ function resolveBucket(type: ChatIntentType): string {
   }
 }
 
-/**
- * Processes a chat media intent and uploads the file to the correct bucket.
- * Returns the public URL on success.
- */
-export async function processChatIntent(
+async function uploadToSupabaseStorage(
   chatId: string,
   payload: ChatIntentPayload,
   supabase: ReturnType<typeof createBrowserClient>
 ): Promise<{ url?: string; error?: Error }> {
-
   if (!payload.file) return { error: new Error('No file provided') }
 
   const bucket = resolveBucket(payload.type)
@@ -90,4 +85,16 @@ export async function processChatIntent(
     console.error('[media-service] Upload failed:', error)
     return { error }
   }
+}
+
+/**
+ * Processes a chat media intent and uploads the file to the correct bucket.
+ * Returns the public URL on success.
+ */
+export async function processChatIntent(
+  chatId: string,
+  payload: ChatIntentPayload,
+  supabase: ReturnType<typeof createBrowserClient>
+): Promise<{ url?: string; error?: Error }> {
+  return uploadToSupabaseStorage(chatId, payload, supabase)
 }

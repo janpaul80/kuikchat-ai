@@ -91,6 +91,16 @@ Run this checklist before feature expansion. Stability wins over new surface are
 - Document upload routes through the attachment path until FileNinja is integrated.
 - Failed uploads remove optimistic placeholders and show an error.
 
+## Ecosystem Integrations
+
+- FileNinja config placeholders are `FILENINJA_API_URL` and `FILENINJA_API_KEY`.
+- Rev-Pro config placeholders are `REVPRO_API_URL` and `REVPRO_API_KEY`.
+- Provider API keys stay server-side only and must not use `NEXT_PUBLIC_` names.
+- Attachment drawer shows FileNinja and Rev-Pro entry points as unavailable until provider jobs are implemented.
+- No FileNinja or Rev-Pro API call should run when the provider is unconfigured.
+- Slice 1 provider responses are typed config/unavailable responses only; they do not prove secure file transfer, transcription, summaries, captions, or notes.
+- Supabase attachments remain the active upload path until FileNinja upload sessions are implemented and verified.
+
 ## Realtime Recovery
 
 - Open Alice and Bob in separate browser sessions.

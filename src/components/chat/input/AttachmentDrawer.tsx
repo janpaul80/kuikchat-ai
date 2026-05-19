@@ -9,11 +9,13 @@ import {
   FileBox, 
   MapPin, 
   BarChart2, 
-  Calendar, 
   Sparkles,
   Plus,
   UserCircle,
-  CalendarCheck
+  CalendarCheck,
+  ShieldCheck,
+  Captions,
+  FileSearch
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +26,8 @@ interface DrawerItem {
   colorClass: string
   bgClass: string
   onClick: () => void
+  disabled?: boolean
+  title?: string
 }
 
 interface AttachmentDrawerProps {
@@ -65,6 +69,16 @@ export function AttachmentDrawer({ onSelectMedia, onSelectDocument, onSelectAI, 
       onClick: onSelectDocument // FileNinja Gateway
     },
     {
+      id: 'fileninja',
+      label: 'Secure File',
+      icon: ShieldCheck,
+      colorClass: 'text-cyan-500',
+      bgClass: 'bg-cyan-500/10',
+      onClick: () => {},
+      disabled: true,
+      title: 'FileNinja secure transfer is unavailable until provider configuration and upload sessions are implemented.'
+    },
+    {
       id: 'contact',
       label: 'Contact',
       icon: UserCircle,
@@ -103,6 +117,26 @@ export function AttachmentDrawer({ onSelectMedia, onSelectDocument, onSelectAI, 
       colorClass: 'text-purple-500',
       bgClass: 'bg-purple-500/10',
       onClick: onSelectAI // Hermes / Rev-Pro Gateway
+    },
+    {
+      id: 'revpro-transcribe',
+      label: 'Transcribe',
+      icon: Captions,
+      colorClass: 'text-fuchsia-500',
+      bgClass: 'bg-fuchsia-500/10',
+      onClick: () => {},
+      disabled: true,
+      title: 'Rev-Pro transcription is unavailable until provider configuration and media jobs are implemented.'
+    },
+    {
+      id: 'revpro-summary',
+      label: 'Summarize',
+      icon: FileSearch,
+      colorClass: 'text-violet-500',
+      bgClass: 'bg-violet-500/10',
+      onClick: () => {},
+      disabled: true,
+      title: 'Rev-Pro media summaries are unavailable until provider configuration and media jobs are implemented.'
     }
   ]
 
@@ -140,14 +174,23 @@ export function AttachmentDrawer({ onSelectMedia, onSelectDocument, onSelectAI, 
                   {items.map((item) => (
                     <button
                       key={item.id}
+                      type="button"
+                      disabled={item.disabled}
+                      title={item.title}
+                      aria-disabled={item.disabled}
                       onClick={() => {
+                        if (item.disabled) return
                         item.onClick()
                         setOpen(false)
                       }}
-                      className="group flex flex-col items-center gap-1.5 outline-none"
+                      className={cn(
+                        "group flex flex-col items-center gap-1.5 outline-none",
+                        item.disabled && "cursor-not-allowed opacity-45"
+                      )}
                     >
                       <div className={cn(
                         "flex h-12 w-12 items-center justify-center rounded-2xl transition-transform group-hover:scale-105 group-active:scale-95",
+                        item.disabled && "group-hover:scale-100 group-active:scale-100",
                         item.bgClass
                       )}>
                         <item.icon className={cn("h-6 w-6", item.colorClass)} strokeWidth={2} />
