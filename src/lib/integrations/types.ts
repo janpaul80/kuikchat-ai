@@ -14,6 +14,8 @@ export interface IntegrationProviderStatus {
   configured: boolean
   status: IntegrationStatus
   reason?: string
+  enabled?: boolean
+  maxInlineBytes?: number
 }
 
 export interface IntegrationIntentBase {
@@ -53,11 +55,21 @@ export interface IntegrationResult {
   metadata?: Record<string, unknown>
 }
 
+export interface PendingIntegrationMessage {
+  id: string
+  chatId: string
+  body: string
+  type: 'file'
+  metadata: Record<string, unknown>
+}
+
 export interface FileTransferProvider {
   id: 'fileninja'
   displayName: string
   getStatus(): IntegrationProviderStatus
+  validateTransferIntent(intent: FileTransferIntent): string | null
   createTransfer(intent: FileTransferIntent): Promise<IntegrationResult>
+  buildPendingMessage(intent: FileTransferIntent, result: IntegrationResult): PendingIntegrationMessage
 }
 
 export interface MediaIntelligenceProvider {

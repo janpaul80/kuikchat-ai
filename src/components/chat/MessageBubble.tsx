@@ -9,6 +9,7 @@ import { PollWidget } from './polls/PollWidget'
 import { ContactCard } from './ContactCard'
 import { LocationCard } from './LocationCard'
 import { EventCard } from './EventCard'
+import { FileNinjaDeliveryCard, isReadyFileNinjaMessage } from './FileNinjaDeliveryCard'
 import type { MessageRow, ReactionRow, RepliedToPreview, ProfileLite } from '@/lib/chat/types'
 import { cn } from '@/lib/utils'
 
@@ -98,6 +99,8 @@ export function MessageBubble({
             <p className="whitespace-pre-wrap break-words text-[14px] leading-relaxed italic opacity-60">
               This message was deleted
             </p>
+          ) : msg.type === 'file' && isReadyFileNinjaMessage(msg.metadata) ? (
+            <FileNinjaDeliveryCard metadata={msg.metadata} mine={mine} />
           ) : isVoiceBody(msg.body) ? (
             // ── Voice note player ──────────────────────────────────────────
             (() => {
