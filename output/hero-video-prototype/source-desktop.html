@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KuikChat Workflow Loop Source</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #061117;
+      --panel: rgba(8, 23, 31, 0.88);
+      --panel-2: rgba(17, 36, 45, 0.9);
+      --line: rgba(170, 214, 222, 0.22);
+      --text: #eefcff;
+      --muted: #99b7bd;
+      --cyan: #4ee7dc;
+      --green: #8ef6b5;
+      --blue: #7aa7ff;
+      --gold: #ffd166;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #041015;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .stage {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 16% 18%, rgba(78, 231, 220, 0.24), transparent 28%),
+        radial-gradient(circle at 84% 18%, rgba(122, 167, 255, 0.2), transparent 30%),
+        radial-gradient(circle at 60% 90%, rgba(142, 246, 181, 0.15), transparent 32%),
+        linear-gradient(135deg, #041015 0%, #0a1c26 52%, #071019 100%);
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background:
+        linear-gradient(115deg, transparent 0 42%, rgba(255, 255, 255, 0.08) 48%, transparent 54%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 82px);
+      transform: rotate(-7deg);
+      animation: lightSweep 8s linear infinite;
+      opacity: 0.7;
+    }
+
+    .desktop {
+      position: absolute;
+      left: 92px;
+      top: 64px;
+      width: 930px;
+      height: 560px;
+      border: 1px solid rgba(202, 243, 247, 0.22);
+      border-radius: 22px;
+      background: rgba(4, 16, 22, 0.76);
+      box-shadow: 0 34px 130px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(78, 231, 220, 0.06) inset;
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+      transform: perspective(1400px) rotateY(-5deg) rotateX(2deg);
+      animation: desktopFloat 8s ease-in-out infinite;
+    }
+
+    .topbar {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      color: #042024;
+      font-weight: 900;
+      box-shadow: 0 0 28px rgba(78, 231, 220, 0.3);
+    }
+
+    .status-pills {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      color: #c8f8f4;
+    }
+
+    .pill {
+      border: 1px solid rgba(185, 236, 235, 0.2);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: 210px 270px 1fr;
+      height: calc(100% - 50px);
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.16);
+      padding: 18px 14px;
+    }
+
+    .nav-item, .channel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 38px;
+      border-radius: 12px;
+      padding: 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav-item.active {
+      color: white;
+      background: rgba(78, 231, 220, 0.12);
+      border: 1px solid rgba(78, 231, 220, 0.18);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+
+    .section-label {
+      margin: 22px 10px 9px;
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #76959d;
+      letter-spacing: 0.12em;
+    }
+
+    .chat-list {
+      border-right: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+      padding: 14px;
+    }
+
+    .search {
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 12px;
+    }
+
+    .thread {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 10px;
+      padding: 11px 8px;
+      border-radius: 14px;
+      margin-bottom: 8px;
+      animation: threadPulse 8s ease-in-out infinite;
+    }
+
+    .thread:nth-child(3) { animation-delay: -2.4s; }
+    .thread:nth-child(4) { animation-delay: -4.8s; }
+
+    .thread.active {
+      background: rgba(78, 231, 220, 0.12);
+      border: 1px solid rgba(78, 231, 220, 0.18);
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: #042024;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+    }
+
+    .avatar.alt { background: linear-gradient(135deg, #ffd166, #ff8fab); }
+    .avatar.pro { background: linear-gradient(135deg, #7aa7ff, #caa8ff); }
+
+    .thread-title {
+      font-size: 13px;
+      font-weight: 720;
+      margin-bottom: 5px;
+    }
+
+    .thread-preview {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(211, 242, 245, 0.2);
+      width: 84%;
+    }
+
+    .thread-preview.short { width: 56%; margin-top: 5px; }
+
+    .conversation {
+      position: relative;
+      padding: 16px 18px;
+      overflow: hidden;
+    }
+
+    .conversation-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 42px;
+      margin-bottom: 14px;
+    }
+
+    .conversation-title {
+      font-size: 16px;
+      font-weight: 780;
+    }
+
+    .lock {
+      font-size: 12px;
+      color: #c9fff1;
+      border: 1px solid rgba(142, 246, 181, 0.22);
+      background: rgba(142, 246, 181, 0.1);
+      padding: 7px 10px;
+      border-radius: 999px;
+    }
+
+    .message {
+      max-width: 62%;
+      padding: 12px 14px;
+      border-radius: 18px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.35;
+      box-shadow: 0 12px 42px rgba(0, 0, 0, 0.16);
+      animation: messageIn 8s ease-in-out infinite both;
+    }
+
+    .message.left {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .message.right {
+      margin-left: auto;
+      background: linear-gradient(135deg, rgba(78, 231, 220, 0.36), rgba(142, 246, 181, 0.24));
+      border: 1px solid rgba(142, 246, 181, 0.22);
+    }
+
+    .message.m2 { animation-delay: -6.4s; }
+    .message.m3 { animation-delay: -4.8s; }
+    .message.m4 { animation-delay: -3.2s; }
+
+    .file-card {
+      width: 330px;
+      padding: 13px;
+      border-radius: 17px;
+      background: rgba(4, 20, 27, 0.74);
+      border: 1px solid rgba(78, 231, 220, 0.2);
+      margin-top: 12px;
+      animation: cardLift 8s ease-in-out infinite;
+    }
+
+    .file-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      color: #d9fffb;
+    }
+
+    .meter {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 11px 0 8px;
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      width: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      transform-origin: left;
+      animation: progress 8s linear infinite;
+    }
+
+    .card-meta {
+      color: #9fbcc2;
+      font-size: 11px;
+    }
+
+    .composer {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
+      height: 45px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.075);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      color: #98b7bd;
+      font-size: 12px;
+    }
+
+    .send {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+    }
+
+    .hermes {
+      position: absolute;
+      right: 84px;
+      top: 98px;
+      width: 245px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(5, 18, 25, 0.86);
+      border: 1px solid rgba(122, 167, 255, 0.28);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32), 0 0 48px rgba(122, 167, 255, 0.14);
+      animation: hermesAppear 8s ease-in-out infinite;
+    }
+
+    .hermes-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 760;
+      margin-bottom: 10px;
+    }
+
+    .spark {
+      width: 22px;
+      height: 22px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #7aa7ff, #caa8ff);
+      box-shadow: 0 0 22px rgba(122, 167, 255, 0.45);
+    }
+
+    .hermes-line {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(219, 231, 255, 0.24);
+      margin: 8px 0;
+    }
+
+    .hermes-line.wide { width: 94%; }
+    .hermes-line.mid { width: 76%; }
+    .hermes-line.short { width: 48%; }
+
+    .phone {
+      position: absolute;
+      right: 78px;
+      bottom: 60px;
+      width: 190px;
+      height: 385px;
+      border: 1px solid rgba(219, 250, 252, 0.22);
+      border-radius: 31px;
+      background: rgba(8, 24, 32, 0.86);
+      box-shadow: 0 30px 110px rgba(0, 0, 0, 0.5);
+      padding: 12px;
+      transform: perspective(900px) rotateY(9deg) rotateX(3deg);
+      animation: phoneFloat 8s ease-in-out infinite;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      padding: 12px;
+    }
+
+    .phone-head {
+      font-size: 12px;
+      font-weight: 760;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 13px;
+    }
+
+    .phone-msg {
+      border-radius: 14px;
+      padding: 9px;
+      font-size: 10px;
+      line-height: 1.3;
+      background: rgba(255,255,255,0.08);
+      margin-bottom: 8px;
+      animation: phoneMsg 8s ease-in-out infinite both;
+    }
+
+    .phone-msg.right {
+      margin-left: auto;
+      width: 78%;
+      background: rgba(78, 231, 220, 0.22);
+    }
+
+    .mobile-transfer {
+      margin-top: 18px;
+      padding: 10px;
+      border-radius: 15px;
+      border: 1px solid rgba(142, 246, 181, 0.18);
+      background: rgba(142, 246, 181, 0.08);
+      font-size: 10px;
+    }
+
+    .notification {
+      position: absolute;
+      right: 275px;
+      bottom: 114px;
+      width: 260px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 209, 102, 0.26);
+      background: rgba(20, 21, 20, 0.8);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+      animation: notify 8s ease-in-out infinite;
+    }
+
+    .notification strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .notification span {
+      color: #c9d9dc;
+      font-size: 11px;
+    }
+
+    .watermark {
+      position: absolute;
+      left: 42px;
+      bottom: 34px;
+      color: rgba(221, 252, 255, 0.42);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    @keyframes lightSweep {
+      from { transform: translateX(-8%) rotate(-7deg); }
+      to { transform: translateX(8%) rotate(-7deg); }
+    }
+
+    @keyframes desktopFloat {
+      0%, 100% { transform: perspective(1400px) rotateY(-5deg) rotateX(2deg) translate3d(0, 0, 0); }
+      50% { transform: perspective(1400px) rotateY(-4deg) rotateX(1.4deg) translate3d(0, -9px, 0); }
+    }
+
+    @keyframes phoneFloat {
+      0%, 100% { transform: perspective(900px) rotateY(9deg) rotateX(3deg) translate3d(0, 0, 0); }
+      50% { transform: perspective(900px) rotateY(7deg) rotateX(2deg) translate3d(0, 11px, 0); }
+    }
+
+    @keyframes threadPulse {
+      0%, 45%, 100% { background: transparent; }
+      55%, 72% { background: rgba(255,255,255,0.06); }
+    }
+
+    @keyframes messageIn {
+      0%, 12% { opacity: 0; transform: translateY(18px) scale(0.98); }
+      22%, 86% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0.82; transform: translateY(-3px) scale(1); }
+    }
+
+    @keyframes cardLift {
+      0%, 18% { opacity: 0; transform: translateY(18px); }
+      32%, 100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes progress {
+      0%, 15% { transform: scaleX(0.08); }
+      78%, 100% { transform: scaleX(1); }
+    }
+
+    @keyframes hermesAppear {
+      0%, 24% { opacity: 0; transform: translateY(12px) scale(0.96); }
+      38%, 86% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0.72; transform: translateY(-4px) scale(1); }
+    }
+
+    @keyframes phoneMsg {
+      0%, 25% { opacity: 0; transform: translateY(12px); }
+      36%, 100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes notify {
+      0%, 42% { opacity: 0; transform: translateX(16px) translateY(8px) scale(0.96); }
+      55%, 84% { opacity: 1; transform: translateX(0) translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateX(-8px) translateY(-5px) scale(0.98); }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="desktop" aria-label="Animated KuikChat desktop product workflow">
+      <div class="topbar">
+        <div class="brand"><div class="mark">K</div> KuikChat</div>
+        <div class="status-pills">
+          <div class="pill">No phone required</div>
+          <div class="pill">E2EE ready</div>
+          <div class="pill">Hermes online</div>
+        </div>
+      </div>
+      <div class="app-grid">
+        <aside class="sidebar">
+          <div class="nav-item active"><span class="dot"></span> Chats</div>
+          <div class="nav-item"><span class="dot" style="background:#7aa7ff;box-shadow:0 0 14px #7aa7ff"></span> Hermes AI</div>
+          <div class="nav-item"><span class="dot" style="background:#ffd166;box-shadow:0 0 14px #ffd166"></span> FileNinja</div>
+          <div class="section-label">Communities</div>
+          <div class="channel"># launch-room</div>
+          <div class="channel"># creators</div>
+          <div class="channel"># private-team</div>
+          <div class="section-label">Professional</div>
+          <div class="channel">Client workspace</div>
+          <div class="channel">Secure handoff</div>
+        </aside>
+        <section class="chat-list">
+          <div class="search"></div>
+          <div class="thread active">
+            <div class="avatar">A</div>
+            <div><div class="thread-title">Alice Martin</div><div class="thread-preview"></div><div class="thread-preview short"></div></div>
+          </div>
+          <div class="thread">
+            <div class="avatar alt">C</div>
+            <div><div class="thread-title">Creators Hub</div><div class="thread-preview"></div><div class="thread-preview short"></div></div>
+          </div>
+          <div class="thread">
+            <div class="avatar pro">P</div>
+            <div><div class="thread-title">Pro Client Room</div><div class="thread-preview"></div><div class="thread-preview short"></div></div>
+          </div>
+        </section>
+        <section class="conversation">
+          <div class="conversation-head">
+            <div class="conversation-title">Launch Room</div>
+            <div class="lock">Encrypted conversation</div>
+          </div>
+          <div class="message left">Can Hermes summarize the client notes and prep a concise reply?</div>
+          <div class="message right m2">Yes. Keep it direct, include the deadline, and attach the secure transfer.</div>
+          <div class="message left m3">Uploading the signed assets through FileNinja now.</div>
+          <div class="file-card">
+            <div class="file-top"><strong>FileNinja transfer</strong><span>128 MB</span></div>
+            <div class="meter"><span></span></div>
+            <div class="card-meta">Secure link generated - expires in 24 hours</div>
+          </div>
+          <div class="message right m4">Shared. Notifications are live across desktop and mobile.</div>
+          <div class="composer"><span>Message Alice, team, or Hermes...</span><div class="send"></div></div>
+        </section>
+      </div>
+    </section>
+
+    <aside class="hermes">
+      <div class="hermes-title"><span class="spark"></span> Hermes AI</div>
+      <div class="hermes-line wide"></div>
+      <div class="hermes-line mid"></div>
+      <div class="hermes-line short"></div>
+    </aside>
+
+    <aside class="phone" aria-label="Animated KuikChat mobile companion view">
+      <div class="phone-screen">
+        <div class="phone-head"><span>KuikChat</span><span>Now</span></div>
+        <div class="phone-msg">Alice: The secure file is ready.</div>
+        <div class="phone-msg right">Got it. Sending summary.</div>
+        <div class="phone-msg">Hermes drafted 3 replies.</div>
+        <div class="mobile-transfer">
+          FileNinja transfer<br />
+          <div class="meter"><span></span></div>
+          Verified delivery
+        </div>
+      </div>
+    </aside>
+
+    <aside class="notification">
+      <strong>Professional workspace updated</strong>
+      <span>New encrypted message, Hermes note, and FileNinja delivery receipt.</span>
+    </aside>
+
+    <div class="watermark">KuikChat workflow loop</div>
+  </main>
+</body>
+</html>

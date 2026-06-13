@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/button'
@@ -10,24 +11,47 @@ import { cn } from '@/lib/utils'
 const NAV_LINKS = [
   { href: '/features', label: 'Features' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/security', label: 'Security' },
+  { href: '/download', label: 'Download' },
   { href: '/about', label: 'About' },
-  { href: '#hermes', label: 'Hermes AI' },
+  { href: '/support', label: 'Support' },
 ]
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  const isHome = pathname === '/'
+  const isDarkPage = isHome || ['/about', '/pricing', '/download'].includes(pathname)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
+    <header
+      className={cn(
+        'top-0 z-50 w-full transition-colors',
+        isHome
+          ? 'absolute border-b border-white/10 bg-transparent text-white'
+          : isDarkPage
+            ? 'sticky border-b border-white/10 bg-[#02070d]/90 text-white backdrop-blur-xl'
+            : 'sticky border-b border-border/40 bg-background/80 backdrop-blur-xl'
+      )}
+    >
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Logo size={36} />
+        <Logo
+          size={isHome ? 82 : 36}
+          showText={!isHome}
+          textClassName={isHome ? 'text-white' : undefined}
+        />
 
         <nav className="hidden items-center gap-8 md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className={cn(
+                'text-sm font-bold transition-colors',
+                isDarkPage
+                  ? 'text-white/85 hover:text-white'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
             >
               {link.label}
             </Link>
@@ -35,16 +59,27 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost" asChild>
+          <Button
+            variant="ghost"
+            className={isDarkPage ? 'text-white hover:bg-white/10 hover:text-white' : undefined}
+            asChild
+          >
             <Link href="/login">Log in</Link>
           </Button>
-          <Button variant="gradient" asChild>
-            <Link href="/signup">Get Started Free</Link>
+          <Button
+            variant={isHome ? 'secondary' : 'gradient'}
+            className={isHome ? 'rounded-full bg-white text-slate-950 hover:bg-white/90' : undefined}
+            asChild
+          >
+            <Link href="/signup">Get Started</Link>
           </Button>
         </div>
 
         <button
-          className="md:hidden"
+          className={cn(
+            'rounded-xl p-2 md:hidden',
+            isHome ? 'bg-white/10 text-white backdrop-blur' : undefined
+          )}
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
         >
@@ -55,7 +90,12 @@ export function Navbar() {
       {/* Mobile menu */}
       <div
         className={cn(
-          'overflow-hidden border-t border-border/40 bg-background md:hidden',
+          'overflow-hidden border-t md:hidden',
+          isHome
+            ? 'border-white/10 bg-slate-950/90 text-white backdrop-blur-xl'
+            : isDarkPage
+              ? 'border-white/10 bg-[#02070d] text-white'
+            : 'border-border/40 bg-background',
           open ? 'max-h-96' : 'max-h-0'
         )}
       >

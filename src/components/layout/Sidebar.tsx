@@ -42,9 +42,7 @@ export function Sidebar() {
     <aside className="hidden md:flex h-screen w-64 flex-col border-r border-border bg-card">
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-border px-5">
-        <Link href="/chats">
-          <Logo size={32} />
-        </Link>
+        <Logo size={32} href="/chats" />
       </div>
 
       {/* Nav */}

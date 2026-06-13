@@ -159,3 +159,40 @@
   33% { transform: translate(40px, -50px) scale(1.1); }
   66% { transform: translate(-30px, 30px) scale(0.9); }
 }
+
+@keyframes kuik-message-glow {
+  0%, 100% {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes kuik-card-lift {
+  0%, 100% {
+    border-color: rgb(255 255 255 / 0.1);
+    transform: translateY(0);
+  }
+  45% {
+    border-color: rgb(84 211 136 / 0.35);
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes kuik-chat-scroll {
+  0% {
+    transform: translateY(0);
+  }
+  45% {
+    transform: translateY(-168px);
+  }
+  55% {
+    transform: translateY(-168px);
+  }
+  100% {
+    transform: translateY(-336px);
+  }
+}

@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KuikChat Launch Concepts</title>
+    <style>
+      :root {
+        --ink: #07111f;
+        --muted: #5d6d86;
+        --blue: #1e5bcb;
+        --green: #5bc967;
+        --teal: #1aafa0;
+        --panel: rgba(255, 255, 255, 0.86);
+        --line: rgba(136, 153, 179, 0.26);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: #f7faff;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .nav {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 30;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 68px;
+        padding: 0 36px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(6, 17, 31, 0.58);
+        color: white;
+        backdrop-filter: blur(20px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      .brand img {
+        width: 31px;
+        height: 31px;
+        border-radius: 8px;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        font-size: 13px;
+        font-weight: 700;
+        opacity: 0.9;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 20px;
+        border-radius: 13px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        font-size: 14px;
+        font-weight: 800;
+        box-shadow: 0 18px 44px rgba(9, 27, 61, 0.18);
+      }
+
+      .btn.primary {
+        border: 0;
+        color: white;
+        background: linear-gradient(135deg, var(--blue), var(--green));
+      }
+
+      .btn.ghost {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .section {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .hero {
+        display: grid;
+        place-items: center;
+        padding: 96px 34px 52px;
+        color: white;
+        background:
+          radial-gradient(circle at 16% 14%, rgba(30, 91, 203, 0.8), transparent 28%),
+          radial-gradient(circle at 84% 24%, rgba(91, 201, 103, 0.76), transparent 32%),
+          linear-gradient(135deg, #06111f 0%, #09234c 48%, #06111f 100%);
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(6, 17, 31, 0.1), rgba(6, 17, 31, 0.76)),
+          radial-gradient(circle at 50% 50%, transparent 0%, rgba(6, 17, 31, 0.4) 78%);
+      }
+
+      .motion-field {
+        position: absolute;
+        inset: -8%;
+        opacity: 0.55;
+        transform: rotate(-5deg) scale(1.05);
+        filter: saturate(1.1);
+      }
+
+      .motion-field img {
+        position: absolute;
+        width: min(46vw, 640px);
+        border-radius: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 34px 120px rgba(0, 0, 0, 0.42);
+        animation: float-frame 13s ease-in-out infinite;
+      }
+
+      .motion-field img:nth-child(1) {
+        top: 8%;
+        left: 2%;
+      }
+
+      .motion-field img:nth-child(2) {
+        right: -2%;
+        top: 17%;
+        animation-delay: -4s;
+      }
+
+      .motion-field img:nth-child(3) {
+        left: 25%;
+        bottom: 0;
+        animation-delay: -7s;
+      }
+
+      @keyframes float-frame {
+        0%, 100% {
+          transform: translate3d(0, 0, 0);
+        }
+        50% {
+          transform: translate3d(0, -18px, 0);
+        }
+      }
+
+      .hero-inner {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        width: min(1180px, 100%);
+        gap: 28px;
+        text-align: center;
+        justify-items: center;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 13px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 12px;
+        font-weight: 850;
+        letter-spacing: 0.02em;
+        backdrop-filter: blur(16px);
+      }
+
+      .hero h1 {
+        max-width: 980px;
+        margin: 0;
+        font-size: clamp(48px, 8vw, 104px);
+        line-height: 0.92;
+        letter-spacing: -0.065em;
+      }
+
+      .hero p {
+        max-width: 760px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.84);
+        font-size: clamp(17px, 2.1vw, 23px);
+        line-height: 1.45;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .trust-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        max-width: 880px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 12px;
+        font-weight: 750;
+        backdrop-filter: blur(18px);
+      }
+
+      .product-strip {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        width: min(1040px, 100%);
+        margin-top: 12px;
+      }
+
+      .mini-card {
+        min-height: 118px;
+        padding: 16px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.12);
+        text-align: left;
+        backdrop-filter: blur(20px);
+      }
+
+      .mini-card strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+      }
+
+      .mini-card span {
+        color: rgba(255, 255, 255, 0.74);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .hero-b {
+        background:
+          linear-gradient(90deg, rgba(4, 13, 29, 0.92), rgba(4, 13, 29, 0.38)),
+          url("../playwright/launch-review/24-chat-detail-auth-desktop.png") center / cover;
+      }
+
+      .hero-b .hero-inner {
+        justify-items: start;
+        text-align: left;
+        margin-right: auto;
+      }
+
+      .hero-b h1 {
+        max-width: 720px;
+      }
+
+      .hero-c {
+        background:
+          radial-gradient(circle at 50% 8%, rgba(91, 201, 103, 0.28), transparent 34%),
+          linear-gradient(135deg, #050d19 0%, #0a1830 54%, #07111f 100%);
+      }
+
+      .orbital {
+        position: absolute;
+        inset: auto 5% 5% auto;
+        z-index: 1;
+        width: min(48vw, 650px);
+        aspect-ratio: 1.15;
+        opacity: 0.84;
+      }
+
+      .orbital img {
+        position: absolute;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: 0 30px 95px rgba(0, 0, 0, 0.35);
+      }
+
+      .orbital img:nth-child(1) {
+        width: 76%;
+        right: 3%;
+        top: 8%;
+      }
+
+      .orbital img:nth-child(2) {
+        width: 48%;
+        left: 0;
+        bottom: 7%;
+      }
+
+      .light-page {
+        min-height: 100vh;
+        padding: 100px 34px 70px;
+        background:
+          radial-gradient(circle at 88% 12%, rgba(91, 201, 103, 0.22), transparent 28%),
+          radial-gradient(circle at 8% 32%, rgba(30, 91, 203, 0.18), transparent 34%),
+          #f8fbff;
+      }
+
+      .page-wrap {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+      }
+
+      .page-head {
+        display: grid;
+        gap: 14px;
+        max-width: 780px;
+        margin-bottom: 42px;
+      }
+
+      .page-head h2 {
+        margin: 0;
+        font-size: clamp(38px, 5.4vw, 72px);
+        line-height: 0.98;
+        letter-spacing: -0.055em;
+      }
+
+      .page-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.45;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.78);
+        box-shadow: 0 18px 50px rgba(9, 27, 61, 0.08);
+      }
+
+      .card .icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 16px;
+        border-radius: 14px;
+        color: white;
+        background: linear-gradient(135deg, var(--blue), var(--green));
+        font-weight: 900;
+      }
+
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        letter-spacing: -0.025em;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.48;
+      }
+
+      .pricing-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .price {
+        display: flex;
+        flex-direction: column;
+        min-height: 360px;
+      }
+
+      .price.featured {
+        color: white;
+        background: linear-gradient(145deg, #0b1e47, #1e5bcb 55%, #35b866);
+        transform: translateY(-10px);
+      }
+
+      .price strong {
+        font-size: 26px;
+      }
+
+      .price .money {
+        margin: 18px 0;
+        font-size: 42px;
+        font-weight: 900;
+        letter-spacing: -0.055em;
+      }
+
+      .price ul {
+        display: grid;
+        gap: 10px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        color: inherit;
+        opacity: 0.86;
+        font-size: 14px;
+      }
+
+      .about-split {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 32px;
+        align-items: center;
+      }
+
+      .about-split img {
+        width: 100%;
+        border-radius: 28px;
+        border: 1px solid var(--line);
+        box-shadow: 0 28px 80px rgba(9, 27, 61, 0.15);
+      }
+
+      .metric-band {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 26px;
+      }
+
+      .metric {
+        padding: 16px;
+        border-radius: 18px;
+        background: #eef7ff;
+      }
+
+      .metric b {
+        display: block;
+        font-size: 28px;
+        letter-spacing: -0.04em;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      @media (max-width: 760px) {
+        .nav {
+          height: 62px;
+          padding: 0 18px;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .hero {
+          min-height: 100svh;
+          padding: 78px 18px 22px;
+          align-items: start;
+        }
+
+        .motion-field {
+          inset: 0;
+          transform: rotate(-8deg) scale(1.5);
+          opacity: 0.38;
+        }
+
+        .motion-field img {
+          width: 92vw;
+        }
+
+        .hero-inner {
+          gap: 18px;
+          align-content: start;
+          padding-top: 12px;
+        }
+
+        .hero h1 {
+          font-size: clamp(42px, 14vw, 58px);
+        }
+
+        .hero p {
+          font-size: 16px;
+        }
+
+        .actions {
+          width: 100%;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        .trust-row {
+          gap: 7px;
+        }
+
+        .pill {
+          min-height: 30px;
+          font-size: 11px;
+        }
+
+        .product-strip,
+        .grid,
+        .pricing-row,
+        .about-split,
+        .metric-band {
+          grid-template-columns: 1fr;
+        }
+
+        .product-strip {
+          margin-top: 2px;
+        }
+
+        .mini-card:nth-child(n + 3) {
+          display: none;
+        }
+
+        .hero-b {
+          background:
+            linear-gradient(180deg, rgba(4, 13, 29, 0.9), rgba(4, 13, 29, 0.58)),
+            url("../playwright/launch-review/21-chats-auth-mobile.png") center / cover;
+        }
+
+        .hero-b .hero-inner {
+          justify-items: center;
+          text-align: center;
+        }
+
+        .orbital {
+          display: none;
+        }
+
+        .light-page {
+          padding: 82px 18px 42px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <a class="brand" href="#landing-video">
+        <img src="../../public/logo.png" alt="KuikChat" />
+        KuikChat
+      </a>
+      <div class="nav-links">
+        <a href="#landing-video">Video Hero</a>
+        <a href="#hero-command">Command Hero</a>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#about">About</a>
+      </div>
+      <a class="btn primary" href="#pricing">Get Started</a>
+    </nav>
+
+    <section id="landing-video" class="section hero">
+      <div class="motion-field" aria-hidden="true">
+        <img src="../playwright/launch-review/24-chat-detail-auth-desktop.png" alt="" />
+        <img src="../playwright/launch-review/23-chats-auth-desktop-settled.png" alt="" />
+        <img src="../playwright/launch-review/19-profile-auth-desktop.png" alt="" />
+      </div>
+      <div class="hero-inner">
+        <span class="eyebrow">Video hero concept - subtle product workflow loop</span>
+        <h1>Modern messaging with privacy, AI, and secure transfer built in.</h1>
+        <p>
+          KuikChat brings chats, communities, Hermes AI, FileNinja transfers, and
+          professional workflows into one secure communication platform.
+        </p>
+        <div class="actions">
+          <a class="btn primary" href="#">Create your free account</a>
+          <a class="btn ghost" href="#features">See what makes it different</a>
+        </div>
+        <div class="trust-row">
+          <span class="pill">No phone number required</span>
+          <span class="pill">End-to-end encrypted</span>
+          <span class="pill">Hermes AI assistant</span>
+          <span class="pill">FileNinja secure transfers</span>
+          <span class="pill">Communities + professional messaging</span>
+        </div>
+        <div class="product-strip">
+          <div class="mini-card">
+            <strong>Chat without giving up your phone number.</strong>
+            <span>Email signup, usernames, clean profiles, and private conversations.</span>
+          </div>
+          <div class="mini-card">
+            <strong>Bring Hermes into real conversations.</strong>
+            <span>Summarize, rewrite, translate, generate, and answer inside the app.</span>
+          </div>
+          <div class="mini-card">
+            <strong>Send large files securely with FileNinja.</strong>
+            <span>Launch-ready secure transfers connected to real chat workflows.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="hero-command" class="section hero hero-b">
+      <div class="hero-inner">
+        <span class="eyebrow">Hero variation - product command center</span>
+        <h1>The secure communication hub for people, teams, and creators.</h1>
+        <p>
+          Start in chat, bring in AI, send files safely, coordinate communities,
+          and keep professional conversations moving without switching apps.
+        </p>
+        <div class="actions">
+          <a class="btn primary" href="#">Start messaging</a>
+          <a class="btn ghost" href="#trust-first">Review security</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="trust-first" class="section hero hero-c">
+      <div class="orbital" aria-hidden="true">
+        <img src="../playwright/launch-review/20-security-auth-desktop.png" alt="" />
+        <img src="../playwright/launch-review/21-chats-auth-mobile.png" alt="" />
+      </div>
+      <div class="hero-inner">
+        <span class="eyebrow">Hero variation - trust first</span>
+        <h1>A messenger that does not ask for your phone number.</h1>
+        <p>
+          Privacy-first signup, encryption-forward messaging, Hermes AI, and
+          secure FileNinja delivery give KuikChat a sharper reason to exist from
+          the first screen.
+        </p>
+        <div class="actions">
+          <a class="btn primary" href="#">Create account</a>
+          <a class="btn ghost" href="#about">Why KuikChat exists</a>
+        </div>
+        <div class="trust-row">
+          <span class="pill">No ads</span>
+          <span class="pill">No phone-number identity trap</span>
+          <span class="pill">Secure transfer workflows</span>
+          <span class="pill">AI where it helps, not where it distracts</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section light-page">
+      <div class="page-wrap">
+        <div class="page-head">
+          <span class="eyebrow" style="color:#123;border-color:#d7e3f3;background:white">Features concept</span>
+          <h2>Everything starts in chat. The rest is built around it.</h2>
+          <p>
+            The redesigned features page should separate launch-ready capabilities
+            from coming-soon surfaces while still making the roadmap feel exciting.
+          </p>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <div class="icon">1</div>
+            <h3>Launch-ready messaging</h3>
+            <p>Realtime chat, Hermes, profile settings, auth, and secure file delivery.</p>
+          </div>
+          <div class="card">
+            <div class="icon">2</div>
+            <h3>Secure transfer layer</h3>
+            <p>FileNinja gives KuikChat an immediate, concrete reason to believe the platform is useful.</p>
+          </div>
+          <div class="card">
+            <div class="icon">3</div>
+            <h3>Coming soon, labeled clearly</h3>
+            <p>Calls, status, channels, communities, contacts, and professional mode should be marked as next-phase.</p>
+          </div>
+          <div class="card">
+            <div class="icon">4</div>
+            <h3>Hermes AI</h3>
+            <p>AI assistance belongs in the app story, but should be shown through a real chat surface.</p>
+          </div>
+          <div class="card">
+            <div class="icon">5</div>
+            <h3>Privacy posture</h3>
+            <p>No phone number, no ad model, security-centered account controls, and clear legal pages.</p>
+          </div>
+          <div class="card">
+            <div class="icon">6</div>
+            <h3>Android next</h3>
+            <p>Native React Native Android is a post-launch milestone, not a wrapper promise.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" class="section light-page">
+      <div class="page-wrap">
+        <div class="page-head">
+          <span class="eyebrow" style="color:#123;border-color:#d7e3f3;background:white">Pricing concept</span>
+          <h2>Start free. Upgrade when KuikChat becomes your daily hub.</h2>
+          <p>
+            Bring plan cards above the fold and connect paid tiers to concrete,
+            trusted capabilities like storage, FileNinja, Hermes, and professional workflows.
+          </p>
+        </div>
+        <div class="pricing-row">
+          <div class="card price">
+            <strong>Free</strong>
+            <div class="money">$0</div>
+            <ul>
+              <li>Unlimited messages</li>
+              <li>Hermes starter access</li>
+              <li>Secure account</li>
+              <li>Basic storage</li>
+            </ul>
+          </div>
+          <div class="card price featured">
+            <strong>Plus</strong>
+            <div class="money">$4.99</div>
+            <ul>
+              <li>More storage</li>
+              <li>FileNinja power use</li>
+              <li>Hermes expanded access</li>
+              <li>Premium customization</li>
+            </ul>
+          </div>
+          <div class="card price">
+            <strong>Pro</strong>
+            <div class="money">$12.99</div>
+            <ul>
+              <li>Professional workflows</li>
+              <li>Priority support</li>
+              <li>Creator tools</li>
+              <li>Advanced AI</li>
+            </ul>
+          </div>
+          <div class="card price">
+            <strong>Business</strong>
+            <div class="money">$29.99</div>
+            <ul>
+              <li>Team messaging</li>
+              <li>Admin controls</li>
+              <li>SLA path</li>
+              <li>Dedicated support</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section light-page">
+      <div class="page-wrap about-split">
+        <div>
+          <span class="eyebrow" style="color:#123;border-color:#d7e3f3;background:white">About concept</span>
+          <h2 style="font-size:clamp(38px,5.4vw,72px);line-height:.98;letter-spacing:-.055em;margin:18px 0">
+            Built for communication that feels private, capable, and alive.
+          </h2>
+          <p style="color:var(--muted);font-size:18px;line-height:1.5">
+            The about page should keep the mission, but ground it in visible product
+            proof: no phone identity trap, secure transfers, AI that helps inside
+            conversation, and a serious roadmap for Android and professional use.
+          </p>
+          <div class="metric-band">
+            <div class="metric"><b>0</b><span>phone numbers required</span></div>
+            <div class="metric"><b>1</b><span>secure communication hub</span></div>
+            <div class="metric"><b>FN</b><span>FileNinja ready</span></div>
+            <div class="metric"><b>AI</b><span>Hermes built in</span></div>
+          </div>
+        </div>
+        <img src="../playwright/launch-review/23-chats-auth-desktop-settled.png" alt="KuikChat chats" />
+      </div>
+    </section>
+  </body>
+</html>

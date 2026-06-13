@@ -14,11 +14,13 @@ export default function FeaturesPage() {
     <>
       <div className="container mx-auto px-4 pt-12 pb-4 text-center">
         <h1 className="text-balance text-5xl font-bold tracking-tight sm:text-6xl">
-          Every feature you need.{' '}
-          <span className="text-brand-gradient">And then some.</span>
+          Launch-ready now.{' '}
+          <span className="text-brand-gradient">Built to grow.</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-          KuikChat is the most feature-rich messenger ever built. 130+ features. One app.
+          KuikChat starts with secure messaging, Hermes AI, and FileNinja-ready
+          transfer workflows, then expands into calls, communities, professional
+          messaging, Rev-Pro, and VideoAgent over staged releases.
         </p>
       </div>
       <FeaturesGrid />

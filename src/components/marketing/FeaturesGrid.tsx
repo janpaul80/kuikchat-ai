@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { FEATURE_CATEGORIES } from '@/lib/constants'
 import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 const ICON_MAP: Record<string, LucideIcon> = {
   MessageSquare,
@@ -26,6 +27,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Smile,
 }
 
+const LAUNCH_READY = new Set(['messaging', 'hermes', 'privacy'])
+
 export function FeaturesGrid() {
   return (
     <section id="features" className="py-20 md:py-32">
@@ -36,14 +39,16 @@ export function FeaturesGrid() {
             <span className="text-brand-gradient">In one place.</span>
           </h2>
           <p className="mt-6 text-lg text-muted-foreground">
-            130+ features across 8 categories. KuikChat replaces WhatsApp,
-            Telegram, Signal, Discord, Slack, and more — all in one beautiful app.
+            KuikChat is launching with secure messaging, Hermes AI, FileNinja-ready
+            transfer workflows, and a clear roadmap for communities, calls, and
+            professional tools.
           </p>
         </div>
 
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURE_CATEGORIES.map((category, idx) => {
             const Icon = ICON_MAP[category.icon] || MessageSquare
+            const isLaunchReady = LAUNCH_READY.has(category.id)
             return (
               <motion.div
                 key={category.id}
@@ -56,7 +61,12 @@ export function FeaturesGrid() {
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gradient text-white shadow-lg shadow-brand-blue-500/30 transition-transform group-hover:scale-110">
                     <Icon className="h-6 w-6" />
                   </div>
-                  <h3 className="mb-2 text-lg font-bold">{category.title}</h3>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-bold">{category.title}</h3>
+                    <Badge variant={isLaunchReady ? 'default' : 'secondary'}>
+                      {isLaunchReady ? 'Launch' : 'Coming Soon'}
+                    </Badge>
+                  </div>
                   <p className="mb-4 text-sm text-muted-foreground">
                     {category.description}
                   </p>

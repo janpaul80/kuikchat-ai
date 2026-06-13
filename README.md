@@ -195,12 +195,35 @@ npm run dev
 | Phase | Status | Focus |
 |---|---|---|
 | **Phase 1 — Foundation** | ✅ **Done** | UI scaffolds, auth, DB schema, Hermes API, Stripe scaffold |
-| **Phase 2 — Messaging Core** | 🔜 Next | Real-time messages via Supabase Realtime, media, voice, search |
-| **Phase 3 — Hermes AI Live** | 🔜 | Wire up @Hermes, translate, summarize, image gen, transcription |
-| **Phase 4 — Groups, Channels, Status** | 🔜 | Group creation, channels, 24h status |
-| **Phase 5 — Voice/Video Calls** | 🔜 | LiveKit / WebRTC, group calls, recording |
-| **Phase 6 — Pro Mode + Monetization** | 🔜 | Business tools, live Stripe billing |
-| **Phase 7 — Mobile** | 🔜 | React Native iOS + Android |
+| **Phase 2 — Messaging Core (Slice A & B)** | ✅ **Done** | Real-time messages, deduplication, optimistic UI, reactions |
+| **Phase 3 — Rich Media & Attachments** | 🔜 Next | Media uploads, voice notes, attachment drawer, document system |
+| **Phase 4 — Interactive Chat Features** | 🔜 | Polls, events, live location, contact sharing |
+| **Phase 5 — Mobile-First Web UX** | 🔜 | Premium dark mode, glass effects, native-feeling animations, SVG icons |
+| **Phase 6 — Business & AI** | 🔜 | Business mini-apps architecture, Hermes AI in-chat actions |
+| **Phase 7 — Native Android App** | 🔜 | Foundation for dedicated Android app (not a web wrapper) |
+
+### 📱 Mobile Vision & Design Philosophy
+
+While the web app focuses on a clean, productivity-driven desktop experience, the upcoming native mobile apps will deliver a **premium, sleek, dark-mode experience** comparable to enterprise-grade messengers like WhatsApp or Telegram.
+
+**Core Mobile Tenets:**
+- **Premium Dark UI:** Black glass aesthetics, smooth modal/bottom-sheet transitions.
+- **Professional Polish:** Exclusively SVG icon-based controls (no oversized/cheap emojis). Emoji restricted to actual message content and reaction pickers.
+- **Native Interactions:** Fast open/close transitions, responsive gesture interactions, and consistent typography.
+- **Privacy-First:** Clear E2E encryption notices, disappearing messages, and secure-device feel.
+
+### 🌐 The KuikChat Ecosystem (FileNinja & Rev-Pro)
+
+KuikChat is not just a messenger; it is designed to evolve into a unified ecosystem integrating **communication, AI, productivity, and business utilities**.
+
+1. **FileNinja Integration (Native Professional File Delivery)**
+   - KuikChat will handle enterprise-grade file sharing natively.
+   - Features: Large file uploads, secure expiring links, encrypted business sharing, and upload progress tracking.
+   - Flow: Uploading a large file generates a secure FileNinja delivery link directly in the chat for inline preview and download.
+2. **Rev-Pro Integration (AI-Powered Media Utilities)**
+   - KuikChat will integrate Rev-Pro's media intelligence natively.
+   - Features: Paste TikTok/YouTube/X links for instant transcription/summarization, upload MP4s for AI captions, and convert voice notes to text.
+   - Flow: Sending media or pasting video links automatically processes the content through Rev-Pro, returning transcripts, summaries, and translations seamlessly in the conversation.
 
 See [TODO.md](./TODO.md) for the live progress board.
 

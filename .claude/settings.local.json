@@ -3,7 +3,11 @@
     "allow": [
       "Bash(git init *)",
       "Bash(git check-ignore *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m '@ *)",
+      "PowerShell(npm run type-check)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
     ]
   }
 }
