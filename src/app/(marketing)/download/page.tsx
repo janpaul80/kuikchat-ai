@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import BubbleHero from '@/components/hero/BubbleHero'
+import { heroCopy } from '@/lib/heroCopy'
 import Link from 'next/link'
 import {
   Apple,
@@ -53,21 +55,7 @@ export default function DownloadPage() {
       <div className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-brand-blue-500/20 blur-3xl" />
       <div className="pointer-events-none absolute right-0 top-44 h-[420px] w-[420px] rounded-full bg-brand-green-500/15 blur-3xl" />
 
-      <section className="relative px-4 pb-16 pt-24 sm:pb-24 sm:pt-32">
-        <div className="container mx-auto text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-brand-green-300">
-            Download KuikChat
-          </p>
-          <h1 className="mx-auto mt-5 max-w-4xl text-balance text-5xl font-black tracking-tight sm:text-7xl">
-            Desktop apps are part of the KuikChat platform.
-          </h1>
-          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-300">
-            KuikChat Web launches first. Dedicated Windows and macOS applications are
-            planned for professional users who want a daily desktop communication
-            experience with secure local sessions, notifications, and deep links.
-          </p>
-        </div>
-      </section>
+      <BubbleHero {...heroCopy.download} className="min-h-[70vh]" />
 
       <section className="relative px-4 pb-16">
         <div className="container mx-auto grid gap-6 lg:grid-cols-2">

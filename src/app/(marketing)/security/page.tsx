@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import BubbleHero from '@/components/hero/BubbleHero'
+import { heroCopy } from '@/lib/heroCopy'
 import { InfoPage } from '@/components/marketing/InfoPage'
 
 export const metadata: Metadata = {
@@ -8,11 +10,13 @@ export const metadata: Metadata = {
 
 export default function SecurityPage() {
   return (
-    <InfoPage
-      eyebrow="Security"
-      title="Security at KuikChat"
-      description="KuikChat launch readiness focuses on private account access, secure server-side integrations, clear feature flags, and safe handling of messages and files."
-      sections={[
+    <>
+      <BubbleHero {...heroCopy.security} />
+      <InfoPage
+        eyebrow="Security"
+        title="Security at KuikChat"
+        description="KuikChat launch readiness focuses on private account access, secure server-side integrations, clear feature flags, and safe handling of messages and files."
+        sections={[
         {
           title: 'Private account model',
           body: (
@@ -63,7 +67,8 @@ export default function SecurityPage() {
             </p>
           ),
         },
-      ]}
-    />
+        ]}
+      />
+    </>
   )
 }

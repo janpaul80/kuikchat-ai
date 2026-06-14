@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import BubbleHero from '@/components/hero/BubbleHero'
+import { heroCopy } from '@/lib/heroCopy'
 import { Mail, MessageSquare, Shield } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
@@ -31,18 +33,7 @@ const CONTACT_OPTIONS = [
 export default function ContactPage() {
   return (
     <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20">
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue-500">
-          Contact
-        </p>
-        <h1 className="mt-4 text-balance text-4xl font-bold tracking-tight sm:text-6xl">
-          Reach the KuikChat team.
-        </h1>
-        <p className="mt-6 text-lg leading-8 text-muted-foreground">
-          Use the right inbox so launch support, security reports, and business questions
-          reach the correct path quickly.
-        </p>
-      </div>
+      <BubbleHero {...heroCopy.contact} className="min-h-[60vh] rounded-3xl" />
 
       <div className="mt-12 grid gap-5 md:grid-cols-3">
         {CONTACT_OPTIONS.map((option) => {

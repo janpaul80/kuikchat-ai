@@ -21,7 +21,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const isHome = pathname === '/'
-  const isDarkPage = isHome || ['/about', '/pricing', '/download'].includes(pathname)
+  const isDarkPage = isHome || ['/about', '/pricing', '/download'].includes(pathname ?? '')
 
   return (
     <header

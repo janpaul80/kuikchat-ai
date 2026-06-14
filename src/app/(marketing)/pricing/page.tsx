@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import BubbleHero from '@/components/hero/BubbleHero'
+import { heroCopy } from '@/lib/heroCopy'
 import { Pricing } from '@/components/marketing/Pricing'
 
 export const metadata: Metadata = {
@@ -8,6 +10,9 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <Pricing />
+    <>
+      <BubbleHero {...heroCopy.pricing} />
+      <Pricing />
+    </>
   )
 }
