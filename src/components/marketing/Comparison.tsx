@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Check, X } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 const COMPARISONS = [
   { feature: 'No phone number required', kuik: true, whatsapp: false, telegram: false, signal: false, discord: true },
