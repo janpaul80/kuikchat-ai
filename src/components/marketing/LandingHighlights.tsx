@@ -53,7 +53,7 @@ const mobilePlatforms: Array<[string, string, string, LucideIcon]> = [
 
 export function LandingHighlights() {
   return (
-    <section className="bg-[#02070d] px-4 py-20 text-white sm:py-24">
+    <section className="bg-black px-4 py-20 text-white sm:py-24">
       <div className="container mx-auto">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
@@ -61,12 +61,10 @@ export function LandingHighlights() {
               Ecosystem
             </p>
             <h2 className="mt-4 text-balance text-3xl font-black tracking-tight sm:text-5xl">
-              Built to connect the KuikChat ecosystem.
+              Connecting the entire KuikChat ecosystem.
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-300">
-              Launch stays focused, while the roadmap leaves room for FileNinja,
-              Rev-Pro, VideoAgent, native desktop apps, Android, and future iOS to
-              share the same trusted backend services.
+              While our initial launch stays focused on the core experience, our roadmap includes FileNinja, Rev-Pro, VideoAgent, and native desktop and mobile apps — all sharing the same trusted backend services.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-white/90">
@@ -114,11 +112,10 @@ export function LandingHighlights() {
           <div>
             <div className="flex items-center gap-2 text-sm font-bold text-brand-green-300">
               <LockKeyhole className="h-4 w-4" />
-              Security preview
+              Security preview:
             </div>
             <p className="mt-2 max-w-3xl text-slate-400">
-              No phone number requirement, server-side provider secrets, protected
-              routes, and clear feature flags are part of the public launch posture.
+              Our public launch posture includes zero phone number requirements, server-side secrets, protected routes, and clear feature flags.
             </p>
           </div>
           <Link

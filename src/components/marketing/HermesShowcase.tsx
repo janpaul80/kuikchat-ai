@@ -6,12 +6,12 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 const HERMES_ABILITIES = [
-  { icon: Languages, title: 'Real-time Translation', desc: 'Translate any message into 100+ languages instantly' },
-  { icon: Wand2, title: 'Tone Rewriter', desc: 'Make your message professional, casual, or friendly' },
-  { icon: FileText, title: 'Summarize Chats', desc: "Catch up on group chats you've missed in seconds" },
-  { icon: Mic, title: 'Voice Transcription', desc: 'Convert voice messages to text automatically' },
-  { icon: MessageCircle, title: 'Smart Replies', desc: 'AI-suggested responses based on context' },
-  { icon: Sparkles, title: 'Image Generation', desc: 'Create images and stickers from text prompts' },
+  { icon: Languages, title: 'Real-time translation', desc: 'Instantly translate any message into over 100 languages.' },
+  { icon: Wand2, title: 'Tone rewriter', desc: 'Adjust your messages to be professional, casual, or friendly.' },
+  { icon: FileText, title: 'Chat summaries', desc: "Quickly catch up on missed group conversations in just seconds." },
+  { icon: Mic, title: 'Voice transcription', desc: 'Automatically convert your voice messages into text.' },
+  { icon: MessageCircle, title: 'Smart replies', desc: 'Get AI-suggested responses that adapt to your conversation.' },
+  { icon: Sparkles, title: 'Image generation', desc: 'Create custom images and stickers directly from your text prompts.' },
 ]
 
 export function HermesShowcase() {
@@ -35,12 +35,12 @@ export function HermesShowcase() {
             Meet Hermes
           </Badge>
           <h2 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-            Your AI assistant lives inside every chat.
+            Your personal AI assistant, right inside every chat.
           </h2>
           <p className="mt-6 text-lg text-white/90">
-            Tag <code className="rounded bg-white/20 px-2 py-0.5 font-mono">@Hermes</code>{' '}
-            in any conversation, or chat with it 1:1. Translate, summarize, generate images,
-            transcribe voice — all without leaving KuikChat.
+            Simply tag <code className="rounded bg-white/20 px-2 py-0.5 font-mono">@Hermes</code>{' '}
+            in any conversation or start a 1:1 chat. You can translate, summarize, generate images,
+            and transcribe voice messages — all without ever leaving KuikChat.
           </p>
         </div>
 

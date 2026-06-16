@@ -25,14 +25,14 @@ function Cell({ value }: { value: boolean | string }) {
 
 export function Comparison() {
   return (
-    <section className="bg-secondary/30 py-20 md:py-32">
+    <section className="bg-black py-20 md:py-32">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-            How KuikChat <span className="text-brand-gradient">stacks up</span>.
+          <h2 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl text-white">
+            How KuikChat <span className="text-brand-gradient">stacks up.</span>
           </h2>
-          <p className="mt-6 text-lg text-muted-foreground">
-            Built on the lessons from every other messenger. Without their compromises.
+          <p className="mt-6 text-lg text-white/60">
+            We built KuikChat on the lessons learned from every major messenger: all the features you want, without any of the compromises.
           </p>
         </div>
 
@@ -43,29 +43,30 @@ export function Comparison() {
           transition={{ duration: 0.5 }}
           className="mx-auto mt-16 max-w-5xl overflow-x-auto"
         >
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden bg-white/[0.03] border-white/10">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border bg-secondary/50">
-                  <th className="p-4 text-left text-sm font-semibold">Feature</th>
+                <tr className="border-b border-white/10 bg-white/5">
+                  <th className="p-4 text-left text-sm font-semibold text-white">Feature</th>
                   <th className="p-4 text-center text-sm font-bold text-brand-gradient">
                     KuikChat
                   </th>
-                  <th className="p-4 text-center text-sm font-medium">WhatsApp</th>
-                  <th className="p-4 text-center text-sm font-medium">Telegram</th>
-                  <th className="p-4 text-center text-sm font-medium">Signal</th>
-                  <th className="p-4 text-center text-sm font-medium">Discord</th>
+                  <th className="p-4 text-center text-sm font-medium text-white/70">WhatsApp</th>
+                  <th className="p-4 text-center text-sm font-medium text-white/70">Telegram</th>
+                  <th className="p-4 text-center text-sm font-medium text-white/70">Signal</th>
+                  <th className="p-4 text-center text-sm font-medium text-white/70">Discord</th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISONS.map((row, i) => (
                   <tr
                     key={row.feature}
-                    className={`border-b border-border/50 ${
-                      i % 2 === 0 ? 'bg-background' : 'bg-secondary/20'
-                    }`}
+                    className={cn(
+                      'border-b border-white/5 transition-colors hover:bg-white/[0.02]',
+                      i % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.01]'
+                    )}
                   >
-                    <td className="p-4 text-sm font-medium">{row.feature}</td>
+                    <td className="p-4 text-sm font-medium text-white/80">{row.feature}</td>
                     <td className="p-4 text-center">
                       <Cell value={row.kuik} />
                     </td>

@@ -17,31 +17,31 @@ import { Button } from '@/components/ui/button'
 const chatItems = [
   {
     actor: 'Hermes',
-    text: 'I can summarize this client thread, draft the reply, and prep the file handoff.',
+    text: "I've summarized this client thread for you. I can also draft a reply or prepare the file handoff whenever you're ready.",
     align: 'left',
     tone: 'bot',
   },
   {
     actor: 'You',
-    text: 'Send the final brand files through FileNinja and give me the short recap.',
+    text: "Thanks. Go ahead and send the final brand files through FileNinja, then give me a quick recap.",
     align: 'right',
     tone: 'user',
   },
   {
     actor: 'FileNinja',
-    text: 'Secure transfer ready. The download link expires in 24 hours.',
+    text: 'Secure transfer complete. Your download link is ready and will expire in 24 hours.',
     align: 'left',
     tone: 'secure',
   },
   {
     actor: 'Rev-Pro',
-    text: 'Meeting audio prepared for transcription and media notes.',
+    text: 'Meeting audio is processed and ready for your transcription and media notes.',
     align: 'left',
     tone: 'media',
   },
   {
     actor: 'Hermes',
-    text: 'Recap: assets approved, launch copy pending, legal review due Friday.',
+    text: "Recap: all assets are approved, the launch copy is pending, and the final legal review is due this Friday.",
     align: 'left',
     tone: 'bot',
   },
@@ -100,7 +100,7 @@ function ChatBubble({ item }: { item: (typeof chatItems)[number] }) {
 
 export function ProductWorkflow() {
   return (
-    <section className="overflow-hidden bg-[#06141a] px-4 py-20 text-white sm:py-28">
+    <section className="overflow-hidden bg-black px-4 py-20 text-white sm:py-28">
       <div className="container mx-auto grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="relative mx-auto min-h-[640px] w-full max-w-[680px] sm:min-h-[620px]">
           <div className="pointer-events-none absolute left-0 top-8 hidden text-[4.9rem] font-black uppercase leading-[0.86] tracking-widest text-white/[0.08] xl:block [writing-mode:vertical-rl]">
@@ -209,23 +209,23 @@ export function ProductWorkflow() {
 
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-green-300">
-            Real workflows, not just chat bubbles
+            Real workflows, not just chat bubbles.
           </p>
           <h2 className="mt-4 text-balance text-3xl font-black tracking-tight sm:text-5xl">
-            KuikChat is where conversation turns into action.
+            KuikChat: where conversation turns into action.
           </h2>
           <p className="mt-5 text-lg leading-8 text-slate-300">
-            The product brings secure messaging, no-phone-number accounts, Hermes AI,
+            Our platform brings together secure messaging, no-phone-number accounts, Hermes AI,
             FileNinja delivery, and media workflow planning into one calm communication
-            layer for people, teams, creators, and professionals.
+            layer built for people, teams, and professionals.
           </p>
 
           <div className="mt-8 grid gap-3">
             {[
-              ['Secure messaging', 'Private conversations with clear account ownership.'],
-              ['Hermes inside chats', 'Draft, summarize, translate, and assist in context.'],
-              ['FileNinja delivery', 'Professional file transfer without exposing raw storage links.'],
-              ['Rev-Pro and VideoAgent path', 'Transcription, media workflows, and future video intelligence.'],
+              ['Secure messaging', 'Maintain truly private conversations with clear account ownership.'],
+              ['Hermes integrated AI', 'Draft, summarize, translate, and assist — all right in the context of your chat.'],
+              ['FileNinja delivery', 'Professional file transfers without ever exposing raw storage links.'],
+              ['Roadmap: Rev-Pro & VideoAgent', 'Upcoming support for transcription, media workflows, and future video intelligence.'],
             ].map(([title, description]) => (
               <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.055] p-4">
                 <p className="font-bold">{title}</p>

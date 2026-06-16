@@ -96,7 +96,7 @@ const faqs = [
 
 export function Pricing() {
   return (
-    <main className="relative overflow-hidden bg-[#05070a] text-white">
+    <main className="relative overflow-hidden bg-black text-white">
       <div className="pointer-events-none absolute left-1/2 top-0 h-[460px] w-[760px] -translate-x-1/2 rounded-full bg-brand-blue-500/15 blur-3xl" />
       <div className="pointer-events-none absolute right-0 top-28 h-[380px] w-[420px] rounded-full bg-brand-green-500/12 blur-3xl" />
 
@@ -107,12 +107,11 @@ export function Pricing() {
               Pricing
             </p>
             <h1 className="mt-5 text-balance text-4xl font-black tracking-tight sm:text-6xl">
-              Flexible Pricing
-              <span className="block text-white/55">for people, teams, and builders</span>
+              Flexible pricing,
+              <span className="block text-white/55">built for people, teams, and builders.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-              Start free, upgrade when you need more, and keep every staged capability
-              clearly marked before billing is enabled.
+              Start for free, upgrade when you need more, and follow our roadmap as we roll out new capabilities.
             </p>
           </div>
 
@@ -172,7 +171,7 @@ export function Pricing() {
                   </Button>
 
                   <p className="mb-3 text-xs font-black uppercase tracking-wide text-white/80">
-                    What&apos;s included
+                    What&apos;s included:
                   </p>
                   <ul className="space-y-3">
                     {tier.features.map((feature) => (
@@ -193,10 +192,10 @@ export function Pricing() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center">
             <h2 className="text-3xl font-black tracking-tight sm:text-5xl">
-              Compare plans & features
+              Compare plans and features
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-slate-400">
-              A compact launch view of what each plan is meant to support as KuikChat grows.
+              A detailed look at what each plan supports as the KuikChat ecosystem grows.
             </p>
           </div>
 
@@ -228,7 +227,7 @@ export function Pricing() {
               Frequently Asked Questions
             </h2>
             <p className="mt-5 text-slate-400">
-              Clear launch answers for pricing, roadmap, desktop apps, and staged capabilities.
+              Common questions about our pricing, roadmap, and core features.
             </p>
           </div>
 
@@ -257,8 +256,7 @@ export function Pricing() {
               Ready to bring KuikChat into your workflow?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-white/85">
-              Start free today and follow the staged roadmap for desktop, Android, iOS,
-              FileNinja, Rev-Pro, and future VideoAgent capabilities.
+              Start for free today; follow our progress as we launch our desktop apps, mobile versions, and expanded AI tools.
             </p>
             <Button asChild className="mt-8 rounded-xl bg-white text-slate-950 hover:bg-white/90">
               <Link href="/signup">Try For Free</Link>

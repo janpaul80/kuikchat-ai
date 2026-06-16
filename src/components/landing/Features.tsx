@@ -4,12 +4,12 @@ import { MessageCircle, Sparkles, FileText, TrendingUp, Shield, LayoutGrid } fro
 
 /** KuikChat — Features (Next.js) with brand-color hover. Path: src/components/landing/Features.tsx */
 const features = [
-  { icon: MessageCircle, title: "Real-time messaging", description: "Instant 1:1 and group chat with reactions, replies, edits and read receipts." },
-  { icon: Sparkles, title: "Hermes AI", description: "An AI assistant in every conversation — summaries, drafts, translation and answers." },
-  { icon: FileText, title: "FileNinja", description: "Share, preview and act on files without ever leaving the chat." },
-  { icon: TrendingUp, title: "RevDev Pro", description: "Turn conversations into revenue with built-in commerce and dev tooling." },
-  { icon: Shield, title: "Secure by design", description: "Supabase-backed auth, signed URLs and isolated storage. Privacy-first." },
-  { icon: LayoutGrid, title: "Interactive cards", description: "Polls, events, live location and contact cards — rendered inline." },
+  { icon: MessageCircle, title: "Real-time messaging", description: "Experience instant 1:1 and group chats with reactions, replies, edits, and read receipts." },
+  { icon: Sparkles, title: "Hermes AI", description: "Your personal assistant in every conversation: summaries, drafts, translation, and answers." },
+  { icon: FileText, title: "FileNinja", description: "Share, preview, and act on files without ever leaving the chat environment." },
+  { icon: TrendingUp, title: "RevDev Pro", description: "Turn your conversations into revenue with built-in commerce and developer tooling." },
+  { icon: Shield, title: "Secure by design", description: "We prioritize your privacy with Supabase-backed authentication, signed URLs, and isolated storage." },
+  { icon: LayoutGrid, title: "Interactive cards", description: "Polls, events, live locations, and contact cards — all rendered right in the chat." },
 ];
 const container = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
@@ -20,8 +20,8 @@ export default function Features() {
       <div className="container mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="text-sm font-medium bg-gradient-to-r from-[hsl(217,91%,60%)] to-[hsl(142,71%,45%)] bg-clip-text text-transparent">Powerful features</span>
-          <h2 className="mt-3 text-3xl md:text-5xl font-bold text-white">Everything in one place</h2>
-          <p className="mt-4 text-white/60">A messaging platform that actually helps you get work done.</p>
+          <h2 className="mt-3 text-3xl md:text-5xl font-bold text-white">Everything in one place.</h2>
+          <p className="mt-4 text-white/60">A messaging platform designed to actually help you get work done.</p>
         </div>
         <motion.div variants={container} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }}
           className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

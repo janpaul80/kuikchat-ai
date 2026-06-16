@@ -33,7 +33,7 @@ export function InfoPage({
         <p className="mt-6 text-lg leading-8 text-muted-foreground">
           {description}
         </p>
-        <p className="mt-4 text-sm text-muted-foreground">{updated}</p>
+        <p className="mt-4 text-sm text-muted-foreground">Last updated: {updated.replace('Last updated ', '')}</p>
       </div>
 
       <div className="mt-12 grid gap-5">

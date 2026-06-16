@@ -10,7 +10,7 @@ import Link from "next/link";
  */
 export default function Hero() {
   return (
-    <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-black">
+    <section className="relative pt-16 min-h-[78vh] max-h-[860px] flex items-center justify-center overflow-hidden bg-black">
       <video
         className="absolute inset-0 w-full h-full object-cover"
         src="/kuikchat.mp4"
@@ -25,24 +25,24 @@ export default function Hero() {
       <div className="relative z-10 container mx-auto px-6 text-center">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-sm text-white/80 mb-7">
-          <Sparkles className="w-3.5 h-3.5 text-[hsl(217,91%,60%)]" /> Now with Hermes AI built in
+          <Sparkles className="w-3.5 h-3.5 text-[hsl(217,91%,60%)]" /> Now with Hermes AI built-in.
         </motion.div>
         <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
           className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.05]">
-          Chat smarter.<br />
-          <span className="bg-gradient-to-r from-[hsl(217,91%,60%)] to-[hsl(142,71%,45%)] bg-clip-text text-transparent">Work faster.</span>
+          Chat smarter,<br />
+          <span className="bg-gradient-to-r from-[hsl(217,91%,60%)] to-[hsl(142,71%,45%)] bg-clip-text text-transparent">work faster.</span>
         </motion.h1>
         <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-6 max-w-2xl mx-auto text-lg text-white/70">
-          KuikChat is a real-time messaging platform with AI, file tools, and interactive cards built in — across web, desktop, and mobile.
+          KuikChat is a real-time messaging platform: AI-powered assistants, secure file tools, and interactive cards are all built right in. Use it on the web, your desktop, or your mobile device.
         </motion.p>
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/auth" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-medium bg-gradient-to-r from-[hsl(217,91%,60%)] to-[hsl(142,71%,45%)] hover:opacity-90 transition-opacity">
-            Start free <ArrowRight className="w-4 h-4" />
+          <Link href="/signup" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-medium bg-gradient-to-r from-[hsl(217,91%,60%)] to-[hsl(142,71%,45%)] hover:opacity-90 transition-opacity">
+            Start for free <ArrowRight className="w-4 h-4" />
           </Link>
           <Link href="/download" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/15 bg-white/5 text-white font-medium hover:bg-white/10 transition-colors">
-            <Play className="w-4 h-4" /> Download app
+            <Play className="w-4 h-4" /> Download the app
           </Link>
         </motion.div>
       </div>

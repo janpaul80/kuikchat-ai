@@ -29,11 +29,10 @@ export function CTA() {
             </div>
 
             <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-5xl">
-              Ready to try KuikChat?
+              Ready to experience KuikChat?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90">
-              Start with secure messaging, Hermes AI, and no phone number requirement.
-              The ecosystem can grow from there.
+              Start now with secure messaging, integrated Hermes AI, and zero phone number requirement. Your communication ecosystem starts here.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button

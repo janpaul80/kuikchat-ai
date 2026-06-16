@@ -38,8 +38,8 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Logo size={36} />
             <p className="mt-4 max-w-xs text-sm leading-6 text-slate-400">
-              The all-in-one messenger powered by Hermes AI. Built for personal and
-              professional use, with zero phone number requirement.
+              The all-in-one messenger, powered by Hermes AI. Built for personal and
+              professional use — with zero phone number requirement.
             </p>
           </div>
 

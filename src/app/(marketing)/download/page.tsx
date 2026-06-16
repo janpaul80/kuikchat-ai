@@ -51,7 +51,7 @@ const capabilities: Array<[string, LucideIcon]> = [
 
 export default function DownloadPage() {
   return (
-    <main className="relative overflow-hidden bg-[#02070d] text-white">
+    <main className="relative overflow-hidden bg-black text-white">
       <div className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-brand-blue-500/20 blur-3xl" />
       <div className="pointer-events-none absolute right-0 top-44 h-[420px] w-[420px] rounded-full bg-brand-green-500/15 blur-3xl" />
 
@@ -98,9 +98,7 @@ export default function DownloadPage() {
                 Native-feeling apps for daily communication.
               </h2>
               <p className="mt-5 leading-8 text-slate-300">
-                The desktop architecture package should cover Windows and macOS app
-                shells, secure storage, updater strategy, notifications, deep links,
-                and shared backend contracts with KuikChat Web, Android, and future iOS.
+                Our desktop architecture is designed to provide native-feeling experiences for both Windows and macOS, including secure storage, an automated updater strategy, notifications, and deep links.
               </p>
             </div>
 
@@ -119,8 +117,8 @@ export default function DownloadPage() {
       <section className="relative px-4 py-12">
         <div className="container mx-auto grid gap-5 sm:grid-cols-2">
           {([
-            ['Android', 'Native React Native APK', 'Coming Soon'],
-            ['iOS', 'Future native app', 'Coming Soon'],
+            ['Android', 'Native React Native APK', 'Coming soon'],
+            ['iOS', 'Native app', 'Coming soon'],
           ] as Array<[string, string, string]>).map(([platform, description, status]) => (
             <div key={platform} className="rounded-[28px] border border-white/10 bg-white/[0.035] p-7">
               <Smartphone className="h-8 w-8 text-brand-green-300" />
@@ -140,8 +138,7 @@ export default function DownloadPage() {
         <div className="container mx-auto rounded-[28px] border border-white/10 bg-gradient-to-r from-brand-blue-600 to-brand-green-500 p-8 text-center shadow-2xl shadow-brand-blue-950/30 sm:p-12">
           <h2 className="text-3xl font-black sm:text-4xl">Use KuikChat on the web today.</h2>
           <p className="mx-auto mt-4 max-w-2xl text-white/85">
-            Desktop installers will follow the launch stabilization roadmap. For now,
-            KuikChat Web remains the public launch target.
+            Desktop installers are coming soon as part of our launch stabilization roadmap. For now, the KuikChat Web experience is our primary focus.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-white/90">
