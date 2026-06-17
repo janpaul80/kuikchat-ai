@@ -5,7 +5,7 @@
   <p>The last messenger anyone will ever need to download.</p>
 
   <p>
-    <a href="https://kuik.social">kuik.social</a> ·
+    <a href="https://kuikchat.io">kuikchat.io</a> ·
     <a href="#features">Features</a> ·
     <a href="#getting-started">Getting Started</a> ·
     <a href="#tech-stack">Tech Stack</a>
@@ -159,7 +159,7 @@ cp .env.local.example .env.local
    - **KuikChat Business** — $29.99/mo
    - **Hermes Pro** — $2.99/mo
 2. Copy each Price ID into `.env.local`
-3. Set up a webhook endpoint at `https://kuik.social/api/stripe/webhook` listening for:
+3. Set up a webhook endpoint at `https://kuikchat.io/api/stripe/webhook` listening for:
    - `checkout.session.completed`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
@@ -231,8 +231,8 @@ See [TODO.md](./TODO.md) for the live progress board.
 
 ## 📡 Deployment
 
-- **Domain**: `kuik.social`
-- **Server IP**: `185.211.61.117`
+- **Domain**: `kuikchat.io`
+- **Server IP**: `85.215.225.0`
 - **Recommended**: Deploy via Vercel or self-host with Docker behind Cloudflare
 
 ---

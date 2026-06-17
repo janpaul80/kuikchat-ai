@@ -14,7 +14,7 @@ export default function AboutSettingsPage() {
           <div>
             <p className="text-xl font-bold">KuikChat</p>
             <p className="text-sm text-muted-foreground">Version 0.1.0 (Phase 1 Foundation)</p>
-            <p className="mt-1 text-xs text-muted-foreground">kuik.social</p>
+            <p className="mt-1 text-xs text-muted-foreground">kuikchat.io</p>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">

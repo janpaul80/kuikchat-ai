@@ -2,7 +2,7 @@ export const APP_NAME = 'KuikChat'
 export const APP_TAGLINE = 'The All-in-One Messenger + AI Agent Platform'
 export const APP_DESCRIPTION =
   'KuikChat unifies every messaging experience into one sleek, secure, and intelligent app — powered by Hermes AI. No phone number required.'
-export const APP_DOMAIN = 'kuik.social'
+export const APP_DOMAIN = 'kuikchat.io'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3100'
 export const GITHUB_URL = 'https://github.com/hartm'
 

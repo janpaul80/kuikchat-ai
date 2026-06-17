@@ -22,7 +22,7 @@ export default function HelpSettingsPage() {
         <SettingsRow label="Contact support" description="Email our team">
           <Button variant="outline" size="sm">
             <Mail className="mr-2 h-4 w-4" />
-            support@kuik.social
+            support@kuikchat.io
           </Button>
         </SettingsRow>
         <SettingsRow label="Chat with Hermes" description="Get instant AI-powered help">
