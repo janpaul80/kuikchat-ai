@@ -7,56 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-const tiers = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: 'per user / month',
-    description: 'Start with secure private messaging.',
-    cta: 'Start Building',
-    href: '/signup',
-    highlight: false,
-    features: [
-      'Private messaging included',
-      'No phone number required',
-      'Hermes AI daily allowance',
-      'FileNinja-ready transfers',
-      'Launch security baseline',
-    ],
-  },
-  {
-    name: 'Pro Plan',
-    price: '$12',
-    period: 'per user / month',
-    description: 'For professionals, creators, and daily workflows.',
-    cta: 'Start Free Trial',
-    href: '/signup',
-    highlight: true,
-    features: [
-      'Everything in Free',
-      'Expanded Hermes AI usage',
-      'Larger secure file transfers',
-      'Professional messaging tools',
-      'Priority launch support',
-    ],
-  },
-  {
-    name: 'Team',
-    price: '$29',
-    period: 'per user / month',
-    description: 'For teams that need shared communication workflows.',
-    cta: 'Get Team',
-    href: '/contact',
-    highlight: false,
-    features: [
-      'Everything in Pro',
-      'Team collaboration spaces',
-      'Rev-Pro workflow readiness',
-      'Desktop app roadmap access',
-      'Admin and support planning',
-    ],
-  },
-]
+import { TIERS } from '@/lib/plans'
 
 const comparison = [
   ['Private messaging', 'Included', 'Included', 'Included'],
@@ -116,7 +67,7 @@ export function Pricing() {
           </div>
 
           <div className="mx-auto mt-14 grid max-w-6xl gap-5 lg:grid-cols-3">
-            {tiers.map((tier, index) => (
+            {TIERS.map((tier, index) => (
               <motion.div
                 key={tier.name}
                 initial={{ opacity: 0, y: 18 }}
@@ -147,15 +98,9 @@ export function Pricing() {
                     ) : null}
                   </div>
 
-                  <div className="mb-2 flex items-end gap-2">
+                  <div className="mb-6 flex items-end gap-1">
                     <span className="text-4xl font-black">{tier.price}</span>
                     <span className="pb-1 text-xs text-slate-400">{tier.period}</span>
-                  </div>
-                  <div className="mb-5 flex items-center gap-2 text-xs text-slate-400">
-                    <span className="inline-flex h-4 w-7 items-center rounded-full bg-white/15 p-0.5">
-                      <span className="h-3 w-3 rounded-full bg-white" />
-                    </span>
-                    Billed yearly option planned
                   </div>
 
                   <Button
@@ -174,7 +119,7 @@ export function Pricing() {
                     What&apos;s included:
                   </p>
                   <ul className="space-y-3">
-                    {tier.features.map((feature) => (
+                    {tier.perks.map((feature) => (
                       <li key={feature} className="flex items-start gap-2 text-sm text-slate-300">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-green-300" />
                         <span>{feature}</span>

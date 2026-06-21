@@ -16,29 +16,7 @@ interface BillingFormProps {
   hasPaymentMethod: boolean
 }
 
-const TIERS = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: '$0',
-    icon: Sparkles,
-    perks: ['All core messaging', 'Hermes basic (10 queries/day)', 'Up to 1,024 group members'],
-  },
-  {
-    id: 'ultra',
-    name: 'Ultra',
-    price: '$4.99/mo',
-    icon: Zap,
-    perks: ['50 GB file storage', 'Verified Blue Badge', 'Hermes Expanded (200 queries/day)', 'Premium themes'],
-  },
-  {
-    id: 'business',
-    name: 'Business',
-    price: '$19/mo',
-    icon: Building2,
-    perks: ['200 GB file storage', 'Verified Blue Badge', 'Hermes Unlimited', 'Team seats & inbox', 'Priority support'],
-  },
-]
+import { TIERS } from '@/lib/plans'
 
 export function BillingForm({ initialPlan, subscriptionStatus, hasPaymentMethod }: BillingFormProps) {
   const [currentPlan, setCurrentPlan] = useState(initialPlan)

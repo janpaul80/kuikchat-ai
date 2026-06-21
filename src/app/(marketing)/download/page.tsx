@@ -28,14 +28,18 @@ const desktopApps = [
     icon: MonitorDown,
     platform: 'Windows',
     label: 'Download for Windows (.exe)',
-    status: 'Coming Soon',
+    status: null,
+    href: '#download-windows',
+    disabled: false,
     description: 'Native-feeling Windows app with secure sessions, notifications, and deep-link planning.',
   },
   {
     icon: Apple,
     platform: 'macOS',
     label: 'Download for macOS',
-    status: 'Coming Soon',
+    status: null,
+    href: '#download-macos',
+    disabled: false,
     description: 'Native-feeling macOS app with auto-update planning and system notification support.',
   },
 ]
@@ -70,17 +74,29 @@ export default function DownloadPage() {
                   <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient shadow-lg shadow-brand-blue-950/30">
                     <Icon className="h-7 w-7 text-white" />
                   </div>
-                  <Badge className="border-white/15 bg-white/10 text-white">{app.status}</Badge>
+                  {app.status && <Badge className="border-white/15 bg-white/10 text-white">{app.status}</Badge>}
                 </div>
                 <h2 className="mt-6 text-3xl font-black">{app.platform}</h2>
                 <p className="mt-3 min-h-16 leading-7 text-slate-300">{app.description}</p>
-                <Button
-                  disabled
-                  className="mt-7 w-full cursor-not-allowed rounded-2xl border border-white/15 bg-white/10 py-6 text-white opacity-70"
-                >
-                  <Download className="h-5 w-5" />
-                  {app.label}
-                </Button>
+                {app.disabled ? (
+                  <Button
+                    disabled
+                    className="mt-7 w-full cursor-not-allowed rounded-2xl border border-white/15 bg-white/10 py-6 text-white opacity-70"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    {app.label}
+                  </Button>
+                ) : (
+                  <Button
+                    asChild
+                    className="mt-7 w-full rounded-2xl border border-brand-green-500 bg-brand-green-500 py-6 text-white hover:bg-brand-green-400 font-bold shadow-lg shadow-brand-green-500/20"
+                  >
+                    <Link href={app.href!}>
+                      <Download className="h-5 w-5 mr-2" />
+                      {app.label}
+                    </Link>
+                  </Button>
+                )}
               </div>
             )
           })}
@@ -117,18 +133,37 @@ export default function DownloadPage() {
       <section className="relative px-4 py-12">
         <div className="container mx-auto grid gap-5 sm:grid-cols-2">
           {([
-            ['Android', 'Native React Native APK', 'Coming soon'],
-            ['iOS', 'Native app', 'Coming soon'],
-          ] as Array<[string, string, string]>).map(([platform, description, status]) => (
-            <div key={platform} className="rounded-[28px] border border-white/10 bg-white/[0.035] p-7">
+            { platform: 'Android', description: 'Native React Native APK', status: null, disabled: false, label: 'Download APK', href: '#download-android' },
+            { platform: 'iOS', description: 'Native app', status: 'Coming soon', disabled: true, label: 'Coming Soon', href: '#' },
+          ]).map((app) => (
+            <div key={app.platform} className="rounded-[28px] border border-white/10 bg-white/[0.035] p-7">
               <Smartphone className="h-8 w-8 text-brand-green-300" />
-              <div className="mt-5 flex items-center justify-between gap-4">
+              <div className="mt-5 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-black">{platform}</h2>
-                  <p className="mt-2 text-slate-400">{description}</p>
+                  <h2 className="text-2xl font-black">{app.platform}</h2>
+                  <p className="mt-2 text-slate-400">{app.description}</p>
                 </div>
-                <Badge className="border-white/15 bg-white/10 text-white">{status}</Badge>
+                {app.status && <Badge className="border-white/15 bg-white/10 text-white">{app.status}</Badge>}
               </div>
+              {app.disabled ? (
+                <Button
+                  disabled
+                  className="mt-6 w-full cursor-not-allowed rounded-2xl border border-white/15 bg-white/10 py-6 text-white opacity-70"
+                >
+                  <Download className="h-5 w-5 mr-2" />
+                  {app.label}
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  className="mt-6 w-full rounded-2xl border border-brand-green-500 bg-brand-green-500 py-6 text-white hover:bg-brand-green-400 font-bold shadow-lg shadow-brand-green-500/20"
+                >
+                  <Link href={app.href!}>
+                    <Download className="h-5 w-5 mr-2" />
+                    {app.label}
+                  </Link>
+                </Button>
+              )}
             </div>
           ))}
         </div>
