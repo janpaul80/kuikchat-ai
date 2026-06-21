@@ -1,66 +1,48 @@
-import { Button } from '@/components/ui/button'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import {
   SettingsContainer,
   SettingsHeader,
-  SettingsSection,
-  SettingsRow,
 } from '@/components/settings/SettingsSection'
+import { NotificationsForm } from '@/components/settings/NotificationsForm'
 
-export default function NotificationsSettingsPage() {
+export default async function NotificationsSettingsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: notifs, error } = await supabase
+    .from('notification_settings')
+    .select('user_id, message_notifications, group_notifications, call_notifications, status_notifications, channel_notifications, email_notifications, message_preview, message_sound, call_ringtone, vibrate, do_not_disturb')
+    .eq('user_id', user.id)
+    .single()
+
+  if (error || !notifs) {
+    console.error('Error fetching notification settings:', error)
+    redirect('/chats')
+  }
+
+  const initialNotifications = {
+    user_id: notifs.user_id,
+    message_notifications: notifs.message_notifications ?? true,
+    group_notifications: notifs.group_notifications ?? true,
+    call_notifications: notifs.call_notifications ?? true,
+    status_notifications: notifs.status_notifications ?? true,
+    channel_notifications: notifs.channel_notifications ?? true,
+    email_notifications: notifs.email_notifications ?? false,
+    message_preview: notifs.message_preview ?? true,
+    message_sound: notifs.message_sound || 'default',
+    call_ringtone: notifs.call_ringtone || 'default',
+    vibrate: notifs.vibrate ?? true,
+    do_not_disturb: notifs.do_not_disturb ?? false,
+  }
+
   return (
     <SettingsContainer>
       <SettingsHeader title="Notifications" description="Decide what reaches you and when" />
-
-      <SettingsSection title="Messages">
-        <SettingsRow label="New message notifications" description="Show notifications for new messages">
-          <Button variant="outline" size="sm">On</Button>
-        </SettingsRow>
-        <SettingsRow label="Message preview" description="Show message text in notifications">
-          <Button variant="outline" size="sm">On</Button>
-        </SettingsRow>
-        <SettingsRow label="Notification sound" description="Default tone">
-          <Button variant="outline" size="sm">Change</Button>
-        </SettingsRow>
-        <SettingsRow label="Vibration" description="Default pattern">
-          <Button variant="outline" size="sm">Default</Button>
-        </SettingsRow>
-      </SettingsSection>
-
-      <SettingsSection title="Groups">
-        <SettingsRow label="Group notifications" description="Show notifications for group messages">
-          <Button variant="outline" size="sm">On</Button>
-        </SettingsRow>
-        <SettingsRow label="Mention-only mode" description="Only notify when @mentioned in groups">
-          <Button variant="outline" size="sm">Off</Button>
-        </SettingsRow>
-      </SettingsSection>
-
-      <SettingsSection title="Calls">
-        <SettingsRow label="Call notifications" description="Incoming voice and video calls">
-          <Button variant="outline" size="sm">On</Button>
-        </SettingsRow>
-        <SettingsRow label="Ringtone" description="Default">
-          <Button variant="outline" size="sm">Change</Button>
-        </SettingsRow>
-      </SettingsSection>
-
-      <SettingsSection title="Do Not Disturb">
-        <SettingsRow label="Schedule quiet hours" description="Silence notifications on a schedule">
-          <Button variant="outline" size="sm">Set up</Button>
-        </SettingsRow>
-        <SettingsRow label="Priority contacts" description="Always notify for these people">
-          <Button variant="outline" size="sm">Manage</Button>
-        </SettingsRow>
-      </SettingsSection>
-
-      <SettingsSection title="Email notifications">
-        <SettingsRow label="Security alerts" description="New device login, key changes">
-          <Button variant="outline" size="sm">On</Button>
-        </SettingsRow>
-        <SettingsRow label="Product updates" description="New features and announcements">
-          <Button variant="outline" size="sm">On</Button>
-        </SettingsRow>
-      </SettingsSection>
+      <NotificationsForm initialNotifications={initialNotifications} />
     </SettingsContainer>
   )
 }

@@ -46,3 +46,21 @@ coverage/
 # Supabase
 supabase/.branches
 supabase/.temp
+
+# SSL certificates and private keys
+ssl/
+*.pem
+*.key
+
+# Chrome debug and screenshot logs
+chrome-profile/
+chrome_stdout.log
+chrome_stderr.log
+chrome.log
+screenshot.png
+home.html
+
+# Temporary extraction and preview dirs
+.tmp_extract/
+.tmp_extract_settings/
+preview/

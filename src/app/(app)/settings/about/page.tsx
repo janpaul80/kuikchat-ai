@@ -19,7 +19,7 @@ export default function AboutSettingsPage() {
         </div>
         <p className="text-sm text-muted-foreground">
           The all-in-one messenger that unifies every messaging experience into one sleek,
-          secure, and intelligent app — powered by Hermes AI, built for personal and
+          secure, and intelligent app - powered by Hermes AI, built for personal and
           professional use, with zero phone number requirement.
         </p>
       </SettingsSection>

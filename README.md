@@ -16,7 +16,7 @@
 
 ## ✨ Vision
 
-KuikChat unifies every messaging experience into one sleek, secure, and intelligent app — powered by **Hermes AI**, built for personal and professional use, with **zero phone number requirement**.
+KuikChat unifies every messaging experience into one sleek, secure, and intelligent app - powered by **Hermes AI**, built for personal and professional use, with **zero phone number requirement**.
 
 ---
 
@@ -57,7 +57,7 @@ KuikChat unifies every messaging experience into one sleek, secure, and intellig
 
 ```
 kuikchat/
-├── public/                    # Static assets (logo.png — DO NOT replace)
+├── public/                    # Static assets (logo.png - DO NOT replace)
 ├── src/
 │   ├── app/
 │   │   ├── (marketing)/       # Public landing, pricing, features, about
@@ -154,10 +154,10 @@ cp .env.local.example .env.local
 ### 5. Set up Stripe
 
 1. Create 4 recurring products in Stripe Dashboard:
-   - **KuikChat Plus** — $4.99/mo
-   - **KuikChat Pro** — $12.99/mo
-   - **KuikChat Business** — $29.99/mo
-   - **Hermes Pro** — $2.99/mo
+   - **KuikChat Plus** - $4.99/mo
+   - **KuikChat Pro** - $12.99/mo
+   - **KuikChat Business** - $29.99/mo
+   - **Hermes Pro** - $2.99/mo
 2. Copy each Price ID into `.env.local`
 3. Set up a webhook endpoint at `https://kuikchat.io/api/stripe/webhook` listening for:
    - `checkout.session.completed`
@@ -194,13 +194,13 @@ npm run dev
 
 | Phase | Status | Focus |
 |---|---|---|
-| **Phase 1 — Foundation** | ✅ **Done** | UI scaffolds, auth, DB schema, Hermes API, Stripe scaffold |
-| **Phase 2 — Messaging Core (Slice A & B)** | ✅ **Done** | Real-time messages, deduplication, optimistic UI, reactions |
-| **Phase 3 — Rich Media & Attachments** | 🔜 Next | Media uploads, voice notes, attachment drawer, document system |
-| **Phase 4 — Interactive Chat Features** | 🔜 | Polls, events, live location, contact sharing |
-| **Phase 5 — Mobile-First Web UX** | 🔜 | Premium dark mode, glass effects, native-feeling animations, SVG icons |
-| **Phase 6 — Business & AI** | 🔜 | Business mini-apps architecture, Hermes AI in-chat actions |
-| **Phase 7 — Native Android App** | 🔜 | Foundation for dedicated Android app (not a web wrapper) |
+| **Phase 1 - Foundation** | ✅ **Done** | UI scaffolds, auth, DB schema, Hermes API, Stripe scaffold |
+| **Phase 2 - Messaging Core (Slice A & B)** | ✅ **Done** | Real-time messages, deduplication, optimistic UI, reactions |
+| **Phase 3 - Rich Media & Attachments** | 🔜 Next | Media uploads, voice notes, attachment drawer, document system |
+| **Phase 4 - Interactive Chat Features** | 🔜 | Polls, events, live location, contact sharing |
+| **Phase 5 - Mobile-First Web UX** | 🔜 | Premium dark mode, glass effects, native-feeling animations, SVG icons |
+| **Phase 6 - Business & AI** | 🔜 | Business mini-apps architecture, Hermes AI in-chat actions |
+| **Phase 7 - Native Android App** | 🔜 | Foundation for dedicated Android app (not a web wrapper) |
 
 ### 📱 Mobile Vision & Design Philosophy
 
@@ -239,10 +239,10 @@ See [TODO.md](./TODO.md) for the live progress board.
 
 ## 📜 License
 
-Proprietary — © KuikChat. All rights reserved.
+Proprietary - © KuikChat. All rights reserved.
 
 ---
 
 <div align="center">
-  <strong>Built with ❤️ — KuikChat is the last messenger you'll ever need.</strong>
+  <strong>Built with ❤️ - KuikChat is the last messenger you'll ever need.</strong>
 </div>

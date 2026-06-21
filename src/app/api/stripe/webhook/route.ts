@@ -35,11 +35,15 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session
         const userId = session.metadata?.user_id || session.client_reference_id
         const plan = session.metadata?.plan
+        let dbPlan = 'free'
+        if (plan === 'ultra_monthly' || plan === 'ultra') dbPlan = 'ultra'
+        else if (plan === 'business_monthly' || plan === 'business') dbPlan = 'business'
+        
         if (userId) {
           await supabase
             .from('profiles')
             .update({
-              plan: plan || 'plus',
+              plan: dbPlan,
               stripe_customer_id: session.customer as string,
               stripe_subscription_id: session.subscription as string,
               subscription_status: 'active',

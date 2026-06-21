@@ -7,7 +7,7 @@ const migrations = fs.readdirSync(migrationsDir)
   .sort()
   .map(f => path.join(migrationsDir, f))
 
-let sql = `-- KuikChat — COMPLETE DATABASE SCHEMA (001–012)\n`
+let sql = `-- KuikChat - COMPLETE DATABASE SCHEMA (001-012)\n`
 sql += `-- Generated: ${new Date().toISOString()}\n\n`
 
 for (const file of migrations) {

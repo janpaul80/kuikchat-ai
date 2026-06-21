@@ -37,7 +37,7 @@ export async function createClient() {
 }
 
 /**
- * Service-role Supabase client — BYPASSES Row Level Security.
+ * Service-role Supabase client - BYPASSES Row Level Security.
  * Use ONLY in trusted server contexts (webhooks, admin tasks, background jobs).
  * Never expose this to the browser.
  */

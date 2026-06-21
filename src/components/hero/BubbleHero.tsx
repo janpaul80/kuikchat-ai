@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 /**
  * KuikChat cinematic hero using Animate UI's Bubble background.
- * SAME animation on every page — only the copy changes per page.
+ * SAME animation on every page - only the copy changes per page.
  *
  * Usage:
  *   import BubbleHero from "@/components/hero/BubbleHero";

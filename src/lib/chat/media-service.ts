@@ -73,7 +73,7 @@ async function uploadToSupabaseStorage(
 
     if (uploadError) throw uploadError
 
-    // Voice and attachments are private — use signed URLs (1 hour expiry)
+    // Voice and attachments are private - use signed URLs (1 hour expiry)
     const { data: signedData, error: signedError } = await supabase.storage
       .from(bucket)
       .createSignedUrl(fileName, 3600)

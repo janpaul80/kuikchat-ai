@@ -6,6 +6,7 @@ import {
   type HermesMode,
   type HermesMessage,
 } from '@/lib/openai/hermes'
+import { sanitizeHermesOutput } from '@/lib/noLongDashes'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -43,9 +44,10 @@ export async function POST(req: Request) {
     const response = await chatWithHermes({ messages, mode, stream: false })
     // chatWithHermes returns a non-streamed completion when stream=false.
     // Cast to the known shape; the union with the stream type is narrowed here.
-    const reply =
+    const replyRaw =
       (response as { choices?: Array<{ message?: { content?: string | null } }> })
         .choices?.[0]?.message?.content ?? "I couldn't generate a response."
+    const reply = sanitizeHermesOutput(replyRaw)
 
     return NextResponse.json({ reply })
   } catch (err) {

@@ -2,14 +2,14 @@
 import { motion } from "framer-motion";
 import { MessageCircle, Sparkles, FileText, TrendingUp, Shield, LayoutGrid } from "lucide-react";
 
-/** KuikChat — Features (Next.js) with brand-color hover. Path: src/components/landing/Features.tsx */
+/** KuikChat - Features (Next.js) with brand-color hover. Path: src/components/landing/Features.tsx */
 const features = [
   { icon: MessageCircle, title: "Real-time messaging", description: "Experience instant 1:1 and group chats with reactions, replies, edits, and read receipts." },
   { icon: Sparkles, title: "Hermes AI", description: "Your personal assistant in every conversation: summaries, drafts, translation, and answers." },
   { icon: FileText, title: "FileNinja", description: "Share, preview, and act on files without ever leaving the chat environment." },
   { icon: TrendingUp, title: "RevDev Pro", description: "Turn your conversations into revenue with built-in commerce and developer tooling." },
   { icon: Shield, title: "Secure by design", description: "We prioritize your privacy with Supabase-backed authentication, signed URLs, and isolated storage." },
-  { icon: LayoutGrid, title: "Interactive cards", description: "Polls, events, live locations, and contact cards — all rendered right in the chat." },
+  { icon: LayoutGrid, title: "Interactive cards", description: "Polls, events, live locations, and contact cards - all rendered right in the chat." },
 ];
 const container = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };

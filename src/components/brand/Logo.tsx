@@ -65,7 +65,7 @@ export function Logo({
 }
 
 /**
- * Animated logo for hero sections — has a glow effect
+ * Animated logo for hero sections - has a glow effect
  */
 export function LogoHero({ size = 120 }: { size?: number }) {
   return (

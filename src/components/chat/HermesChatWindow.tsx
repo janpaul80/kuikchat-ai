@@ -29,7 +29,7 @@ interface Message {
 
 const HERMES_GREETING: Message = {
   id: 'hermes-greet',
-  text: "👋 Hi! I'm Hermes, your AI assistant. I can help you write, translate, summarize, generate images, and much more. What can I do for you today?",
+  text: "Hi! I'm Hermes, your AI assistant. I can help you write, translate, summarize, generate images, and much more. What can I do for you today?",
   fromMe: false,
   time: new Date(),
 }
@@ -110,8 +110,8 @@ export function HermesChatWindow() {
           </Avatar>
           <div>
             <h2 className="font-semibold">Hermes AI</h2>
-            <p className="text-xs text-muted-foreground">
-              Always available • ✨ Powered by GPT-4
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              Always available • <Sparkles className="h-3 w-3 text-brand-blue-500 inline" /> Powered by GPT-4
             </p>
           </div>
         </div>

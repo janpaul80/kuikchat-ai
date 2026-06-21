@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 
 /**
- * KuikChat brand background — auto-looping spark/glow in brand blue->green.
+ * KuikChat brand background - auto-looping spark/glow in brand blue->green.
  * No external install. Pure framer-motion + Tailwind. Drop behind any hero.
  * Usage: <div className="relative"><GlowBackground /> ...content... </div>
  */

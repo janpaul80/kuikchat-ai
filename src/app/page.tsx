@@ -5,7 +5,7 @@ import CtaBand from "@/components/landing/CtaBand";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 
 /**
- * KuikChat — Home route (Next.js App Router)
+ * KuikChat - Home route (Next.js App Router)
  * Path: src/app/page.tsx
  */
 export default function HomePage() {

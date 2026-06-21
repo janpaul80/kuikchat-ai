@@ -40,7 +40,7 @@ export function HermesShowcase() {
           <p className="mt-6 text-lg text-white/90">
             Simply tag <code className="rounded bg-white/20 px-2 py-0.5 font-mono">@Hermes</code>{' '}
             in any conversation or start a 1:1 chat. You can translate, summarize, generate images,
-            and transcribe voice messages — all without ever leaving KuikChat.
+            and transcribe voice messages - all without ever leaving KuikChat.
           </p>
         </div>
 

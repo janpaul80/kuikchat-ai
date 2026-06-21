@@ -1,4 +1,4 @@
-# KuikChat Legal Stub Pages — /cookies and /gdpr
+# KuikChat Legal Stub Pages - /cookies and /gdpr
 
 These fix the dead footer links flagged in the security scan.
 

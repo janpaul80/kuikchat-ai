@@ -52,7 +52,9 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuTrigger className="rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
         <Avatar className="h-9 w-9">
           <AvatarImage src={user.avatarUrl} alt={name} />
-          <AvatarFallback>{getInitials(name)}</AvatarFallback>
+          <AvatarFallback className="p-1">
+            <img src="/logo.png" alt="KuikChat" className="h-full w-full object-contain" />
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
@@ -80,7 +82,7 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuItem asChild>
           <Link href="/settings/billing">
             <Crown className="h-4 w-4 text-brand-green-500" />
-            <span>Upgrade to Plus</span>
+            <span>Billing & Upgrades</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={toggleTheme}>

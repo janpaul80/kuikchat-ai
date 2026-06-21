@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Sparkles, FileText, TrendingUp, ShieldCheck, Github, Star, Monitor, Apple, Smartphone, TrendingUp as Biz, User, Code2, Boxes } from "lucide-react";
 
 /**
- * KuikChat — About content (premium dark).
+ * KuikChat - About content (premium dark).
  *  - Founder PHOTO instead of placeholder icon (public/jphart.png)
  *  - NO local <Footer /> (the (marketing) layout already injects it -> fixes the double footer)
  *  - Animated brand glow background behind the hero.
@@ -16,9 +16,9 @@ const GRAD = "bg-gradient-to-br from-[hsl(217,91%,60%)] to-[hsl(142,71%,45%)]";
 const GRADTEXT = "bg-gradient-to-r from-[hsl(217,91%,60%)] to-[hsl(142,71%,45%)] bg-clip-text text-transparent";
 
 const integrations = [
-  { icon: Sparkles, name: "Hermes AI", desc: "A built-in AI assistant in every conversation — summaries, drafts, translation, coding help, and instant answers without leaving the chat." },
-  { icon: FileText, name: "FileNinja", desc: "Share, preview and act on files inline. Signed and stored securely — no clunky attachments, no context switching." },
-  { icon: TrendingUp, name: "RevDev Pro", desc: "Turn conversations into outcomes with built-in commerce and developer tooling — ship and sell from where you already talk." },
+  { icon: Sparkles, name: "Hermes AI", desc: "A built-in AI assistant in every conversation - summaries, drafts, translation, coding help, and instant answers without leaving the chat." },
+  { icon: FileText, name: "FileNinja", desc: "Share, preview and act on files inline. Signed and stored securely - no clunky attachments, no context switching." },
+  { icon: TrendingUp, name: "RevDev Pro", desc: "Turn conversations into outcomes with built-in commerce and developer tooling - ship and sell from where you already talk." },
 ];
 const useCases = {
   personal: ["Private 1:1 and group chats", "Disappearing & vanish-mode messages", "Polls, events, live location & contact cards", "AI translation across 6+ languages"],
@@ -104,8 +104,8 @@ export default function AboutContent() {
           <div className="space-y-4 text-white/70 leading-relaxed">
             <span className={`text-sm font-medium ${GRADTEXT}`}>The founder story</span>
             <p>KuikChat was founded by <strong className="text-white">Paul Hartmann</strong>, a software engineer who has spent years building full-stack products and contributing to open source. Frustrated by messaging tools that treated AI as an afterthought and privacy as a checkbox, he set out to build something different.</p>
-            <p>Paul's work spans modern web platforms, real-time systems, and a growing portfolio of AI projects. KuikChat brings that experience together — Hermes AI, FileNinja, and RevDev Pro all reflect a single belief: powerful tools should feel effortless and respect the people using them.</p>
-            <p>KuikChat is <strong className="text-white">one of several projects</strong> Paul is actively building — part of a broader mission to ship practical, privacy-respecting AI software that people genuinely enjoy using.</p>
+            <p>Paul's work spans modern web platforms, real-time systems, and a growing portfolio of AI projects. KuikChat brings that experience together - Hermes AI, FileNinja, and RevDev Pro all reflect a single belief: powerful tools should feel effortless and respect the people using them.</p>
+            <p>KuikChat is <strong className="text-white">one of several projects</strong> Paul is actively building - part of a broader mission to ship practical, privacy-respecting AI software that people genuinely enjoy using.</p>
           </div>
         </div>
       </S>
@@ -114,7 +114,7 @@ export default function AboutContent() {
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-10 text-center">
           <Github className="w-10 h-10 mx-auto text-white mb-4" />
           <h2 className="text-2xl md:text-3xl font-bold">KuikChat is built in the open</h2>
-          <p className="mt-3 text-white/65 max-w-xl mx-auto">If you like what we're building, give us a star on GitHub — it genuinely helps.</p>
+          <p className="mt-3 text-white/65 max-w-xl mx-auto">If you like what we're building, give us a star on GitHub - it genuinely helps.</p>
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={`mt-7 inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium hover:opacity-90 transition-opacity ${GRAD}`}>
             <Star className="w-4 h-4" /> Star on GitHub
           </a>
@@ -138,7 +138,7 @@ export default function AboutContent() {
       </S>
 
       <div className="h-10" />
-      {/* NO <Footer /> here — the (marketing) layout already renders it */}
+      {/* NO <Footer /> here - the (marketing) layout already renders it */}
     </main>
   );
 }

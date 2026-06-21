@@ -6,6 +6,7 @@ import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import type { MessageRow, ReactionRow, ReadRow, RepliedToPreview, ProfileLite } from '@/lib/chat/types'
 import {
   fetchMessagesPage,
+  fetchChatMeta,
   sendTextMessage,
   editMessage,
   deleteMessageForMe,
@@ -23,6 +24,12 @@ import { MessageBubble } from './MessageBubble'
 import { ReplyPreview } from './ReplyPreview'
 import { TypingIndicator } from './TypingIndicator'
 import { ChatInputArea } from './input/ChatInputArea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import DayDivider from './DayDivider'
+import CommandPalette from './CommandPalette'
+import { useCommandPalette } from './useCommandPalette'
 
 const TYPING_TIMEOUT_MS = 3000
 
@@ -31,6 +38,7 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
   const { user } = useAuthUser()
 
   const [messages, setMessages] = useState<MessageRow[]>([])
+  const [chatMeta, setChatMeta] = useState<{ chat: any; other: ProfileLite | null } | null>(null)
   const [pendingSends, setPendingSends] = useState<Record<string, MessageRow>>({})
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null)
   const [reactionsByMsg, setReactionsByMsg] = useState<Record<string, ReactionRow[]>>({})
@@ -40,10 +48,65 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette()
+  const [filterCommand, setFilterCommand] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState<string | null>(null)
+
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
   const channelRef = useRef<any>(null)
   const markReadRef = useRef<number>(0)
+
+  // Filter messages dynamically on the client
+  const filteredMessages = useMemo(() => {
+    let list = messages
+    if (filterCommand) {
+      const now = new Date()
+      if (filterCommand === 'today') {
+        list = list.filter((m) => new Date(m.created_at).toDateString() === now.toDateString())
+      } else if (filterCommand === 'yesterday') {
+        const yesterday = new Date(now)
+        yesterday.setDate(now.getDate() - 1)
+        list = list.filter((m) => new Date(m.created_at).toDateString() === yesterday.toDateString())
+      } else if (filterCommand === 'lastweek') {
+        const lastWeek = new Date(now)
+        lastWeek.setDate(now.getDate() - 7)
+        list = list.filter((m) => new Date(m.created_at) >= lastWeek)
+      } else if (filterCommand === 'files') {
+        list = list.filter((m) => m.type === 'file')
+      } else if (filterCommand === 'photos') {
+        list = list.filter((m) => m.type === 'image' || m.type === 'video')
+      } else if (filterCommand === 'links') {
+        list = list.filter((m) => m.body?.toLowerCase().includes('http://') || m.body?.toLowerCase().includes('https://'))
+      } else if (filterCommand === 'voice') {
+        list = list.filter((m) => m.type === 'voice' || (m.body && m.body.includes('🎤 Voice note')))
+      } else if (filterCommand === 'polls') {
+        list = list.filter((m) => m.type === 'poll')
+      } else if (filterCommand === 'events') {
+        list = list.filter((m) => m.type === 'event')
+      }
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase().trim()
+      list = list.filter((m) => m.body?.toLowerCase().includes(q))
+    }
+    return list
+  }, [messages, filterCommand, searchQuery])
+
+  const handleRunCommand = (cmd: string) => {
+    if (cmd === 'recent') {
+      setFilterCommand(null)
+      setSearchQuery(null)
+    } else {
+      setFilterCommand(cmd)
+      setSearchQuery(null)
+    }
+  }
+
+  const handleHermesSearch = (query: string) => {
+    setSearchQuery(query)
+    setFilterCommand(null)
+  }
 
   // Load initial messages + auxiliary datasets + draft
   useEffect(() => {
@@ -53,6 +116,10 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
       setLoading(true)
       setError(null)
       try {
+        const meta = await fetchChatMeta(supabase, chatId, user.id)
+        if (cancelled) return
+        setChatMeta(meta)
+
         const rows = await fetchMessagesPage(supabase, chatId, null, 50)
         if (cancelled) return
         const sorted = [...rows].sort((a, b) => a.created_at.localeCompare(b.created_at))
@@ -287,7 +354,7 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages.length])
 
-  // Intent router — called by ChatInputArea for all message types
+  // Intent router - called by ChatInputArea for all message types
   const handleIntent = useCallback(async (payload: ChatIntentPayload) => {
     if (!user?.id) return
 
@@ -521,7 +588,7 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
     }
   }
 
-  function onTypingChange(isTyping: boolean) {
+  function handleTypingChange(isTyping: boolean) {
     emitTyping(isTyping)
     if (isTyping) {
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
@@ -536,32 +603,98 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
 
   return (
     <div className="flex h-full flex-col">
+      {/* Chat Header */}
+      <div className="flex h-16 items-center justify-between border-b border-border bg-card px-4 shrink-0">
+        <div className="flex items-center gap-3">
+          <Link href="/chats" className="md:hidden">
+            <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+          </Link>
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={chatMeta?.other?.avatar_url || chatMeta?.chat?.avatar_url || undefined} />
+            <AvatarFallback className="bg-brand-gradient p-2">
+              <img src="/logo.png" alt="KuikChat" className="h-full w-full object-contain" />
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-sm font-semibold flex items-center gap-1.5">
+              <span>{chatMeta?.other?.display_name || chatMeta?.chat?.name || 'KuikChat User'}</span>
+              {chatMeta?.other && (chatMeta.other.plan === 'ultra' || chatMeta.other.plan === 'business') && (
+                <svg className="h-3.5 w-3.5 text-brand-blue-500 fill-current shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              )}
+            </h2>
+            <p className="text-[10px] text-muted-foreground">
+              {chatMeta?.other ? 'Active' : chatMeta?.chat?.type === 'group' ? 'Group chat' : 'Connecting...'}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {error ? <div className="border-b bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div> : null}
 
+      {/* Filter Status Bar */}
+      {(filterCommand || searchQuery) ? (
+        <div className="flex items-center justify-between border-b bg-brand-blue-500/10 px-4 py-2 text-sm text-foreground">
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-muted-foreground">Filtered by:</span>
+            <span className="rounded-md bg-brand-blue-500/20 px-2 py-0.5 font-mono text-xs font-bold text-brand-blue-600">
+              {filterCommand ? `/${filterCommand}` : `Hermes: "${searchQuery}"`}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              setFilterCommand(null)
+              setSearchQuery(null)
+            }}
+            className="rounded-lg px-2.5 py-1 text-xs font-bold bg-accent/60 hover:bg-accent text-foreground transition-all"
+          >
+            Clear Filter
+          </button>
+        </div>
+      ) : null}
+
       <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-4">
-        {messages
-          .filter((m) => !m.id.startsWith('optimistic-') || pendingSends[m.id])
-          .map((msg) => {
-          const mine = msg.sender_id === user.id
-          const reads = readsByMsg[msg.id] || []
-          const wasReadByOther = mine && reads.some((r) => r.user_id !== user.id)
-          return (
-            <MessageBubble
-              key={msg.id}
-              msg={msg}
-              mine={mine}
-              replyTo={msg.reply_to_id ? repliedToMap.get(msg.reply_to_id) || null : null}
-              reactions={reactionsByMsg[msg.id] || []}
-              wasReadByOther={wasReadByOther}
-              currentUserId={user.id}
-              onEdit={handleEdit}
-              onDeleteForMe={handleDeleteForMe}
-              onDeleteForEveryone={handleDeleteForEveryone}
-              onReply={setReplyTo}
-              onReact={handleReact}
-            />
-          )
-        })}
+        {filteredMessages.length === 0 && (filterCommand || searchQuery) ? (
+          <div className="flex h-full flex-col items-center justify-center p-8 text-center text-muted-foreground">
+            <p className="text-sm">No messages found matching your filter.</p>
+          </div>
+        ) : null}
+
+        {(() => {
+          let lastDateStr = ''
+          return filteredMessages
+            .filter((m) => !m.id.startsWith('optimistic-') || pendingSends[m.id])
+            .map((msg) => {
+              const mine = msg.sender_id === user.id
+              const reads = readsByMsg[msg.id] || []
+              const wasReadByOther = mine && reads.some((r) => r.user_id !== user.id)
+              
+              const msgDate = new Date(msg.created_at)
+              const msgDateStr = msgDate.toDateString()
+              const showDivider = msgDateStr !== lastDateStr
+              lastDateStr = msgDateStr
+
+              return (
+                <div key={msg.id} className="flex flex-col">
+                  {showDivider && <DayDivider date={msg.created_at} />}
+                  <MessageBubble
+                    msg={msg}
+                    mine={mine}
+                    replyTo={msg.reply_to_id ? repliedToMap.get(msg.reply_to_id) || null : null}
+                    reactions={reactionsByMsg[msg.id] || []}
+                    wasReadByOther={wasReadByOther}
+                    currentUserId={user.id}
+                    onEdit={handleEdit}
+                    onDeleteForMe={handleDeleteForMe}
+                    onDeleteForEveryone={handleDeleteForEveryone}
+                    onReply={setReplyTo}
+                    onReact={handleReact}
+                  />
+                </div>
+              )
+            })
+        })()}
       </div>
 
       <TypingIndicator typingUsers={typingUsers} className="border-t" />
@@ -578,9 +711,17 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
 
       <ChatInputArea
         onIntent={handleIntent}
-        onTypingChange={onTypingChange}
+        onTypingChange={handleTypingChange}
         disabled={loading}
         currentUserId={user.id}
+        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+      />
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onRunCommand={handleRunCommand}
+        onHermesSearch={handleHermesSearch}
       />
     </div>
   )

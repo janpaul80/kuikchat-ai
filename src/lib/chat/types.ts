@@ -50,6 +50,7 @@ export interface ProfileLite {
   username: string | null
   display_name: string | null
   avatar_url: string | null
+  plan?: string | null
 }
 
 export interface MessageRow {
@@ -158,7 +159,7 @@ export interface EventRSVPRow {
 // Composed view used by the chat list UI
 export interface ChatListItem {
   chat: ChatRow
-  // For direct chats — the "other" member's profile
+  // For direct chats - the "other" member's profile
   otherMember?: ProfileLite | null
   // Display info derived from chat or otherMember
   displayName: string
@@ -171,7 +172,7 @@ export interface ChatListItem {
 
 // Slice B helpers ────────────────────────────────────────────────────────────
 
-/** Max window (ms) for sender-side message edits — mirrors migration 011. */
+/** Max window (ms) for sender-side message edits - mirrors migration 011. */
 export const EDIT_WINDOW_MS = 15 * 60 * 1000
 
 export function isWithinEditWindow(createdAt: string | Date): boolean {

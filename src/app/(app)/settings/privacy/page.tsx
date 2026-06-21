@@ -1,56 +1,43 @@
-import { Button } from '@/components/ui/button'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import {
   SettingsContainer,
   SettingsHeader,
-  SettingsSection,
-  SettingsRow,
 } from '@/components/settings/SettingsSection'
+import { PrivacyForm } from '@/components/settings/PrivacyForm'
 
-const VISIBILITY_OPTIONS = ['Everyone', 'Contacts', 'Nobody']
+export default async function PrivacySettingsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-export default function PrivacySettingsPage() {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, last_seen_visibility, profile_photo_visibility, bio_visibility, read_receipts_enabled, typing_indicator_enabled, ghost_mode')
+    .eq('id', user.id)
+    .single()
+
+  if (error || !profile) {
+    console.error('Error fetching privacy settings:', error)
+    redirect('/chats')
+  }
+
+  const initialPrivacy = {
+    id: profile.id,
+    last_seen_visibility: (profile.last_seen_visibility || 'contacts') as 'everyone' | 'contacts' | 'nobody',
+    profile_photo_visibility: (profile.profile_photo_visibility || 'everyone') as 'everyone' | 'contacts' | 'nobody',
+    bio_visibility: (profile.bio_visibility || 'contacts') as 'everyone' | 'contacts' | 'nobody',
+    read_receipts_enabled: profile.read_receipts_enabled ?? true,
+    typing_indicator_enabled: profile.typing_indicator_enabled ?? true,
+    ghost_mode: profile.ghost_mode ?? false,
+  }
+
   return (
     <SettingsContainer>
       <SettingsHeader title="Privacy" description="Control who can see what" />
-
-      <SettingsSection title="Who can see..." description="Defaults apply to everyone unless customized">
-        <SettingsRow label="Last seen & online" description="Everyone">
-          <Button variant="outline" size="sm">Change</Button>
-        </SettingsRow>
-        <SettingsRow label="Profile photo" description="Everyone">
-          <Button variant="outline" size="sm">Change</Button>
-        </SettingsRow>
-        <SettingsRow label="Bio" description="Contacts">
-          <Button variant="outline" size="sm">Change</Button>
-        </SettingsRow>
-        <SettingsRow label="Read receipts" description="Show blue ticks">
-          <Button variant="outline" size="sm">On</Button>
-        </SettingsRow>
-        <SettingsRow label="Typing indicator" description="Show when you're typing">
-          <Button variant="outline" size="sm">On</Button>
-        </SettingsRow>
-      </SettingsSection>
-
-      <SettingsSection title="Disappearing messages" description="Set a default timer for new chats">
-        <SettingsRow label="Default timer" description="Off">
-          <Button variant="outline" size="sm">Change</Button>
-        </SettingsRow>
-      </SettingsSection>
-
-      <SettingsSection title="Ghost mode" description="Go completely invisible">
-        <SettingsRow
-          label="Enable ghost mode"
-          description="No online status, no last seen, no read receipts"
-        >
-          <Button variant="outline" size="sm">Off</Button>
-        </SettingsRow>
-      </SettingsSection>
-
-      <SettingsSection title="Blocked contacts">
-        <SettingsRow label="Blocked users" description="0 blocked">
-          <Button variant="outline" size="sm">Manage</Button>
-        </SettingsRow>
-      </SettingsSection>
+      <PrivacyForm initialPrivacy={initialPrivacy} />
     </SettingsContainer>
   )
 }

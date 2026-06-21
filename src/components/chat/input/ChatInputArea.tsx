@@ -18,9 +18,10 @@ interface ChatInputAreaProps {
   disabled?: boolean
   placeholder?: string
   currentUserId: string
+  onOpenCommandPalette?: () => void
 }
 
-export function ChatInputArea({ onIntent, onTypingChange, disabled, placeholder = 'Type a message', currentUserId }: ChatInputAreaProps) {
+export function ChatInputArea({ onIntent, onTypingChange, disabled, placeholder = 'Type a message', currentUserId, onOpenCommandPalette }: ChatInputAreaProps) {
   const [text, setText] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [isPollOpen, setIsPollOpen] = useState(false)
@@ -148,8 +149,13 @@ export function ChatInputArea({ onIntent, onTypingChange, disabled, placeholder 
             <textarea
               value={text}
               onChange={(e) => {
-                setText(e.target.value)
-                onTypingChange?.(e.target.value.length > 0)
+                const val = e.target.value
+                if (val === '/' && text === '') {
+                  onOpenCommandPalette?.()
+                  return
+                }
+                setText(val)
+                onTypingChange?.(val.length > 0)
               }}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}

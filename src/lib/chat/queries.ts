@@ -50,7 +50,7 @@ export async function fetchChatList(
       `
       chat_id,
       user_id,
-      profile:profiles (id, username, display_name, avatar_url)
+      profile:profiles (id, username, display_name, avatar_url, plan)
     `
     )
     .in('chat_id', chatIds)
@@ -147,7 +147,7 @@ export async function fetchChatMeta(
   if (chat.type === 'direct') {
     const { data: otherMember } = await supabase
       .from('chat_members')
-      .select('profile:profiles (id, username, display_name, avatar_url)')
+      .select('profile:profiles (id, username, display_name, avatar_url, plan)')
       .eq('chat_id', chatId)
       .neq('user_id', userId)
       .limit(1)

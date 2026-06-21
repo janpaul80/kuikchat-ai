@@ -1,7 +1,7 @@
 export const APP_NAME = 'KuikChat'
 export const APP_TAGLINE = 'The All-in-One Messenger + AI Agent Platform'
 export const APP_DESCRIPTION =
-  'KuikChat unifies every messaging experience into one sleek, secure, and intelligent app — powered by Hermes AI. No phone number required.'
+  'KuikChat unifies every messaging experience into one sleek, secure, and intelligent app - powered by Hermes AI. No phone number required.'
 export const APP_DOMAIN = 'kuikchat.io'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3100'
 export const GITHUB_URL = 'https://github.com/hartm'
@@ -115,7 +115,7 @@ export const FEATURE_CATEGORIES = [
     id: 'messaging',
     title: 'Messaging Engine',
     icon: 'MessageSquare',
-    description: 'Lightning-fast, real-time messaging with everything you expect — and more.',
+    description: 'Lightning-fast, real-time messaging with everything you expect - and more.',
     features: [
       'Real-time WebSocket delivery',
       'Edit messages (15 min window)',
@@ -214,7 +214,7 @@ export const FEATURE_CATEGORIES = [
     id: 'professional',
     title: 'Professional Mode',
     icon: 'Briefcase',
-    description: 'LinkedIn meets Slack meets WhatsApp — for business users.',
+    description: 'LinkedIn meets Slack meets WhatsApp - for business users.',
     features: [
       'Verified business profile',
       'Product catalog',
@@ -231,7 +231,7 @@ export const FEATURE_CATEGORIES = [
     id: 'expression',
     title: 'Fun & Expression',
     icon: 'Smile',
-    description: 'Stickers, themes, GIFs, AR filters — be yourself in every chat.',
+    description: 'Stickers, themes, GIFs, AR filters - be yourself in every chat.',
     features: [
       'AI-generated custom stickers',
       'GIPHY & Tenor integration',

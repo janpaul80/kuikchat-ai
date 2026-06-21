@@ -223,7 +223,7 @@ export function ProductWorkflow() {
           <div className="mt-8 grid gap-3">
             {[
               ['Secure messaging', 'Maintain truly private conversations with clear account ownership.'],
-              ['Hermes integrated AI', 'Draft, summarize, translate, and assist — all right in the context of your chat.'],
+              ['Hermes integrated AI', 'Draft, summarize, translate, and assist - all right in the context of your chat.'],
               ['FileNinja delivery', 'Professional file transfers without ever exposing raw storage links.'],
               ['Roadmap: Rev-Pro & VideoAgent', 'Upcoming support for transcription, media workflows, and future video intelligence.'],
             ].map(([title, description]) => (

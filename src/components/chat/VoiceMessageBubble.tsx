@@ -70,7 +70,7 @@ export function VoiceMessageBubble({ url, mine, durationMs }: VoiceMessageBubble
     return `${m}:${s.toString().padStart(2, '0')}`
   }
 
-  // Waveform bar heights — sine-wave-ish for authentic look
+  // Waveform bar heights - sine-wave-ish for authentic look
   const barHeights = [3, 5, 7, 10, 13, 11, 8, 14, 16, 12, 9, 7, 11, 15, 18, 14, 10, 8, 13, 16, 11, 9, 7, 12, 10, 8, 6, 4]
 
   return (

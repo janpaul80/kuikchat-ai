@@ -1,4 +1,4 @@
-// EXAMPLE — copy this pattern into the real src/app/(marketing)/pricing/page.tsx
+// EXAMPLE - copy this pattern into the real src/app/(marketing)/pricing/page.tsx
 import BubbleHero from "@/components/hero/BubbleHero";
 import { heroCopy } from "@/lib/heroCopy";
 

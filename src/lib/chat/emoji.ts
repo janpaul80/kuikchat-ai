@@ -4,7 +4,7 @@
  * Ordered by popularity / grouping for a natural scan pattern.
  */
 export const REACTION_EMOJIS: readonly string[] = [
-  // Positive — most used first
+  // Positive - most used first
   '👍', '❤️', '😂', '🔥', '🎉', '😮',
   '😢', '😡', '🙏', '👏', '💯', '✨',
 
@@ -23,7 +23,7 @@ export const REACTION_EMOJIS: readonly string[] = [
 
 /**
  * Quick-pick strip shown on bubble hover (before the full popover opens).
- * Keep this short — 5–6 is the sweet spot visually.
+ * Keep this short - 5-6 is the sweet spot visually.
  */
 export const QUICK_REACTIONS: readonly string[] = [
   '👍', '👎', '❤️', '😂', '😮', '😢',

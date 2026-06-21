@@ -64,7 +64,7 @@ export function LandingHighlights() {
               Connecting the entire KuikChat ecosystem.
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-300">
-              While our initial launch stays focused on the core experience, our roadmap includes FileNinja, Rev-Pro, VideoAgent, and native desktop and mobile apps — all sharing the same trusted backend services.
+              While our initial launch stays focused on the core experience, our roadmap includes FileNinja, Rev-Pro, VideoAgent, and native desktop and mobile apps - all sharing the same trusted backend services.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-white/90">

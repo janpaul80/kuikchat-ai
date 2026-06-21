@@ -1,4 +1,4 @@
-import { type LucideIcon } from 'lucide-react'
+import { type LucideIcon, Check } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 interface PagePlaceholderProps {
@@ -54,8 +54,8 @@ export function PagePlaceholder({
           <ul className="space-y-2">
             {features.map((f) => (
               <li key={f} className="flex items-start gap-2 text-sm">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-green-500/10 text-brand-green-500">
-                  ✓
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-green-500/10">
+                  <Check className="h-3.5 w-3.5 text-brand-green-500" />
                 </span>
                 <span>{f}</span>
               </li>

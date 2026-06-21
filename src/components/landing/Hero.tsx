@@ -4,7 +4,7 @@ import { Sparkles, ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
 
 /**
- * KuikChat — Hero (Next.js App Router, dark, video background)
+ * KuikChat - Hero (Next.js App Router, dark, video background)
  * Path: src/components/landing/Hero.tsx
  * Video: /public/kuikchat.mp4  ->  served at "/kuikchat.mp4"
  */

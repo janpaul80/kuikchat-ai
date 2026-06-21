@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import '@/styles/kuikchat-chat.css'
 import { APP_NAME, APP_DESCRIPTION, APP_URL } from '@/lib/constants'
 
 const inter = Inter({
@@ -11,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: `${APP_NAME} — The All-in-One Messenger + AI Agent Platform`,
+    default: `${APP_NAME} - The All-in-One Messenger + AI Agent Platform`,
     template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
@@ -77,6 +78,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const saved = localStorage.getItem('kc-theme') || 'dark';
+                const root = document.documentElement;
+                root.classList.remove('dark', 'amoled');
+                if (saved === 'dark' || saved === 'amoled' || (saved === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  root.classList.add('dark');
+                  if (saved === 'amoled') root.classList.add('amoled');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         {children}
       </body>

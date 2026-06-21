@@ -60,7 +60,7 @@ export function saveDraft(
     }
     window.localStorage.setItem(keyFor(chatId), JSON.stringify(payload))
   } catch {
-    // Quota exceeded / blocked storage — silently ignore.
+    // Quota exceeded / blocked storage - silently ignore.
   }
 }
 

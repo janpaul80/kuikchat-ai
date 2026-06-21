@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { Search, Plus, Pin, BellOff, CheckCheck, Loader2 } from 'lucide-react'
+import { Search, Plus, Pin, BellOff, CheckCheck, Loader2, Sparkles } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,7 @@ import { HERMES_CHAT_ID } from '@/lib/chat/types'
 import { NewChatDialog } from './NewChatDialog'
 
 // A virtual entry for the always-on Hermes AI chat (Slice A keeps it as a
-// special-cased, non-DB chat — wired to OpenAI in earlier phases).
+// special-cased, non-DB chat - wired to OpenAI in earlier phases).
 const HERMES_VIRTUAL: ChatListItem = {
   chat: {
     id: HERMES_CHAT_ID,
@@ -190,7 +190,7 @@ export function ChatList() {
 
             {filtered.length === 0 && (
               <div className="p-8 text-center text-sm text-muted-foreground">
-                {search ? 'No chats match your search.' : 'No chats yet — tap + to start one.'}
+                {search ? 'No chats match your search.' : 'No chats yet - tap + to start one.'}
               </div>
             )}
           </>
@@ -217,7 +217,7 @@ function ChatRow({ item, active }: { item: ChatListItem; active: boolean }) {
         return b
       })()
     : isHermes
-    ? 'Ask me anything ✨'
+    ? 'Ask me anything'
     : 'No messages yet'
 
   const lastTime = item.lastMessage?.created_at || item.chat?.last_message_at || null
@@ -234,7 +234,7 @@ function ChatRow({ item, active }: { item: ChatListItem; active: boolean }) {
         <Avatar className="h-12 w-12">
           {isHermes ? (
             <div className="flex h-full w-full items-center justify-center bg-brand-gradient text-white">
-              <span className="text-lg">✨</span>
+              <Sparkles className="h-5 w-5" />
             </div>
           ) : (
             <>
@@ -246,9 +246,14 @@ function ChatRow({ item, active }: { item: ChatListItem; active: boolean }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between">
-          <h3 className="truncate text-sm font-semibold">
-            {item.displayName}
-            {isHermes && <span className="ml-1.5 text-xs">✨</span>}
+          <h3 className="truncate text-sm font-semibold flex items-center gap-1">
+            <span className="truncate">{item.displayName}</span>
+            {item.otherMember && (item.otherMember.plan === 'ultra' || item.otherMember.plan === 'business') && (
+              <svg className="h-3.5 w-3.5 text-brand-blue-500 fill-current shrink-0" viewBox="0 0 24 24">
+                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            )}
+            {isHermes && <Sparkles className="h-3 w-3 text-brand-blue-500 shrink-0" />}
           </h3>
           {lastTime && (
             <span className="shrink-0 text-xs text-muted-foreground">

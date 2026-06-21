@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 /**
- * KuikChat — Footer (FIXED)
+ * KuikChat - Footer (FIXED)
  *  - KuikChat logo image on the left (public/logo.png)
  *  - Every link enabled and pointing to real routes
  *  - GitHub-only social + GitHub CTA, brand-color hover
@@ -51,7 +51,7 @@ export default function Footer() {
               <span className="text-xl font-bold text-white">KuikChat</span>
             </Link>
             <p className="text-sm text-white/50 max-w-xs leading-relaxed">
-              Your Communication Command Center — where human connection meets AI power.
+              Your Communication Command Center - where human connection meets AI power.
             </p>
             <div className="flex items-center gap-3 mt-6">
               <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="GitHub"

@@ -1,0 +1,98 @@
+/* KuikChat - unified chat styles
+ * Path: src/styles/kuikchat-chat.css
+ * Import ONCE in the root layout: import "@/styles/kuikchat-chat.css";
+ *
+ * Covers all three features:
+ *   1) Message colors (quote / Hermes AI / imported block / media)
+ *   2) First-class timestamps + date dividers + hover/long-press detail
+ *   3) Command palette ( / menu )
+ *
+ * Brand: blue hsl(217 91% 60%) -> green hsl(142 71% 45%).
+ * Hermes (AI) = purple, deliberately OUTSIDE the brand gradient so AI never
+ * reads as "KuikChat said this".
+ * RULE: style maps to WHAT a message is, never WHERE it came from.
+ */
+:root{
+  --kc-brand-blue: 217 91% 60%;
+  --kc-brand-green: 142 71% 45%;
+  --kc-hermes: 270 80% 65%;
+}
+[data-theme="dark"]{
+  --kc-text:#eef1f5; --kc-dim:#9aa3af; --kc-faint:#6b7480;
+  --kc-panel:#14171c; --kc-panel2:#1b1f26; --kc-hairline:rgba(255,255,255,.08);
+  --kc-accent-quote: hsl(var(--kc-brand-blue));  --kc-tint-quote: hsl(var(--kc-brand-blue) / .08);
+  --kc-accent-ai:    hsl(var(--kc-hermes));      --kc-tint-ai:    hsl(var(--kc-hermes) / .10);
+  --kc-glow-ai:      hsl(var(--kc-hermes) / .35);
+  --kc-accent-paste: hsl(var(--kc-brand-green)); --kc-tint-paste: hsl(var(--kc-brand-green) / .10);
+  --kc-sel: hsl(var(--kc-brand-blue) / .14);
+}
+[data-theme="light"]{
+  --kc-text:#11151a; --kc-dim:#5b6571; --kc-faint:#8a93a0;
+  --kc-panel:#ffffff; --kc-panel2:#f3f5f8; --kc-hairline:rgba(0,0,0,.09);
+  --kc-accent-quote: hsl(217 70% 45%);  --kc-tint-quote: hsl(217 70% 45% / .07);
+  --kc-accent-ai:    hsl(270 55% 45%);  --kc-tint-ai:    hsl(270 55% 45% / .08);
+  --kc-glow-ai:      hsl(270 55% 45% / .18);
+  --kc-accent-paste: hsl(142 55% 32%);  --kc-tint-paste: hsl(142 55% 32% / .08);
+  --kc-sel: hsl(217 70% 45% / .10);
+}
+
+/* ---------- 1) MESSAGE COLORS ---------- */
+.kc-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.02em;margin-bottom:6px}
+.kc-tag svg{width:13px;height:13px}
+.kc-quote{border-left:3px solid var(--kc-accent-quote);background:var(--kc-tint-quote);border-radius:8px 16px 16px 8px;padding:10px 13px}
+.kc-quote .kc-tag{color:var(--kc-accent-quote)}
+.kc-quote .kc-quoted{color:var(--kc-dim);font-style:italic;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--kc-hairline)}
+.kc-ai{background:var(--kc-tint-ai);border:1px solid var(--kc-accent-ai);box-shadow:0 0 0 3px var(--kc-glow-ai);border-radius:16px;padding:10px 13px}
+.kc-ai .kc-tag{color:var(--kc-accent-ai)}
+.kc-paste{background:var(--kc-tint-paste);border:1px dashed var(--kc-accent-paste);border-radius:14px;padding:10px 13px}
+.kc-paste .kc-tag{color:var(--kc-accent-paste)}
+.kc-paste .kc-block{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;position:relative}
+.kc-paste .kc-block.kc-clamped{max-height:96px;overflow:hidden}
+.kc-paste .kc-block.kc-clamped::after{content:"";position:absolute;inset:auto 0 0 0;height:42px;background:linear-gradient(transparent,var(--kc-tint-paste))}
+.kc-expand{appearance:none;background:transparent;border:1px solid var(--kc-accent-paste);color:var(--kc-accent-paste);border-radius:8px;font:inherit;font-size:12px;padding:6px 12px;margin-top:8px;cursor:pointer;min-height:44px}
+.kc-media{padding:6px}
+.kc-media .kc-media-cap{font-size:12px;padding:8px 6px 4px;color:var(--kc-dim)}
+
+/* ---------- 2) TIMESTAMPS + DATE AWARENESS ---------- */
+.kc-daydiv{align-self:center;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--kc-faint);
+  background:var(--kc-panel2);border:1px solid var(--kc-hairline);padding:3px 12px;border-radius:999px;margin:10px 0 6px;text-transform:uppercase}
+.kc-msg{position:relative;max-width:84%;align-self:flex-start}
+.kc-msg.kc-me{align-self:flex-end}
+.kc-stamp{font-size:10.5px;color:var(--kc-faint);margin:2px 4px 8px;display:flex;align-items:center;gap:5px}
+.kc-msg.kc-me .kc-stamp{justify-content:flex-end}
+.kc-stamp .kc-tick{color:var(--kc-accent-quote)}
+.kc-stamp .kc-edited{font-style:italic}
+.kc-detail{position:absolute;z-index:5;bottom:calc(100% - 2px);left:0;background:var(--kc-panel2);
+  border:1px solid var(--kc-hairline);border-radius:10px;padding:8px 10px;font-size:11px;line-height:1.7;
+  white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transform:translateY(4px);transition:.14s}
+.kc-msg.kc-me .kc-detail{left:auto;right:0}
+.kc-msg:hover .kc-detail,.kc-detail.kc-show{opacity:1;transform:translateY(0)}
+.kc-detail .kc-row{display:flex;justify-content:space-between;gap:16px}
+.kc-detail .kc-row b{color:var(--kc-dim);font-weight:500}
+.kc-detail .kc-row span:last-child{color:var(--kc-text)}
+
+/* ---------- 3) COMMAND PALETTE ---------- */
+.kc-pal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);
+  display:flex;align-items:flex-start;justify-content:center;z-index:1000;padding-top:12vh}
+@media (max-width:640px){.kc-pal-overlay{align-items:flex-end;padding:0}}
+.kc-pal{width:100%;max-width:560px;background:var(--kc-panel);border:1px solid var(--kc-hairline);
+  border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.5);display:flex;flex-direction:column;max-height:70vh;overflow:hidden}
+@media (max-width:640px){.kc-pal{max-width:100%;border-radius:20px 20px 0 0;max-height:84vh}}
+.kc-pal-search{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--kc-hairline)}
+.kc-pal-search .kc-pfx{color:var(--kc-accent-quote);font-weight:700}
+.kc-pal-search input{flex:1;background:transparent;border:0;outline:none;color:var(--kc-text);font:inherit;font-size:15px}
+.kc-pal-list{overflow:auto;padding:8px}
+.kc-pal-sec{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--kc-faint);margin:10px 8px 4px;font-weight:700}
+.kc-cmd{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:11px;cursor:pointer}
+.kc-cmd:hover,.kc-cmd.kc-active{background:var(--kc-sel)}
+.kc-cmd .kc-ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--kc-panel2);border:1px solid var(--kc-hairline)}
+.kc-cmd .kc-ic svg{width:15px;height:15px;color:var(--kc-accent-quote)}
+.kc-cmd.kc-hermes .kc-ic svg{color:var(--kc-accent-ai)}
+.kc-cmd .kc-nm{font-size:14px;font-weight:600}
+.kc-cmd .kc-ds{font-size:11.5px;color:var(--kc-dim)}
+.kc-cmd .kc-key{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--kc-faint);
+  background:var(--kc-panel2);border:1px solid var(--kc-hairline);padding:2px 7px;border-radius:6px}
+.kc-pal-empty{color:var(--kc-dim);font-size:13px;text-align:center;padding:24px}
+.kc-herm-hint{font-size:11.5px;color:var(--kc-accent-ai);margin:6px 8px;display:flex;align-items:center;gap:6px}
+
+@media (prefers-reduced-motion:reduce){.kc-ai{box-shadow:0 0 0 2px var(--kc-glow-ai)} .kc-detail{transition:none}}

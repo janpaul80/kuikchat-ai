@@ -1,5 +1,5 @@
 /**
- * Hermes AI Provider — Langdock
+ * Hermes AI Provider - Langdock
  * -----------------------------------------------------------------------------
  * KuikChat uses Langdock (https://langdock.com) as the AI provider abstraction
  * for Hermes. Langdock exposes an OpenAI-compatible REST API gateway, so we
@@ -7,11 +7,11 @@
  * base URL with the Langdock API key.
  *
  * Environment variables (configure in .env.local):
- *   LANGDOCK_API_KEY         — required. Your Langdock API key.
- *   LANGDOCK_BASE_URL        — optional. Default: https://api.langdock.com/openai/v1
- *   LANGDOCK_CHAT_MODEL      — optional. Default: gpt-4o-mini
- *   LANGDOCK_IMAGE_MODEL     — optional. Default: dall-e-3
- *   LANGDOCK_TRANSCRIBE_MODEL— optional. Default: whisper-1
+ *   LANGDOCK_API_KEY         - required. Your Langdock API key.
+ *   LANGDOCK_BASE_URL        - optional. Default: https://api.langdock.com/openai/v1
+ *   LANGDOCK_CHAT_MODEL      - optional. Default: gpt-4o-mini
+ *   LANGDOCK_IMAGE_MODEL     - optional. Default: dall-e-3
+ *   LANGDOCK_TRANSCRIBE_MODEL- optional. Default: whisper-1
  *
  * Pick any model name your Langdock workspace has enabled. Langdock proxies
  * multiple upstream providers (OpenAI, Anthropic, Mistral, Google, etc.) so
@@ -21,18 +21,18 @@
  */
 import OpenAI from 'openai'
 
-// Langdock EU region — confirmed working base URL for the OpenAI-compatible gateway.
+// Langdock EU region - confirmed working base URL for the OpenAI-compatible gateway.
 // US region currently has no models enabled. Override with LANGDOCK_BASE_URL if needed.
 export const LANGDOCK_DEFAULT_BASE_URL = 'https://api.langdock.com/openai/eu/v1'
 
-// Default model — `gpt-5-chat-latest` is the conversational (non-reasoning)
+// Default model - `gpt-5-chat-latest` is the conversational (non-reasoning)
 // variant, which is ideal for chat UX: no reasoning-token overhead means
 // faster responses, lower cost, and no risk of empty replies when the model
 // burns the whole token budget on hidden reasoning steps.
 //
 // Reasoning variants available if you want deeper analysis:
-//   - `gpt-5-mini` / `gpt-5` / `o3` / `o4-mini` — reasoning models
-//   - `gpt-5.2-pro` — top-tier reasoning
+//   - `gpt-5-mini` / `gpt-5` / `o3` / `o4-mini` - reasoning models
+//   - `gpt-5.2-pro` - top-tier reasoning
 // Override per-request by passing `model` to chatWithHermes(), or globally
 // via LANGDOCK_CHAT_MODEL in .env.local.
 export const LANGDOCK_DEFAULT_CHAT_MODEL = 'gpt-5-chat-latest'
@@ -77,7 +77,7 @@ export function isHermesConfigured(): boolean {
   return !!process.env.LANGDOCK_API_KEY
 }
 
-// Lazy singleton — LANGDOCK_API_KEY isn't required at build time
+// Lazy singleton - LANGDOCK_API_KEY isn't required at build time
 let _client: OpenAI | null = null
 export function getHermesClient(): OpenAI {
   if (!_client) {
@@ -101,13 +101,17 @@ export const getOpenAI = getHermesClient
 
 export const HERMES_SYSTEM_PROMPTS = {
   professional: `You are Hermes, the AI assistant inside KuikChat. Respond in a formal, concise, business-focused tone. Be direct, accurate, and respectful. Avoid slang.`,
-  casual: `You are Hermes, the AI assistant inside KuikChat. Respond in a friendly, conversational, relaxed tone. Use natural language and feel free to use emoji sparingly.`,
+  casual: `You are Hermes, the AI assistant inside KuikChat. Respond in a friendly, conversational, relaxed tone. Use natural language.`,
   creative: `You are Hermes, the AI assistant inside KuikChat. Respond with imagination, expression, and artistic flair. Use vivid language and creative metaphors.`,
   analytical: `You are Hermes, the AI assistant inside KuikChat. Respond with data-driven, precise, detailed answers. Use structured formats, bullet points, and cite reasoning.`,
   multilingual: `You are Hermes, the AI assistant inside KuikChat. Auto-detect the user's language and respond in the same language. Be helpful and natural.`,
 } as const
 
 export type HermesMode = keyof typeof HERMES_SYSTEM_PROMPTS
+
+export const HERMES_DASH_RULE = `\n\nWriting rule:\nWhen drafting, summarizing, or rewriting any message for a KuikChat user:\n- NEVER use a long dash (em or en). Use a comma, a period, or a plain hyphen.\n- Write the way people text: short sentences, plain words, no AI tells.\n- Prefer two short sentences over one long sentence joined by a dash.`
+
+export const HERMES_EMOJI_RULE = `\n- STRICTLY FORBIDDEN: NEVER use any emojis, emoticons, or pictorial symbols (such as 👋, ✨, 😊, etc.) in your response. Always respond using standard text only.`
 
 export interface HermesMessage {
   role: 'user' | 'assistant' | 'system'
@@ -144,7 +148,7 @@ export async function chatWithHermes({
 }) {
   const { chatModel } = getLangdockConfig()
   const resolvedModel = model || chatModel
-  const systemPrompt = HERMES_SYSTEM_PROMPTS[mode]
+  const systemPrompt = HERMES_SYSTEM_PROMPTS[mode] + HERMES_DASH_RULE + HERMES_EMOJI_RULE
   const fullMessages: HermesMessage[] = [
     { role: 'system', content: systemPrompt },
     ...messages,
@@ -198,7 +202,7 @@ export async function translateText(text: string, targetLang: string) {
     messages: [
       {
         role: 'system',
-        content: `You are a translation engine. Translate the user's text to ${targetLang}. Output ONLY the translation, no explanations.`,
+        content: `You are a translation engine. Translate the user's text to ${targetLang}. Output ONLY the translation, no explanations.` + HERMES_DASH_RULE,
       },
       { role: 'user', content: text },
     ],
@@ -217,7 +221,7 @@ export async function rewriteTone(
     messages: [
       {
         role: 'system',
-        content: `Rewrite the user's text in a ${tone} tone. Preserve meaning. Output only the rewritten text.`,
+        content: `Rewrite the user's text in a ${tone} tone. Preserve meaning. Output only the rewritten text.` + HERMES_DASH_RULE,
       },
       { role: 'user', content: text },
     ],
@@ -234,7 +238,7 @@ export async function summarizeMessages(messages: string[]) {
       {
         role: 'system',
         content:
-          'Summarize the following chat conversation concisely with key points and action items.',
+          'Summarize the following chat conversation concisely with key points and action items.' + HERMES_DASH_RULE,
       },
       { role: 'user', content: messages.join('\n') },
     ],
@@ -248,7 +252,7 @@ export async function summarizeMessages(messages: string[]) {
  *
  * Strategy:
  *   1. Try the OpenAI-compatible /models endpoint (some Langdock setups expose it).
- *   2. Fall back to probing /chat/completions with a bogus model name — Langdock
+ *   2. Fall back to probing /chat/completions with a bogus model name - Langdock
  *      helpfully returns the list of valid models in the 400 error message.
  *   3. Final fallback: return the hardcoded LANGDOCK_KNOWN_MODELS list.
  */
