@@ -7,7 +7,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') })
 
 const { Client } = pg
-const password = process.env.PASSWORD || 'Ecuagrowers10@@'
+const password = process.env.SUPABASE_DB_PASSWORD || process.env.PASSWORD
+if (!password) {
+  console.error('Error: SUPABASE_DB_PASSWORD or PASSWORD env variable is required')
+  process.exit(1)
+}
 
 // We will try standard AWS regions where Supabase defaults projects
 const regions = [

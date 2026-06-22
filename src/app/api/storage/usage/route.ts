@@ -5,9 +5,10 @@ import { Client } from 'pg'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const DB_CONN_STRING =
-  process.env.DATABASE_URL ||
-  'postgresql://postgres.fkvikwkmrlyhpjtaydln:Ecuagrowers10@@@aws-0-eu-west-1.pooler.supabase.com:6543/postgres'
+const DB_CONN_STRING = process.env.DATABASE_URL
+if (!DB_CONN_STRING) {
+  console.warn("WARNING: DATABASE_URL is not set.")
+}
 
 export async function GET() {
   let db: Client | null = null
@@ -39,6 +40,9 @@ export async function GET() {
       quotaBytes = 200 * 1024 * 1024 * 1024 // 200 GB Business
     }
 
+    if (!DB_CONN_STRING) {
+      return NextResponse.json({ error: 'Database URL not configured' }, { status: 500 })
+    }
     db = new Client({ connectionString: DB_CONN_STRING })
     await db.connect()
 
