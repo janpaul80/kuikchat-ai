@@ -1,14 +1,31 @@
 import Stripe from 'stripe'
-import dotenv from 'dotenv'
+import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') })
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  try {
+    const envPath = path.resolve(__dirname, '../.env.local')
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8')
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim()
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [key, val] = trimmed.split('=', 2)
+          process.env[key.trim()] = val.trim().replace(/^['"]|['"]$/g, '')
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Could not read .env.local manually:", err)
+  }
+}
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
 if (!stripeKey) {
-  console.error("Error: STRIPE_SECRET_KEY is not defined in .env.local")
+  console.error("Error: STRIPE_SECRET_KEY is not defined in process.env or .env.local")
   process.exit(1)
 }
 const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
