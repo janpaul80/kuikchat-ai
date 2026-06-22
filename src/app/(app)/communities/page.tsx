@@ -454,8 +454,8 @@ export default function CommunitiesPage() {
           role: 'owner',
         })
 
-      // Create default general chat channel
-      const { data: chat } = await supabase
+      // Create default general chat channel and announcements (broadcast) channel
+      const { data: generalChat } = await supabase
         .from('chats')
         .insert({
           type: 'group',
@@ -468,11 +468,35 @@ export default function CommunitiesPage() {
         .select()
         .single()
 
-      if (chat) {
+      if (generalChat) {
         await supabase
           .from('chat_members')
           .insert({
-            chat_id: chat.id,
+            chat_id: generalChat.id,
+            user_id: currentUser.id,
+            role: 'owner',
+          })
+      }
+
+      const { data: annChat } = await supabase
+        .from('chats')
+        .insert({
+          type: 'group',
+          name: 'announcements',
+          description: 'Official updates from the owner',
+          created_by: currentUser.id,
+          is_public: true,
+          community_id: comm.id,
+          announcement_only: true,
+        })
+        .select()
+        .single()
+
+      if (annChat) {
+        await supabase
+          .from('chat_members')
+          .insert({
+            chat_id: annChat.id,
             user_id: currentUser.id,
             role: 'owner',
           })
@@ -556,7 +580,7 @@ export default function CommunitiesPage() {
                 Communities
               </span>
             </div>
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setShowCreateModal(true)}>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setShowCreateModal(true)} data-testid="open-create-community">
               <PlusCircle className="h-4 w-4 text-brand-blue-500" />
             </Button>
           </div>

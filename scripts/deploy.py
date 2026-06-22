@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Deploy KuikChat to production server via SSH (password auth)."""
+"""Deploy KuikChat to production server via SSH (password auth).
+
+Reads DEPLOY_SSH_PASSWORD from .env.local if present (no echo),
+falls back to CLI arg or interactive prompt.
+"""
 
 import sys
 import os
@@ -15,7 +19,36 @@ import time
 
 HOST = "217.154.11.234"
 USER = "root"
-PASSWORD = sys.argv[1] if len(sys.argv) > 1 else input("SSH password: ")
+
+# Load DEPLOY_SSH_PASSWORD from .env.local without printing secrets
+def load_deploy_password():
+    # 1) Env var wins if set
+    pw = os.getenv("DEPLOY_SSH_PASSWORD")
+    if pw:
+        return pw
+    # 2) Try to parse .env.local next to repo root
+    try:
+        here = os.path.dirname(os.path.abspath(__file__))
+        env_path = os.path.join(here, "..", ".env.local")
+        if os.path.exists(env_path):
+            with open(env_path, "r", encoding="utf-8", errors="replace") as f:
+                for raw in f:
+                    line = raw.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    if line.startswith('DEPLOY_SSH_PASSWORD='):
+                        # Split only at the first '=' and strip quotes
+                        _, val = line.split('=', 1)
+                        return val.strip().strip('"').strip("'")
+    except Exception:
+        pass
+    # 3) CLI arg
+    if len(sys.argv) > 1 and sys.argv[1].strip():
+        return sys.argv[1].strip()
+    # 4) Interactive prompt (last resort)
+    return input("SSH password: ")
+
+PASSWORD = load_deploy_password()
 
 def run_ssh(client, cmd, timeout=300):
     """Run a command over SSH and stream output."""
@@ -104,12 +137,17 @@ def main():
 
     # Step 3: Clone or pull repo
     print("\n### STEP 3: Repository ###")
+    # Allow overriding branch via env var DEPLOY_BRANCH; default to master
+    branch = os.getenv('DEPLOY_BRANCH', 'master')
     if not repo_exists:
-        print("Cloning repository...")
+        print(f"Cloning repository (branch {branch})...")
         run_ssh(client, "git clone https://github.com/janpaul80/kuikchat-ai.git /opt/kuikchat", timeout=120)
+        run_ssh(client, f"cd /opt/kuikchat && git fetch origin {branch} && git checkout {branch} || git checkout -b {branch} origin/{branch}")
+        run_ssh(client, f"cd /opt/kuikchat && git reset --hard origin/{branch}", timeout=60)
     else:
-        print("Pulling latest changes...")
-        run_ssh(client, "cd /opt/kuikchat && git fetch origin && git reset --hard origin/master", timeout=60)
+        print(f"Pulling latest changes from origin/{branch}...")
+        run_ssh(client, f"cd /opt/kuikchat && git fetch origin {branch} && git checkout {branch} || git checkout -b {branch} origin/{branch}", timeout=60)
+        run_ssh(client, f"cd /opt/kuikchat && git reset --hard origin/{branch}", timeout=60)
 
     # Verify commit
     run_ssh(client, "cd /opt/kuikchat && git log -1 --oneline")

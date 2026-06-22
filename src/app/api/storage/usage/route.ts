@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { Client } from 'pg'
 import fs from 'fs'
-import path from 'path'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -45,14 +44,16 @@ export async function GET() {
     if (!DB_CONN_STRING) {
       return NextResponse.json({ error: 'Database URL not configured' }, { status: 500 })
     }
-    const caCertPath = path.join(process.cwd(), 'ssl', 'supabase-root-ca.crt')
-    const caCert = fs.readFileSync(caCertPath, 'utf8')
+    // Prefer strong SSL with explicit CA when available; gracefully fall back to require-only
+    const caCertPath = '/opt/kuikchat/ssl/supabase-root-ca.crt'
+    const hasCa = fs.existsSync(caCertPath)
+    const sslConfig = hasCa
+      ? { rejectUnauthorized: true, ca: fs.readFileSync(caCertPath, 'utf8') }
+      : { rejectUnauthorized: false }
+
     db = new Client({
       connectionString: DB_CONN_STRING,
-      ssl: {
-        rejectUnauthorized: true,
-        ca: caCert,
-      },
+      ssl: sslConfig,
       connectionTimeoutMillis: 5000,
       statement_timeout: 5000,
       query_timeout: 5000,
