@@ -31,7 +31,7 @@ export function ChatInputArea({ onIntent, onTypingChange, disabled, placeholder 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 
-  // Listen for Hermes Copilot "Use" events — populate composer
+  // Listen for Hermes Copilot "Use" events - populate composer
   useEffect(() => {
     const handler = (e: Event) => {
       const suggestion = (e as CustomEvent<string>).detail

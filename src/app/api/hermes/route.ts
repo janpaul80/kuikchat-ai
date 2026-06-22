@@ -57,7 +57,7 @@ async function buildBusinessContext(supabase: any, userId: string): Promise<stri
           : 'Price on request'
         const stockStr = item.in_stock ? 'In Stock' : 'Out of Stock'
         parts.push(
-          `• ${item.name} — ${priceStr} [${stockStr}]${item.description ? ': ' + item.description : ''}`
+          `• ${item.name} - ${priceStr} [${stockStr}]${item.description ? ': ' + item.description : ''}`
         )
       }
     }

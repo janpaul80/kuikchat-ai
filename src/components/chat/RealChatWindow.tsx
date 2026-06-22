@@ -609,7 +609,7 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
   const callHermes = useCallback(async (msgHistory: MessageRow[]): Promise<string | null> => {
     if (!user?.id) return null
     try {
-      // Build message list for Hermes – last 10 messages for context
+      // Build message list for Hermes - last 10 messages for context
       const context = msgHistory.slice(-10).map((m) => ({
         role: m.sender_id === user.id ? ('assistant' as const) : ('user' as const),
         content: m.body || '',

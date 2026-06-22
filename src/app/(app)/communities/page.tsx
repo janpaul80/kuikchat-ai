@@ -93,7 +93,7 @@ export default function CommunitiesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createName, setCreateName] = useState('')
   const [createSlug, setCreateSlug] = useState('')
-  const [createDesc, setCreateDesc] = useState('')
+  const [createDesc, setCreateDesc] = useState('Hi everyone! This community is for members to chat in topic-based groups and get important announcements.')
   const [creating, setCreating] = useState(false)
 
   // Members list
@@ -327,11 +327,17 @@ export default function CommunitiesPage() {
       return
     }
 
-    setChannels(data || [])
-    if (data && data.length > 0) {
-      setActiveChannelId(data[0].id)
-      setSlowMode(data[0].slow_mode_seconds > 0)
-      setAnnouncementMode(data[0].announcement_only)
+    const sorted = (data || []).sort((a, b) => {
+      if (a.announcement_only && !b.announcement_only) return -1
+      if (!a.announcement_only && b.announcement_only) return 1
+      return a.name.localeCompare(b.name)
+    })
+
+    setChannels(sorted)
+    if (sorted.length > 0) {
+      setActiveChannelId(sorted[0].id)
+      setSlowMode(sorted[0].slow_mode_seconds > 0)
+      setAnnouncementMode(sorted[0].announcement_only)
     } else {
       setActiveChannelId('')
     }
