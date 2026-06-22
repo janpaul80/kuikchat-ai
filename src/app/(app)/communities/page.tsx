@@ -1,31 +1,12 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import {
-  Users,
-  Plus,
-  Settings,
-  MessageSquare,
-  VolumeX,
-  Shield,
-  Clock,
-  ChevronRight,
-  Hash,
-  Crown,
-  Sparkles,
-  Send,
-  Loader2,
-  Lock,
-  Unlock,
-  CheckCircle,
-  PlusCircle,
-  Megaphone,
-} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Users, PlusCircle, Megaphone, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -39,6 +20,7 @@ interface Community {
   is_public: boolean
   is_verified: boolean
   member_count: number
+  logo_url?: string | null
 }
 
 interface CommunityChat {
@@ -48,19 +30,6 @@ interface CommunityChat {
   type: 'direct' | 'group' | 'hermes' | 'self'
   announcement_only: boolean
   slow_mode_seconds: number
-}
-
-interface Message {
-  id: string
-  chat_id: string
-  sender_id: string | null
-  body: string | null
-  created_at: string
-  sender?: {
-    display_name: string
-    username: string
-    avatar_url: string | null
-  }
 }
 
 interface Member {
@@ -75,34 +44,26 @@ interface Member {
 
 export default function CommunitiesPage() {
   const supabase = createClient()
+  const router = useRouter()
+
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [communities, setCommunities] = useState<Community[]>([])
   const [activeCommunityId, setActiveCommunityId] = useState<string>('')
   const [joinedCommunities, setJoinedCommunities] = useState<string[]>([])
 
   const [channels, setChannels] = useState<CommunityChat[]>([])
-  const [activeChannelId, setActiveChannelId] = useState<string>('')
+  const [announcementChat, setAnnouncementChat] = useState<CommunityChat | null>(null)
+  const [members, setMembers] = useState<Member[]>([])
 
-  // Message feed
-  const [messages, setMessages] = useState<Message[]>([])
-  const [newMessageText, setNewMessageText] = useState('')
-  const [sendingMessage, setSendingMessage] = useState(false)
-  const messageEndRef = useRef<HTMLDivElement | null>(null)
-
-  // Creation form state
+  // Create flow state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createName, setCreateName] = useState('')
   const [createSlug, setCreateSlug] = useState('')
-  const [createDesc, setCreateDesc] = useState('Hi everyone! This community is for members to chat in topic-based groups and get important announcements.')
+  const [createDesc, setCreateDesc] = useState(
+    'Hi everyone! This community is for members to chat in topic-based groups and get important announcements.'
+  )
+  const [createLogoFile, setCreateLogoFile] = useState<File | null>(null)
   const [creating, setCreating] = useState(false)
-
-  // Members list
-  const [members, setMembers] = useState<Member[]>([])
-
-  // Moderation settings
-  const [slowMode, setSlowMode] = useState(false)
-  const [announcementMode, setAnnouncementMode] = useState(false)
-  const [bannedWords, setBannedWords] = useState('crypto, spam, coupon')
 
   const [loading, setLoading] = useState(true)
 
@@ -112,7 +73,6 @@ export default function CommunitiesPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
         setCurrentUser(user)
-
         await loadCommunities(user.id)
       } catch (err) {
         console.error('Error during community initialization:', err)
@@ -123,7 +83,6 @@ export default function CommunitiesPage() {
     init()
   }, [])
 
-  // Auto-slugify name during creation
   useEffect(() => {
     const slugified = createName
       .toLowerCase()
@@ -133,186 +92,33 @@ export default function CommunitiesPage() {
     setCreateSlug(slugified)
   }, [createName])
 
-  // Load sub-channels, members, and messages whenever active community changes
   useEffect(() => {
     if (!activeCommunityId) return
     loadCommunityChannels(activeCommunityId)
     loadCommunityMembers(activeCommunityId)
   }, [activeCommunityId])
 
-  // Load messages whenever active channel changes
-  useEffect(() => {
-    if (!activeChannelId) {
-      setMessages([])
-      return
-    }
-    loadChannelMessages(activeChannelId)
-
-    // Subscribe to realtime messages in this channel
-    const channelSubscription = supabase
-      .channel(`chat-messages-${activeChannelId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `chat_id=eq.${activeChannelId}`,
-        },
-        async (payload) => {
-          // Fetch sender info for new message
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('display_name, username, avatar_url')
-            .eq('id', payload.new.sender_id)
-            .single()
-
-          const newMsg: Message = {
-            id: payload.new.id,
-            chat_id: payload.new.chat_id,
-            sender_id: payload.new.sender_id,
-            body: payload.new.body,
-            created_at: payload.new.created_at,
-            sender: profile || {
-              display_name: 'Unknown User',
-              username: 'unknown',
-              avatar_url: null,
-            },
-          }
-          setMessages((prev) => [...prev, newMsg])
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channelSubscription)
-    }
-  }, [activeChannelId])
-
-  // Auto-scroll messages
-  useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
   const loadCommunities = async (userId: string) => {
-    const officialSlugs = ['kuikchat-global', 'ai-assistants', 'developer-lounge', 'design-ux']
-    const hubs = [
-      {
-        slug: 'kuikchat-global',
-        name: 'KuikChat Global',
-        description: 'The official global hub for KuikChat users. Connect, share, and chat with the world!',
-        is_verified: true,
-      },
-      {
-        slug: 'ai-assistants',
-        name: 'AI Assistants & Agents',
-        description: 'Explore and discuss the latest in agentic AI, Hermes integrations, and model customization.',
-        is_verified: true,
-      },
-      {
-        slug: 'developer-lounge',
-        name: 'Developer Lounge',
-        description: 'Share your code, debug integrations, and collaborate on the KuikChat open-source platform.',
-        is_verified: true,
-      },
-      {
-        slug: 'design-ux',
-        name: 'Design & UX',
-        description: 'Discuss design systems, UI animations, styling, and modern user experiences.',
-        is_verified: true,
-      }
-    ]
-
-    try {
-      for (const hub of hubs) {
-        const { data: existing } = await supabase
-          .from('communities')
-          .select('id')
-          .eq('slug', hub.slug)
-          .maybeSingle()
-
-        if (!existing) {
-          const { data: comm } = await supabase
-            .from('communities')
-            .insert({
-              slug: hub.slug,
-              name: hub.name,
-              description: hub.description,
-              owner_id: userId,
-              is_public: true,
-              is_verified: hub.is_verified,
-            })
-            .select()
-            .single()
-
-          if (comm) {
-            await supabase
-              .from('community_members')
-              .insert({ community_id: comm.id, user_id: userId, role: 'owner' })
-              .maybeSingle()
-
-            const channelsToCreate = [
-              { name: 'general', desc: 'General community discussion and chat' },
-              { name: 'announcements', desc: 'Official updates from the owner', announcement_only: true },
-              { name: 'help', desc: 'Q&A and help support' },
-            ]
-
-            for (const chan of channelsToCreate) {
-              const { data: chat } = await supabase
-                .from('chats')
-                .insert({
-                  type: 'group',
-                  name: chan.name,
-                  description: chan.desc,
-                  created_by: userId,
-                  is_public: true,
-                  community_id: comm.id,
-                  announcement_only: chan.announcement_only || false,
-                })
-                .select()
-                .single()
-
-              if (chat) {
-                await supabase
-                  .from('chat_members')
-                  .insert({ chat_id: chat.id, user_id: userId, role: 'owner' })
-                  .maybeSingle()
-              }
-            }
-          }
-        }
-      }
-    } catch (seedErr) {
-      console.error('Seeding curated communities failed:', seedErr)
-    }
-
     const { data: comms, error } = await supabase
       .from('communities')
       .select('*')
-      .in('slug', officialSlugs)
-
+      .order('name', { ascending: true })
     if (error) {
       console.error('Error fetching communities:', error)
       return
     }
+    setCommunities(comms || [])
 
-    const finalComms = comms || []
-    setCommunities(finalComms)
-
-    // Fetch joined community ids
     const { data: joined } = await supabase
       .from('community_members')
       .select('community_id')
       .eq('user_id', userId)
-
     const joinedIds = (joined || []).map((j) => j.community_id)
     setJoinedCommunities(joinedIds)
 
-    if (finalComms.length > 0) {
-      const found = finalComms.find(c => c.id === activeCommunityId)
-      if (!found) {
-        setActiveCommunityId(finalComms[0].id)
-      }
+    if (comms && comms.length > 0) {
+      const found = comms.find((c) => c.id === activeCommunityId)
+      if (!found) setActiveCommunityId(comms[0].id)
     }
   }
 
@@ -327,24 +133,14 @@ export default function CommunitiesPage() {
       return
     }
 
-    const sorted = (data || []).sort((a, b) => {
-      if (a.announcement_only && !b.announcement_only) return -1
-      if (!a.announcement_only && b.announcement_only) return 1
-      return a.name.localeCompare(b.name)
-    })
-
-    setChannels(sorted)
-    if (sorted.length > 0) {
-      setActiveChannelId(sorted[0].id)
-      setSlowMode(sorted[0].slow_mode_seconds > 0)
-      setAnnouncementMode(sorted[0].announcement_only)
-    } else {
-      setActiveChannelId('')
-    }
+    const all = data || []
+    const ann = all.find((c) => c.announcement_only) || null
+    const groups = all.filter((c) => !c.announcement_only).sort((a, b) => a.name.localeCompare(b.name))
+    setAnnouncementChat(ann || null)
+    setChannels(groups)
   }
 
   const loadCommunityMembers = async (communityId: string) => {
-    // Select members of the community along with their profile metadata
     const { data, error } = await supabase
       .from('community_members')
       .select('user_id, role, profile:profiles(display_name, username, avatar_url)')
@@ -354,58 +150,27 @@ export default function CommunitiesPage() {
       console.error('Error loading community members:', error)
       return
     }
-
-    setMembers(data as any || [])
-  }
-
-  const loadChannelMessages = async (channelId: string) => {
-    const { data, error } = await supabase
-      .from('messages')
-      .select('id, chat_id, sender_id, body, created_at, sender:profiles(display_name, username, avatar_url)')
-      .eq('chat_id', channelId)
-      .order('created_at', { ascending: true })
-
-    if (error) {
-      console.error('Error loading channel messages:', error)
-      return
-    }
-    setMessages(data as any || [])
+    setMembers((data as any) || [])
   }
 
   const handleJoinCommunity = async (commId: string) => {
     try {
-      // 1. Join community
       const { error: joinErr } = await supabase
         .from('community_members')
-        .insert({
-          community_id: commId,
-          user_id: currentUser.id,
-          role: 'member',
-        })
-
+        .insert({ community_id: commId, user_id: currentUser.id, role: 'member' })
       if (joinErr) throw joinErr
 
-      // 2. Join all associated sub-group channels (chats)
       const { data: communityChats } = await supabase
         .from('chats')
         .select('id')
         .eq('community_id', commId)
-
       if (communityChats) {
         for (const chat of communityChats) {
-          await supabase
-            .from('chat_members')
-            .insert({
-              chat_id: chat.id,
-              user_id: currentUser.id,
-              role: 'member',
-            })
-            .maybeSingle()
+          await supabase.from('chat_members').insert({ chat_id: chat.id, user_id: currentUser.id, role: 'member' }).maybeSingle()
         }
       }
-
       setJoinedCommunities([...joinedCommunities, commId])
-      toast.success('Successfully joined community!')
+      toast.success('Joined community')
       await loadCommunityMembers(commId)
     } catch (err: any) {
       toast.error(err.message || 'Failed to join community')
@@ -432,10 +197,10 @@ export default function CommunitiesPage() {
           name: createName.trim(),
           description: createDesc.trim() || null,
           owner_id: currentUser.id,
+          is_public: true,
         })
         .select()
         .single()
-
       if (error) {
         if (error.code === '23505') {
           toast.error('Slug already exists. Please choose a unique slug.')
@@ -445,16 +210,8 @@ export default function CommunitiesPage() {
         return
       }
 
-      // Join creator
-      await supabase
-        .from('community_members')
-        .insert({
-          community_id: comm.id,
-          user_id: currentUser.id,
-          role: 'owner',
-        })
+      await supabase.from('community_members').insert({ community_id: comm.id, user_id: currentUser.id, role: 'owner' })
 
-      // Create default general chat channel and announcements (broadcast) channel
       const { data: generalChat } = await supabase
         .from('chats')
         .insert({
@@ -467,15 +224,8 @@ export default function CommunitiesPage() {
         })
         .select()
         .single()
-
       if (generalChat) {
-        await supabase
-          .from('chat_members')
-          .insert({
-            chat_id: generalChat.id,
-            user_id: currentUser.id,
-            role: 'owner',
-          })
+        await supabase.from('chat_members').insert({ chat_id: generalChat.id, user_id: currentUser.id, role: 'owner' })
       }
 
       const { data: annChat } = await supabase
@@ -491,18 +241,24 @@ export default function CommunitiesPage() {
         })
         .select()
         .single()
-
       if (annChat) {
-        await supabase
-          .from('chat_members')
-          .insert({
-            chat_id: annChat.id,
-            user_id: currentUser.id,
-            role: 'owner',
-          })
+        await supabase.from('chat_members').insert({ chat_id: annChat.id, user_id: currentUser.id, role: 'owner' })
       }
 
-      toast.success(`Community "${createName}" created!`)
+      if (createLogoFile) {
+        try {
+          const path = `communities/${comm.id}/${createLogoFile.name}`
+          const { error: upErr } = await supabase.storage.from('avatars').upload(path, createLogoFile, { upsert: true, cacheControl: '3600' })
+          if (!upErr) {
+            const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
+            if (pub?.publicUrl) await supabase.from('communities').update({ logo_url: pub.publicUrl }).eq('id', comm.id)
+          }
+        } catch (e) {
+          console.warn('Logo upload failed, continuing without logo')
+        }
+      }
+
+      toast.success(`Community "${createName}" created`)
       setShowCreateModal(false)
       setCreateName('')
       setCreateDesc('')
@@ -515,309 +271,144 @@ export default function CommunitiesPage() {
     }
   }
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newMessageText.trim() || !activeChannelId) return
-
-    // Word filter validation
-    const words = bannedWords.split(',').map((w) => w.trim().toLowerCase()).filter(Boolean)
-    const containsBanned = words.some((word) => newMessageText.toLowerCase().includes(word))
-    if (containsBanned) {
-      toast.error('Message rejected: contains flagged words.')
-      return
-    }
-
-    // Check if announcements-only and not owner/admin
-    const activeChanObj = channels.find((c) => c.id === activeChannelId)
-    const activeCommObj = communities.find((c) => c.id === activeCommunityId)
-    const myRoleObj = members.find((m) => m.user_id === currentUser.id)
-    const isPrivileged = myRoleObj && ['owner', 'admin', 'moderator'].includes(myRoleObj.role)
-
-    if (activeChanObj?.announcement_only && !isPrivileged) {
-      toast.error('Only administrators can send messages to this broadcast channel.')
-      return
-    }
-
-    setSendingMessage(true)
-    try {
-      const { error } = await supabase.from('messages').insert({
-        chat_id: activeChannelId,
-        sender_id: currentUser.id,
-        body: newMessageText.trim(),
-        type: 'text',
-      })
-
-      if (error) throw error
-      setNewMessageText('')
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to send message')
-    } finally {
-      setSendingMessage(false)
-    }
+  const openGroupChat = (chatId: string) => {
+    router.push(`/chats/${chatId}`)
   }
 
   const activeCommunity = communities.find((c) => c.id === activeCommunityId)
-  const activeChannel = channels.find((c) => c.id === activeChannelId)
   const isJoined = joinedCommunities.includes(activeCommunityId)
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-blue-500" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-blue-500 border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground md:flex-row overflow-hidden">
-      {/* Sidebar: Communities list and Channels */}
-      <div className="w-full md:w-64 border-r border-border bg-card/10 flex flex-col shrink-0">
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-brand-blue-500" />
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Communities
-              </span>
-            </div>
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setShowCreateModal(true)} data-testid="open-create-community">
-              <PlusCircle className="h-4 w-4 text-brand-blue-500" />
-            </Button>
-          </div>
-
-          <select
-            value={activeCommunityId}
-            onChange={(e) => setActiveCommunityId(e.target.value)}
-            className="w-full mt-3 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-brand-blue-500"
-          >
-            {communities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+    <div className="flex h-full flex-col bg-background text-foreground overflow-hidden">
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-brand-blue-500" />
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Communities</span>
         </div>
-
-        {/* Sub-groups Channels */}
-        <div className="flex-1 p-2 flex flex-col justify-between overflow-y-auto scrollbar-thin">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold uppercase text-muted-foreground px-2 mb-1 block">
-              Channels
-            </span>
-            {channels.map((ch) => {
-              const isActive = ch.id === activeChannelId
-              return (
-                <button
-                  key={ch.id}
-                  onClick={() => setActiveChannelId(ch.id)}
-                  className={`flex w-full items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold transition-all ${
-                    isActive
-                      ? 'bg-brand-gradient text-white shadow-sm'
-                      : 'text-muted-foreground hover:bg-card hover:text-foreground'
-                  }`}
-                >
-                  <Hash className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{ch.name}</span>
-                  {ch.announcement_only && (
-                    <Badge variant="outline" className="ml-auto text-[8px] bg-white/20 text-white border-none py-0 px-1">
-                      Broadcast
-                    </Badge>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-
-          {activeCommunity && !isJoined && (
-            <div className="p-3 border border-border bg-card/60 rounded-xl mt-4 space-y-2 shrink-0">
-              <p className="text-[10px] text-muted-foreground leading-normal">
-                You are previewing this community. Join to chat in channels.
-              </p>
-              <Button size="xs" variant="gradient" className="w-full text-xs" onClick={() => handleJoinCommunity(activeCommunity.id)}>
-                Join Community
-              </Button>
-            </div>
-          )}
-        </div>
+        <Button size="sm" variant="gradient" onClick={() => setShowCreateModal(true)} data-testid="open-create-community">
+          New community
+        </Button>
       </div>
 
-      {/* Center Column: Community Chat window */}
-      <div className="flex-1 flex flex-col border-r border-border bg-card/5 overflow-hidden">
-        {/* Channel Header */}
-        <div className="h-16 border-b border-border bg-card px-6 flex items-center justify-between shrink-0">
-          <div>
-            <h2 className="text-sm font-semibold flex items-center gap-1.5">
-              <Hash className="h-4 w-4 text-brand-blue-500" />
-              {activeChannel?.name || 'select-channel'}
-            </h2>
-            <p className="text-[10px] text-muted-foreground truncate max-w-sm">
-              {activeChannel?.description || 'No description provided.'}
-            </p>
-          </div>
-          {activeCommunity?.is_verified && (
-            <Badge variant="outline" className="text-[9px] bg-brand-blue-500/10 text-brand-blue-500 border-brand-blue-500/20 py-0.5">
-              Verified Hub
-            </Badge>
-          )}
-        </div>
-
-        {/* Message history */}
-        <div className="flex-1 p-6 space-y-4 overflow-y-auto scrollbar-thin">
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-muted-foreground space-y-2 mt-8">
-              <MessageSquare className="h-10 w-10 opacity-30" />
-              <p>No messages here yet. Be the first to start the conversation!</p>
+      {!activeCommunityId ? (
+        <div className="flex-1 grid place-items-center">
+          {communities.length === 0 ? (
+            <div className="text-center max-w-md mx-auto p-6">
+              <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-brand-gradient/20 grid place-items-center">
+                <ImageIcon className="h-10 w-10 text-brand-blue-500" />
+              </div>
+              <h2 className="text-lg font-semibold">Stay connected with a community</h2>
+              <p className="text-sm text-muted-foreground mt-1">Communities bring members together in topic-based groups. Any community you're added to will appear here.</p>
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <Button variant="gradient" onClick={() => setShowCreateModal(true)}>New community</Button>
+                {communities.length > 0 && (
+                  <Button variant="outline" onClick={() => setActiveCommunityId(communities[0].id)}>See example communities</Button>
+                )}
+              </div>
             </div>
           ) : (
-            messages.map((msg) => {
-              const isMe = msg.sender_id === currentUser.id
-              return (
-                <div key={msg.id} className="flex items-start gap-3 text-xs max-w-2xl">
-                  <div className="h-8 w-8 rounded-full bg-brand-gradient flex items-center justify-center text-white font-bold shrink-0">
-                    {msg.sender?.avatar_url ? (
-                      <img src={msg.sender.avatar_url} alt="Avatar" className="h-full w-full object-cover rounded-full" />
-                    ) : (
-                      msg.sender?.display_name[0]?.toUpperCase() || 'U'
-                    )}
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-foreground">{msg.sender?.display_name || 'Contributor'}</span>
-                      <span className="text-[9px] text-muted-foreground">@{msg.sender?.username || 'user'}</span>
-                      <span className="text-[9px] text-muted-foreground/60">•</span>
-                      <span className="text-[9px] text-muted-foreground/60">
-                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {communities.map((c) => (
+                <button key={c.id} onClick={() => setActiveCommunityId(c.id)} className="text-left border border-border rounded-xl p-4 bg-card hover:bg-card/70 transition">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-brand-gradient text-white grid place-items-center font-bold">
+                      {c.name?.[0]?.toUpperCase() || 'C'}
                     </div>
-                    <p className="text-muted-foreground text-[13px] whitespace-pre-wrap leading-relaxed">{msg.body}</p>
+                    <div>
+                      <div className="font-semibold text-sm">{c.name}</div>
+                      <div className="text-[11px] text-muted-foreground">{c.member_count || 0} members</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          {/* Community header */}
+          <div className="px-6 py-5 border-b border-border bg-card/50 flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-brand-gradient text-white grid place-items-center font-bold">
+              {activeCommunity?.name?.[0]?.toUpperCase() || 'C'}
+            </div>
+            <div>
+              <div className="text-sm font-semibold">{activeCommunity?.name}</div>
+              <div className="text-[11px] text-muted-foreground">{activeCommunity?.description || 'Topic-based groups and announcements'}</div>
+            </div>
+          </div>
+
+          {/* Announcements pinned */}
+          {announcementChat && (
+            <div className="px-6 pt-5">
+              <div className="border border-border rounded-xl p-4 bg-card/60 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-brand-gradient text-white grid place-items-center">
+                    <Megaphone className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold">Announcements</div>
+                    <div className="text-[11px] text-muted-foreground">Admin-only updates for everyone in the community</div>
                   </div>
                 </div>
-              )
-            })
-          )}
-          <div ref={messageEndRef} />
-        </div>
-
-        {/* Message Input composer */}
-        <div className="p-4 border-t border-border bg-card/20 shrink-0">
-          {isJoined ? (
-            <form onSubmit={handleSendMessage} className="flex gap-2">
-              <Input
-                value={newMessageText}
-                onChange={(e) => setNewMessageText(e.target.value)}
-                placeholder={
-                  activeChannel?.announcement_only
-                    ? 'Only administrators can broadcast here...'
-                    : `Message #${activeChannel?.name || 'channel'}...`
-                }
-                disabled={activeChannel?.announcement_only && !['owner', 'admin'].includes(members.find((m) => m.user_id === currentUser.id)?.role || '')}
-                className="bg-card text-xs flex-1"
-              />
-              <Button
-                type="submit"
-                size="icon"
-                variant="gradient"
-                disabled={sendingMessage || (activeChannel?.announcement_only && !['owner', 'admin'].includes(members.find((m) => m.user_id === currentUser.id)?.role || ''))}
-                className="shrink-0 h-9 w-9"
-              >
-                {sendingMessage ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
-            </form>
-          ) : (
-            <div className="text-center p-2 text-xs text-muted-foreground">
-              You must join this community to send messages.
+                <Button size="sm" variant="outline" onClick={() => openGroupChat(announcementChat.id)}>Open</Button>
+              </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Right Column: Community Info & Moderation Settings */}
-      <div className="w-full md:w-72 p-6 bg-card shrink-0 space-y-6 overflow-y-auto scrollbar-thin">
-        <div>
-          <h3 className="font-semibold text-sm flex items-center gap-1.5 mb-4">
-            <Shield className="h-4 w-4 text-brand-blue-500" />
-            Community Admin Controls
-          </h3>
-
-          <div className="space-y-4 text-xs">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold">Slow Mode</p>
-                <p className="text-[10px] text-muted-foreground">Limit message rate to 15s</p>
-              </div>
-              <Switch checked={slowMode} onCheckedChange={setSlowMode} disabled />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold">Broadcast Channel Mode</p>
-                <p className="text-[10px] text-muted-foreground">Restrict posts to admins only</p>
-              </div>
-              <Switch checked={announcementMode} onCheckedChange={setAnnouncementMode} disabled />
-            </div>
-
-            <div className="space-y-1.5 pt-2">
-              <Label htmlFor="wordsFilter" className="text-xs">Banned Words Filter</Label>
-              <Input
-                id="wordsFilter"
-                value={bannedWords}
-                onChange={(e) => setBannedWords(e.target.value)}
-                placeholder="crypto, spam, coupon"
-                className="bg-background h-8 text-xs"
-              />
-              <Button size="xs" variant="outline" className="w-full mt-1.5" onClick={() => toast.success('Filter rule updated')}>
-                Save Filter Rule
-              </Button>
+          {/* Groups you are in */}
+          <div className="px-6 mt-6">
+            <div className="text-[11px] font-bold uppercase text-muted-foreground tracking-wide mb-2">Groups you're in</div>
+            <div className="space-y-2">
+              {channels.map((g) => (
+                <button key={g.id} onClick={() => openGroupChat(g.id)} className="w-full text-left border border-border rounded-xl p-3 bg-card hover:bg-card/70">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-brand-gradient text-white grid place-items-center font-bold">{g.name?.[0]?.toUpperCase() || 'G'}</div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold truncate">{g.name}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">{g.description || 'Group chat'}</div>
+                    </div>
+                    <Badge variant="outline" className="ml-auto text-[9px]">Joined</Badge>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
-        </div>
 
-        <div className="border-t border-border" />
+          {/* Groups you can join - show placeholder since join is managed via community membership for now */}
+          <div className="px-6 mt-6">
+            <div className="text-[11px] font-bold uppercase text-muted-foreground tracking-wide mb-2">Groups you can join</div>
+            <div className="text-[11px] text-muted-foreground">Ask an admin to invite you to more groups. Public join links will be added here later.</div>
+          </div>
 
-        {/* Member list directory */}
-        <div>
-          <h3 className="font-semibold text-sm flex items-center gap-1.5 mb-3">
-            <Users className="h-4 w-4 text-brand-green-500" />
-            Members ({members.length})
-          </h3>
-          <ScrollArea className="h-64 pr-2">
-            <div className="space-y-3">
-              {members.map((m) => {
-                const roleColors = {
-                  owner: 'bg-red-500/10 text-red-500 border-red-500/20',
-                  admin: 'bg-brand-blue-500/10 text-brand-blue-500 border-brand-blue-500/20',
-                  moderator: 'bg-brand-green-500/10 text-brand-green-500 border-brand-green-500/20',
-                  member: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
+          {/* Add group */}
+          <div className="px-6 py-6">
+            <Button variant="outline" onClick={async () => {
+              try {
+                const { data: chat } = await supabase
+                  .from('chats')
+                  .insert({ type: 'group', name: 'new-group', description: 'New group', created_by: currentUser.id, is_public: true, community_id: activeCommunityId })
+                  .select()
+                  .single()
+                if (chat) {
+                  await supabase.from('chat_members').insert({ chat_id: chat.id, user_id: currentUser.id, role: 'owner' })
+                  toast.success('Group created')
+                  await loadCommunityChannels(activeCommunityId)
                 }
-                return (
-                  <div key={m.user_id} className="flex items-center justify-between text-xs py-1">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="h-7 w-7 rounded-full bg-brand-gradient flex items-center justify-center text-white font-bold shrink-0 text-[10px]">
-                        {m.profile?.avatar_url ? (
-                          <img src={m.profile.avatar_url} alt="Avatar" className="h-full w-full object-cover rounded-full" />
-                        ) : (
-                          m.profile?.display_name[0]?.toUpperCase() || 'U'
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-foreground truncate">{m.profile?.display_name || 'Contributor'}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">@{m.profile?.username || 'user'}</p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className={`text-[8px] px-1 capitalize py-0 shrink-0 ${roleColors[m.role as keyof typeof roleColors]}`}>
-                      {m.role}
-                    </Badge>
-                  </div>
-                )
-              })}
-            </div>
-          </ScrollArea>
+              } catch (e: any) {
+                toast.error(e.message || 'Failed to create group')
+              }
+            }}>+ Add group</Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Create Community Modal */}
       {showCreateModal && (
@@ -826,7 +417,7 @@ export default function CommunitiesPage() {
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base flex items-center gap-1.5">
                 <Users className="h-5 w-5 text-brand-blue-500" />
-                Create Super Community
+                New community
               </h3>
               <Button size="sm" variant="ghost" onClick={() => setShowCreateModal(false)}>
                 Cancel
@@ -835,45 +426,31 @@ export default function CommunitiesPage() {
 
             <form onSubmit={handleCreateCommunity} className="space-y-4">
               <div className="space-y-1.5">
+                <Label htmlFor="commLogo">Logo</Label>
+                <input id="commLogo" type="file" accept="image/*" onChange={(e) => setCreateLogoFile(e.target.files?.[0] || null)} className="text-xs" />
+              </div>
+
+              <div className="space-y-1.5">
                 <Label htmlFor="commName">Community Name</Label>
-                <Input
-                  id="commName"
-                  value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
-                  placeholder="e.g. Developer Hub"
-                  className="bg-background text-xs"
-                />
+                <Input id="commName" value={createName} onChange={(e) => setCreateName(e.target.value)} placeholder="e.g. Developer Hub" className="bg-background text-xs" />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="commSlug">Community Slug</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">@</span>
-                  <Input
-                    id="commSlug"
-                    value={createSlug}
-                    onChange={(e) => setCreateSlug(e.target.value)}
-                    placeholder="developer-hub"
-                    className="pl-7 bg-background text-xs"
-                  />
+                  <Input id="commSlug" value={createSlug} onChange={(e) => setCreateSlug(e.target.value)} placeholder="developer-hub" className="pl-7 bg-background text-xs" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="commDesc">Description</Label>
-                <textarea
-                  id="commDesc"
-                  value={createDesc}
-                  onChange={(e) => setCreateDesc(e.target.value)}
-                  placeholder="Describe your community..."
-                  className="w-full min-h-[50px] rounded-lg border border-border bg-background p-2 text-xs text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-brand-blue-500"
-                  rows={2}
-                />
+                <textarea id="commDesc" value={createDesc} onChange={(e) => setCreateDesc(e.target.value)} placeholder="Describe your community..." className="w-full min-h-[50px] rounded-lg border border-border bg-background p-2 text-xs text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-brand-blue-500" rows={2} />
               </div>
 
               <Button type="submit" variant="gradient" className="w-full mt-2" disabled={creating}>
-                {creating && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-                Create Hub
+                {creating && <span className="mr-1.5 inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/70 border-t-transparent" />}
+                Create
               </Button>
             </form>
           </div>
