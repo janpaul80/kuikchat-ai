@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { Client } from 'pg'
+import fs from 'fs'
+import path from 'path'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -43,7 +45,18 @@ export async function GET() {
     if (!DB_CONN_STRING) {
       return NextResponse.json({ error: 'Database URL not configured' }, { status: 500 })
     }
-    db = new Client({ connectionString: DB_CONN_STRING })
+    const caCertPath = path.join(process.cwd(), 'ssl', 'supabase-root-ca.crt')
+    const caCert = fs.readFileSync(caCertPath, 'utf8')
+    db = new Client({
+      connectionString: DB_CONN_STRING,
+      ssl: {
+        rejectUnauthorized: true,
+        ca: caCert,
+      },
+      connectionTimeoutMillis: 5000,
+      statement_timeout: 5000,
+      query_timeout: 5000,
+    })
     await db.connect()
 
     // 1. Get usage by category

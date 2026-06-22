@@ -195,23 +195,108 @@ export default function CommunitiesPage() {
   }, [messages])
 
   const loadCommunities = async (userId: string) => {
+    const officialSlugs = ['kuikchat-global', 'ai-assistants', 'developer-lounge', 'design-ux']
+    const hubs = [
+      {
+        slug: 'kuikchat-global',
+        name: 'KuikChat Global',
+        description: 'The official global hub for KuikChat users. Connect, share, and chat with the world!',
+        is_verified: true,
+      },
+      {
+        slug: 'ai-assistants',
+        name: 'AI Assistants & Agents',
+        description: 'Explore and discuss the latest in agentic AI, Hermes integrations, and model customization.',
+        is_verified: true,
+      },
+      {
+        slug: 'developer-lounge',
+        name: 'Developer Lounge',
+        description: 'Share your code, debug integrations, and collaborate on the KuikChat open-source platform.',
+        is_verified: true,
+      },
+      {
+        slug: 'design-ux',
+        name: 'Design & UX',
+        description: 'Discuss design systems, UI animations, styling, and modern user experiences.',
+        is_verified: true,
+      }
+    ]
+
+    try {
+      for (const hub of hubs) {
+        const { data: existing } = await supabase
+          .from('communities')
+          .select('id')
+          .eq('slug', hub.slug)
+          .maybeSingle()
+
+        if (!existing) {
+          const { data: comm } = await supabase
+            .from('communities')
+            .insert({
+              slug: hub.slug,
+              name: hub.name,
+              description: hub.description,
+              owner_id: userId,
+              is_public: true,
+              is_verified: hub.is_verified,
+            })
+            .select()
+            .single()
+
+          if (comm) {
+            await supabase
+              .from('community_members')
+              .insert({ community_id: comm.id, user_id: userId, role: 'owner' })
+              .maybeSingle()
+
+            const channelsToCreate = [
+              { name: 'general', desc: 'General community discussion and chat' },
+              { name: 'announcements', desc: 'Official updates from the owner', announcement_only: true },
+              { name: 'help', desc: 'Q&A and help support' },
+            ]
+
+            for (const chan of channelsToCreate) {
+              const { data: chat } = await supabase
+                .from('chats')
+                .insert({
+                  type: 'group',
+                  name: chan.name,
+                  description: chan.desc,
+                  created_by: userId,
+                  is_public: true,
+                  community_id: comm.id,
+                  announcement_only: chan.announcement_only || false,
+                })
+                .select()
+                .single()
+
+              if (chat) {
+                await supabase
+                  .from('chat_members')
+                  .insert({ chat_id: chat.id, user_id: userId, role: 'owner' })
+                  .maybeSingle()
+              }
+            }
+          }
+        }
+      }
+    } catch (seedErr) {
+      console.error('Seeding curated communities failed:', seedErr)
+    }
+
     const { data: comms, error } = await supabase
       .from('communities')
       .select('*')
-      .order('name')
+      .in('slug', officialSlugs)
 
     if (error) {
       console.error('Error fetching communities:', error)
       return
     }
 
-    let finalComms = comms || []
-
-    // Seed one official curated community if none exist
-    if (finalComms.length === 0) {
-      finalComms = await seedOfficialCommunity(userId)
-    }
-
+    const finalComms = comms || []
     setCommunities(finalComms)
 
     // Fetch joined community ids
@@ -224,69 +309,10 @@ export default function CommunitiesPage() {
     setJoinedCommunities(joinedIds)
 
     if (finalComms.length > 0) {
-      // Default to first community
-      setActiveCommunityId(finalComms[0].id)
-    }
-  }
-
-  const seedOfficialCommunity = async (userId: string): Promise<Community[]> => {
-    try {
-      const officialSlug = `kuikchat-official-${Math.floor(100 + Math.random() * 900)}`
-      // Insert official community
-      const { data: comm, error: commErr } = await supabase
-        .from('communities')
-        .insert({
-          slug: officialSlug,
-          name: 'KuikChat Open Source',
-          description: 'Official community for KuikChat developers and open-source contributors.',
-          owner_id: userId,
-          is_public: true,
-          is_verified: true,
-        })
-        .select()
-        .single()
-
-      if (commErr || !comm) throw commErr || new Error('Seeding community failed')
-
-      // Auto-join community members
-      await supabase
-        .from('community_members')
-        .insert({ community_id: comm.id, user_id: userId, role: 'owner' })
-
-      // Create official sub-group channels (chats)
-      const channelsToCreate = [
-        { name: 'general', desc: 'General developer discussion and contributor chat' },
-        { name: 'announcements', desc: 'Official updates from the core team', announcement_only: true },
-        { name: 'releases', desc: 'Changelogs and version releases' },
-      ]
-
-      for (const chan of channelsToCreate) {
-        const { data: chat } = await supabase
-          .from('chats')
-          .insert({
-            type: 'group',
-            name: chan.name,
-            description: chan.desc,
-            created_by: userId,
-            is_public: true,
-            community_id: comm.id,
-            announcement_only: chan.announcement_only || false,
-          })
-          .select()
-          .single()
-
-        if (chat) {
-          // Auto-join the creator to the sub-chat
-          await supabase
-            .from('chat_members')
-            .insert({ chat_id: chat.id, user_id: userId, role: 'owner' })
-        }
+      const found = finalComms.find(c => c.id === activeCommunityId)
+      if (!found) {
+        setActiveCommunityId(finalComms[0].id)
       }
-
-      return [comm]
-    } catch (err) {
-      console.error('Failed to seed official community:', err)
-      return []
     }
   }
 

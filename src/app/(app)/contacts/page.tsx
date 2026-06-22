@@ -70,7 +70,7 @@ export default function ContactsPage() {
         
         // Fetch current user details
         const { data: prof } = await supabase.from('profiles').select('id, username').eq('id', user.id).single()
-        setCurrentUser(prof)
+        setCurrentUser({ ...prof, email: user.email })
 
         await Promise.all([fetchContacts(), fetchBlockedUsers()])
       } catch (err) {
@@ -84,8 +84,9 @@ export default function ContactsPage() {
 
   // QR code generation
   useEffect(() => {
-    if (!canvasRef.current || !currentUser?.username) return
-    const profileLink = `https://kuikchat.io/add/${currentUser.username}`
+    if (!canvasRef.current || !currentUser) return
+    const identifier = currentUser.username || currentUser.email || currentUser.id
+    const profileLink = `https://kuikchat.io/add/${identifier}`
     QRCode.toCanvas(
       canvasRef.current,
       profileLink,
@@ -93,8 +94,8 @@ export default function ContactsPage() {
         width: 140,
         margin: 1,
         color: {
-          dark: '#0B141A',   // bg-base
-          light: '#E9EDEF',  // text-primary
+          dark: '#000000',   // high-contrast black
+          light: '#FFFFFF',  // high-contrast white
         },
       },
       (error) => {
@@ -434,7 +435,7 @@ export default function ContactsPage() {
             <QrIcon className="h-4 w-4 text-brand-blue-500" />
             Share Profile QR
           </h2>
-          <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-xl border border-border bg-[#0B141A] p-2">
+          <div className="mx-auto flex h-40 w-40 items-center justify-center border border-border bg-white p-2.5 rounded-xl">
             <canvas ref={canvasRef} className="h-full w-full object-contain" />
           </div>
           <p className="text-xs text-muted-foreground">

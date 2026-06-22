@@ -54,6 +54,7 @@ export function StorageForm() {
   const supabase = createClient()
   const [data, setData] = useState<StorageData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Auto-download preferences
@@ -74,12 +75,16 @@ export function StorageForm() {
 
   const fetchUsage = async () => {
     try {
+      setLoading(true)
+      setError(null)
       const res = await fetch('/api/storage/usage')
       if (!res.ok) throw new Error('Failed to load storage details')
       const payload = await res.json()
+      if (payload.error) throw new Error(payload.error)
       setData(payload)
     } catch (err: any) {
       console.error(err)
+      setError(err.message || 'Could not load storage data')
       toast.error('Could not load storage data')
     } finally {
       setLoading(false)
@@ -129,10 +134,21 @@ export function StorageForm() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-brand-blue-500" />
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-3 text-center">
+        <p className="text-sm text-destructive font-medium">{error || 'Could not load storage data'}</p>
+        <Button onClick={fetchUsage} size="sm" variant="outline">
+          Retry
+        </Button>
       </div>
     )
   }

@@ -45,8 +45,8 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
         width: 128,
         margin: 1,
         color: {
-          dark: '#0B141A',   // bg.base
-          light: '#E9EDEF',  // text.primary
+          dark: '#000000',
+          light: '#FFFFFF',
         },
       },
       (error) => {
@@ -214,7 +214,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
 
       <SettingsSection title="Your QR code">
         <div className="flex items-center gap-6">
-          <div className="flex h-36 w-36 items-center justify-center rounded-xl border border-border bg-[#0B141A] p-2">
+          <div className="flex h-36 w-36 items-center justify-center border border-border bg-white p-2.5 rounded-xl">
             <canvas ref={canvasRef} className="h-full w-full object-contain" />
           </div>
           <div className="flex-1">

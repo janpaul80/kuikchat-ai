@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Mic, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AttachmentDrawer } from './AttachmentDrawer'
@@ -29,6 +29,20 @@ export function ChatInputArea({ onIntent, onTypingChange, disabled, placeholder 
   const [isLocationOpen, setIsLocationOpen] = useState(false)
   const [isEventOpen, setIsEventOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+
+  // Listen for Hermes Copilot "Use" events — populate composer
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const suggestion = (e as CustomEvent<string>).detail
+      if (suggestion) {
+        setText(suggestion)
+        textareaRef.current?.focus()
+      }
+    }
+    window.addEventListener('hermes-copilot-use', handler)
+    return () => window.removeEventListener('hermes-copilot-use', handler)
+  }, [])
   
   const handleSendText = () => {
     if (!text.trim()) return
@@ -43,8 +57,23 @@ export function ChatInputArea({ onIntent, onTypingChange, disabled, placeholder 
     }
   }
 
-  const handleVoiceSend = (audioBlob: Blob, durationMs: number) => {
+  const handleVoiceSend = async (audioBlob: Blob, durationMs: number) => {
     setIsRecording(false)
+    // Try auto-transcribe via Hermes first
+    try {
+      const formData = new FormData()
+      formData.append('file', new File([audioBlob], 'voice_note.webm', { type: 'audio/webm' }))
+      const res = await fetch('/api/hermes/transcribe', { method: 'POST', body: formData })
+      if (res.ok) {
+        const { transcript } = await res.json()
+        if (transcript?.trim()) {
+          onIntent({ type: 'text', text: transcript.trim() })
+          return
+        }
+      }
+    } catch {
+      // fall through to raw voice note
+    }
     const file = new File([audioBlob], 'voice_note.webm', { type: 'audio/webm' })
     onIntent({ 
       type: 'voice', 
@@ -147,6 +176,7 @@ export function ChatInputArea({ onIntent, onTypingChange, disabled, placeholder 
 
           <div className="relative flex-1 min-h-[44px] bg-accent/50 rounded-2xl border border-border/50 focus-within:ring-1 focus-within:ring-brand-blue-500/50 focus-within:border-brand-blue-500/50 transition-all flex items-center">
             <textarea
+              ref={textareaRef}
               value={text}
               onChange={(e) => {
                 const val = e.target.value

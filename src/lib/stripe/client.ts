@@ -14,8 +14,8 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_place
 })
 
 export const STRIPE_PRICE_IDS = {
-  ultra_monthly: process.env.STRIPE_PRICE_ULTRA_MONTHLY || '',
-  business_monthly: process.env.STRIPE_PRICE_BUSINESS_MONTHLY || '',
+  ultra_monthly: process.env.STRIPE_PRICE_ULTRA_MONTHLY || process.env.STRIPE_PRICE_ULTRA || '',
+  business_monthly: process.env.STRIPE_PRICE_BUSINESS_MONTHLY || process.env.STRIPE_PRICE_BUSINESS || '',
   addon_badge_colors: process.env.STRIPE_ADDON_BADGE_COLORS || '',
   addon_priority_support: process.env.STRIPE_ADDON_PRIORITY_SUPPORT || '',
   addon_backup_vault: process.env.STRIPE_ADDON_BACKUP_VAULT || '',

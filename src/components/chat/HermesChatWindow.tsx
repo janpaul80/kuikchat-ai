@@ -182,26 +182,7 @@ export function HermesChatWindow() {
           // Stop stream tracks
           mediaRecorder.stream.getTracks().forEach((track) => track.stop())
 
-          // 1. Upload to Supabase storage 'voice' bucket
-          const supabase = createClient()
-          const fileName = `hermes/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.webm`
-          
-          const { error: uploadError } = await supabase.storage
-            .from('voice')
-            .upload(fileName, audioBlob, { contentType: 'audio/webm' })
-
-          if (uploadError) throw uploadError
-
-          const { data: signedData, error: signedError } = await supabase.storage
-            .from('voice')
-            .createSignedUrl(fileName, 86400 * 365) // 1 year expiry
-
-          if (signedError) throw signedError
-
-          const audioUrl = signedData.signedUrl
-          const displayBody = `🎤 Voice note\n${audioUrl}`
-
-          // 2. Transcribe voice note via API
+          // 1. Transcribe voice note via API immediately
           toast.loading('Transcribing audio...', { id: toastId })
           const formData = new FormData()
           formData.append('file', audioBlob, 'voice_note.webm')
@@ -216,16 +197,22 @@ export function HermesChatWindow() {
           }
 
           const transcribeData = await transcribeRes.json()
-          const transcription = transcribeData.text || '[Inaudible voice note]'
-          
+          const transcription = (transcribeData.text || '').trim()
+
+          if (!transcription) {
+            toast.error('No speech detected. Please try speaking again.', { id: toastId })
+            return
+          }
+
           toast.success(`Transcribed: "${transcription.substring(0, 30)}..."`, { id: toastId })
 
-          // 3. Send message and invoke Hermes
-          await sendUserMessage(displayBody, transcription)
+          // 2. Set transcription to input state and auto-send immediately
+          setInput(transcription)
+          await sendUserMessage(transcription, transcription)
 
         } catch (err: any) {
           console.error(err)
-          toast.error(`Voice note error: ${err.message || 'Unknown error'}`, { id: toastId })
+          toast.error(`Transcription error: ${err.message || 'Unknown error'}`, { id: toastId })
         }
       }
 

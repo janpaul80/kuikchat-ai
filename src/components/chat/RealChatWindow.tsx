@@ -25,7 +25,7 @@ import { ReplyPreview } from './ReplyPreview'
 import { TypingIndicator } from './TypingIndicator'
 import { ChatInputArea } from './input/ChatInputArea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Sparkles, Zap, Cpu, X, Send as SendIcon, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import DayDivider from './DayDivider'
 import CommandPalette from './CommandPalette'
@@ -47,6 +47,13 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
   const [typingUsers, setTypingUsers] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Hermes Autopilot / Copilot state
+  const [hermesMode, setHermesMode] = useState<'off' | 'autopilot' | 'copilot'>('off')
+  const [hermesPillOpen, setHermesPillOpen] = useState(false)
+  const [copilotSuggestion, setCopilotSuggestion] = useState<string | null>(null)
+  const [copilotLoading, setCopilotLoading] = useState(false)
+  const hermesPillRef = useRef<HTMLDivElement | null>(null)
 
   const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette()
   const [filterCommand, setFilterCommand] = useState<string | null>(null)
@@ -598,6 +605,76 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
     }
   }
 
+  // ─── Hermes Helpers ──────────────────────────────────────────────────────
+  const callHermes = useCallback(async (msgHistory: MessageRow[]): Promise<string | null> => {
+    if (!user?.id) return null
+    try {
+      // Build message list for Hermes – last 10 messages for context
+      const context = msgHistory.slice(-10).map((m) => ({
+        role: m.sender_id === user.id ? ('assistant' as const) : ('user' as const),
+        content: m.body || '',
+      }))
+      const res = await fetch('/api/hermes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: context,
+          mode: 'professional',
+          useBizContext: true,
+        }),
+      })
+      if (!res.ok) return null
+      const data = await res.json()
+      return data.reply || null
+    } catch {
+      return null
+    }
+  }, [user?.id])
+
+  // Watch for new incoming messages to trigger Autopilot or Copilot
+  const lastMsgIdRef = useRef<string>('')
+  useEffect(() => {
+    if (!messages.length || hermesMode === 'off') return
+    const last = messages[messages.length - 1]
+    if (!last || last.id === lastMsgIdRef.current) return
+    if (last.sender_id === user?.id) return // skip own messages
+    lastMsgIdRef.current = last.id
+
+    if (hermesMode === 'autopilot') {
+      // Auto-send Hermes reply without user intervention
+      ;(async () => {
+        const reply = await callHermes(messages)
+        if (reply && user?.id) {
+          try {
+            await sendTextMessage(supabase, chatId, user.id, reply, null)
+          } catch (e: any) {
+            console.error('[Autopilot] Send failed:', e)
+          }
+        }
+      })()
+    } else if (hermesMode === 'copilot') {
+      // Show suggestion card
+      setCopilotSuggestion(null)
+      setCopilotLoading(true)
+      ;(async () => {
+        const reply = await callHermes(messages)
+        setCopilotLoading(false)
+        if (reply) setCopilotSuggestion(reply)
+      })()
+    }
+  }, [messages, hermesMode, callHermes, chatId, supabase, user?.id])
+
+  // Close Hermes pill dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (hermesPillRef.current && !hermesPillRef.current.contains(e.target as Node)) {
+        setHermesPillOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
   if (loading) return <div className="p-4 text-sm text-muted-foreground">Loading chat…</div>
   if (!user?.id) return <div className="p-4 text-sm text-muted-foreground">Please log in</div>
 
@@ -628,6 +705,51 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
               {chatMeta?.other ? 'Active' : chatMeta?.chat?.type === 'group' ? 'Group chat' : 'Connecting...'}
             </p>
           </div>
+        </div>
+
+        {/* Hermes AI Pill */}
+        <div className="relative" ref={hermesPillRef}>
+          <button
+            id="hermes-ai-pill"
+            title="Hermes AI"
+            onClick={() => setHermesPillOpen((v) => !v)}
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all ${
+              hermesMode === 'autopilot'
+                ? 'border-brand-green-500/50 bg-brand-green-500/10 text-brand-green-500'
+                : hermesMode === 'copilot'
+                ? 'border-brand-blue-500/50 bg-brand-blue-500/10 text-brand-blue-500'
+                : 'border-border bg-card/60 text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {hermesMode === 'autopilot' ? 'Autopilot ON' : hermesMode === 'copilot' ? 'Copilot ON' : 'Hermes AI'}
+            <ChevronDown className="h-3 w-3 opacity-60" />
+          </button>
+
+          {hermesPillOpen && (
+            <div className="absolute right-0 top-9 z-50 w-52 rounded-xl border border-border bg-card p-2 shadow-xl">
+              <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Hermes AI Mode</p>
+              {(['off', 'copilot', 'autopilot'] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => { setHermesMode(m); setHermesPillOpen(false); setCopilotSuggestion(null) }}
+                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                    hermesMode === m ? 'bg-brand-blue-500/10 text-brand-blue-500' : 'text-foreground hover:bg-accent'
+                  }`}
+                >
+                  {m === 'off' && <X className="h-3.5 w-3.5" />}
+                  {m === 'copilot' && <Cpu className="h-3.5 w-3.5" />}
+                  {m === 'autopilot' && <Zap className="h-3.5 w-3.5" />}
+                  <div className="text-left">
+                    <p className="capitalize">{m === 'off' ? 'Off' : m}</p>
+                    <p className="text-[10px] text-muted-foreground font-normal">
+                      {m === 'off' ? 'No AI assistance' : m === 'copilot' ? 'Suggests drafts' : 'Auto-replies'}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -698,6 +820,58 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
       </div>
 
       <TypingIndicator typingUsers={typingUsers} className="border-t" />
+
+      {/* Copilot Suggestion Card */}
+      {hermesMode === 'copilot' && (copilotSuggestion || copilotLoading) && (
+        <div className="border-t border-border bg-brand-blue-500/5 px-4 py-3">
+          <div className="flex items-start gap-2.5">
+            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-blue-500/15">
+              <Sparkles className="h-3.5 w-3.5 text-brand-blue-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-blue-500 mb-1">Hermes Copilot</p>
+              {copilotLoading ? (
+                <p className="text-xs text-muted-foreground animate-pulse">Generating suggestion...</p>
+              ) : (
+                <p className="text-xs text-foreground leading-relaxed line-clamp-3">{copilotSuggestion}</p>
+              )}
+            </div>
+            {!copilotLoading && copilotSuggestion && (
+              <div className="flex shrink-0 gap-1.5">
+                <button
+                  title="Use this draft"
+                  onClick={() => {
+                    // Insert into composer via a custom event
+                    window.dispatchEvent(new CustomEvent('hermes-copilot-use', { detail: copilotSuggestion }))
+                    setCopilotSuggestion(null)
+                  }}
+                  className="rounded-lg bg-brand-blue-500/10 px-2.5 py-1 text-[10px] font-bold text-brand-blue-500 hover:bg-brand-blue-500/20 transition-all"
+                >
+                  Use
+                </button>
+                <button
+                  title="Send immediately"
+                  onClick={async () => {
+                    if (!user?.id || !copilotSuggestion) return
+                    await sendTextMessage(supabase, chatId, user.id, copilotSuggestion, null)
+                    setCopilotSuggestion(null)
+                  }}
+                  className="rounded-lg bg-brand-green-500/10 px-2.5 py-1 text-[10px] font-bold text-brand-green-500 hover:bg-brand-green-500/20 transition-all"
+                >
+                  Send
+                </button>
+                <button
+                  title="Dismiss"
+                  onClick={() => setCopilotSuggestion(null)}
+                  className="rounded-lg bg-accent/50 px-2.5 py-1 text-[10px] font-bold text-muted-foreground hover:bg-accent transition-all"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {replyTo ? (
         <div className="border-t px-4 pt-2">
