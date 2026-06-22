@@ -9,8 +9,11 @@ dotenv.config({ path: path.resolve(__dirname, '../.env.local') })
 
 const { Client } = pg
 
-// Supposing the password is the VPS password or standard Supabase config
-const password = process.env.PASSWORD || 'Ecuagrowers10@@'
+const password = process.env.SUPABASE_DB_PASSWORD || process.env.PASSWORD
+if (!password) {
+  console.error('Error: SUPABASE_DB_PASSWORD or PASSWORD env variable is required')
+  process.exit(1)
+}
 const connectionString = `postgresql://postgres.fkvikwkmrlyhpjtaydln:${password}@aws-0-eu-west-1.pooler.supabase.com:6543/postgres`
 
 console.log('Connecting to database:', `postgresql://postgres:***@db.fkvikwkmrlyhpjtaydln.supabase.co:6543/postgres`)

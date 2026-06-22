@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const next = searchParams.get('next') ?? '/chats'
 
   // Use the canonical site URL from env vars, fallback to parsed origin if missing
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
 
   if (code) {
     const supabase = await createClient()
