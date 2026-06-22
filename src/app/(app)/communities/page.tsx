@@ -175,7 +175,7 @@ export default function CommunitiesPage() {
       }
       setJoinedCommunities([...joinedCommunities, commId])
       toast.success('Joined community')
-      await loadCommunityMembers(commId)
+      // Membership to each group is ensured by insert above and loadCommunityChannels
     } catch (err: any) {
       toast.error(err.message || 'Failed to join community')
     }
