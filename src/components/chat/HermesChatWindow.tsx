@@ -18,6 +18,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn, formatTime } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface Message {
   id: string
@@ -39,6 +40,66 @@ export function HermesChatWindow() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [recording, setRecording] = useState(false)
+  const [recordDuration, setRecordDuration] = useState(0)
+  const recordIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Voice Note Timer
+  useEffect(() => {
+    if (recording) {
+      setRecordDuration(0)
+      recordIntervalRef.current = setInterval(() => {
+        setRecordDuration((prev) => prev + 1)
+      }, 1000)
+    } else {
+      if (recordIntervalRef.current) {
+        clearInterval(recordIntervalRef.current)
+        recordIntervalRef.current = null
+      }
+    }
+    return () => {
+      if (recordIntervalRef.current) clearInterval(recordIntervalRef.current)
+    }
+  }, [recording])
+
+  const formatRecordDuration = (sec: number) => {
+    const m = Math.floor(sec / 60)
+    const s = sec % 60
+    return `${m}:${s < 10 ? '0' : ''}${s}`
+  }
+
+  const handleSmileClick = () => {
+    setInput((prev) => prev + '😊')
+    toast.success('Smile emoji inserted!')
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    toast.success(`Attached file: ${file.name}`)
+    setInput((prev) => `${prev} [Attachment: ${file.name}]`.trim())
+  }
+
+  const handleMicClick = () => {
+    if (!recording) {
+      setRecording(true)
+      toast.info('Voice recording started...')
+    } else {
+      setRecording(false)
+      const durationStr = formatRecordDuration(recordDuration)
+      const newMsg: Message = {
+        id: Date.now().toString(),
+        text: `🎤 Voice note (${durationStr})`,
+        fromMe: true,
+        time: new Date(),
+        status: 'sent',
+      }
+      setMessages((prev) => [...prev, newMsg])
+      toast.success('Voice note recorded!')
+    }
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -148,21 +209,54 @@ export function HermesChatWindow() {
         onSubmit={handleSend}
         className="flex items-center gap-2 border-t border-border bg-card p-3"
       >
-        <Button type="button" size="icon" variant="ghost"><Smile className="h-5 w-5" /></Button>
-        <Button type="button" size="icon" variant="ghost"><Paperclip className="h-5 w-5" /></Button>
-        <Input
-          placeholder="Ask Hermes anything..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="flex-1"
-          disabled={sending}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="hidden"
         />
-        {input.trim() ? (
+        <Button type="button" size="icon" variant="ghost" onClick={handleSmileClick}>
+          <Smile className="h-5 w-5" />
+        </Button>
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Paperclip className="h-5 w-5" />
+        </Button>
+        
+        {recording ? (
+          <div className="flex-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg h-9 px-3 flex items-center justify-between text-xs animate-pulse">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
+              Recording voice note...
+            </span>
+            <span className="font-mono">{formatRecordDuration(recordDuration)}</span>
+          </div>
+        ) : (
+          <Input
+            placeholder="Ask Hermes anything..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="flex-1"
+            disabled={sending}
+          />
+        )}
+
+        {input.trim() && !recording ? (
           <Button type="submit" size="icon" variant="gradient" disabled={sending}>
             <Send className="h-5 w-5" />
           </Button>
         ) : (
-          <Button type="button" size="icon" variant="gradient">
+          <Button
+            type="button"
+            size="icon"
+            variant="gradient"
+            className={cn(recording && "bg-red-600 hover:bg-red-700 text-white")}
+            onClick={handleMicClick}
+          >
             <Mic className="h-5 w-5" />
           </Button>
         )}

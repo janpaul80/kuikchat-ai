@@ -43,28 +43,7 @@ const GRADIENTS = [
   'bg-zinc-900',
 ]
 
-const INITIAL_STATUSES: Status[] = [
-  {
-    id: 's1',
-    userName: 'Jane Doe',
-    avatar: null,
-    text: 'Building something amazing with KuikChat today! 🚀',
-    background: 'from-purple-600 to-blue-500',
-    created_at: new Date(Date.now() - 3600000).toISOString(), // 1h ago
-    viewers: [],
-    isMine: false,
-  },
-  {
-    id: 's2',
-    userName: 'Bob Smith',
-    avatar: null,
-    text: 'Design system is looking incredibly clean. AMOLED black mode is pure fire!',
-    background: 'bg-zinc-900',
-    created_at: new Date(Date.now() - 10800000).toISOString(), // 3h ago
-    viewers: [],
-    isMine: false,
-  },
-]
+const INITIAL_STATUSES: Status[] = []
 
 export default function StatusPage() {
   const [statuses, setStatuses] = useState<Status[]>(INITIAL_STATUSES)

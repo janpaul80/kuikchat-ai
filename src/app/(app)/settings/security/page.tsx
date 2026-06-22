@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { AlertCircle } from 'lucide-react'
 import {
   SettingsContainer,
   SettingsHeader,
@@ -21,7 +22,18 @@ export default async function SecuritySettingsPage() {
 
   if (error || !profile) {
     console.error('Error fetching security settings:', error)
-    redirect('/chats')
+    return (
+      <SettingsContainer>
+        <SettingsHeader title="Security" description="Signal-level encryption meets user-friendly controls" />
+        <div className="flex flex-col items-center justify-center p-8 border border-destructive/20 bg-destructive/5 rounded-xl text-center space-y-3">
+          <AlertCircle className="h-10 w-10 text-destructive" />
+          <h3 className="text-base font-bold">Failed to load security settings</h3>
+          <p className="text-xs text-muted-foreground max-w-sm">
+            We encountered a database error or your profile is still initializing. Please refresh the page or contact support.
+          </p>
+        </div>
+      </SettingsContainer>
+    )
   }
 
   const initialSecurity = {

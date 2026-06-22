@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
+import { selfHealProfile } from '@/lib/supabase/selfHeal'
 
 export async function GET(request: Request) {
   // Parse request URL to get search parameters
@@ -12,11 +13,23 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && data?.user) {
+      try {
+        const serviceClient = createServiceRoleClient()
+        await selfHealProfile(
+          serviceClient,
+          data.user.id,
+          data.user.email,
+          data.user.user_metadata
+        )
+      } catch (err) {
+        console.error('Self-healing profile error in callback:', err)
+      }
       return NextResponse.redirect(`${siteUrl}${next}`)
     }
   }
 
   return NextResponse.redirect(`${siteUrl}/login?error=auth_callback_error`)
 }
+

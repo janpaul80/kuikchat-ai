@@ -43,11 +43,7 @@ interface Contact {
   avatar_url: string | null
 }
 
-const INITIAL_CALLS: CallLog[] = [
-  { id: 'c1', contactName: 'Jane Doe', type: 'video', direction: 'outgoing', duration: '12m 45s', timestamp: '2026-06-21T08:12:00Z' },
-  { id: 'c2', contactName: 'Bob Smith', type: 'voice', direction: 'incoming', duration: '4m 12s', timestamp: '2026-06-20T19:30:00Z' },
-  { id: 'c3', contactName: 'Alice Carter', type: 'voice', direction: 'missed', duration: '--', timestamp: '2026-06-20T11:05:00Z' },
-]
+const INITIAL_CALLS: CallLog[] = []
 
 export default function CallsPage() {
   const supabase = createClient()
@@ -207,7 +203,16 @@ export default function CallsPage() {
         {/* Logs list */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin">
           {filteredLogs.length === 0 ? (
-            <p className="text-center text-xs text-muted-foreground mt-8">No call history.</p>
+            <div className="flex flex-col items-center justify-center p-8 text-center space-y-3 mt-12">
+              <Phone className="h-10 w-10 text-muted-foreground opacity-30" />
+              <p className="text-sm font-medium text-foreground">No calls yet</p>
+              <p className="text-xs text-muted-foreground max-w-xs">
+                You haven't made or received any calls on KuikChat.
+              </p>
+              <Button size="sm" variant="outline" onClick={() => setShowDialer(true)}>
+                Start a call
+              </Button>
+            </div>
           ) : (
             filteredLogs.map((log) => {
               const directionIcon =

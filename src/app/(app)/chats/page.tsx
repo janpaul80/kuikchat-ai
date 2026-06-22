@@ -1,5 +1,5 @@
 import { ChatList } from '@/components/chat/ChatList'
-import { MessageSquare, Sparkles } from 'lucide-react'
+import { MessageSquare, Sparkles, Lock } from 'lucide-react'
 
 export default function ChatsPage() {
   return (
@@ -17,7 +17,9 @@ export default function ChatsPage() {
           conversation.
         </p>
         <div className="mt-6 flex items-center gap-2 text-xs text-muted-foreground">
-          <span>🔒 End-to-end encrypted</span>
+          <span className="flex items-center gap-1">
+            <Lock className="h-3 w-3" /> End-to-end encrypted
+          </span>
           <span>•</span>
           <span className="flex items-center gap-1">
             <Sparkles className="h-3 w-3 text-brand-blue-500" /> Powered by Hermes AI
