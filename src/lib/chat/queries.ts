@@ -137,7 +137,7 @@ export async function fetchChatMeta(
 ): Promise<{ chat: any; other: ProfileLite | null } | null> {
   const { data: chat, error } = await supabase
     .from('chats')
-    .select('id, type, name, description, avatar_url')
+    .select('id, type, name, description, avatar_url, community_id, is_public, announcement_only')
     .eq('id', chatId)
     .single()
 

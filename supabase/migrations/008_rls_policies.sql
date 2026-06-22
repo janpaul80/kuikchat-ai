@@ -8,11 +8,20 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Is the current user a member of the chat?
+-- Extended to allow community members to read announcement-only chats
 create or replace function public.is_chat_member(p_chat_id uuid)
 returns boolean language sql stable security definer set search_path = public as $$
-  select exists (
-    select 1 from public.chat_members
-    where chat_id = p_chat_id and user_id = auth.uid()
+  select
+    exists (
+      select 1 from public.chat_members
+      where chat_id = p_chat_id and user_id = auth.uid()
+    )
+  or exists (
+      select 1
+      from public.chats c
+      join public.community_members cm on cm.community_id = c.community_id
+      where c.id = p_chat_id
+        and cm.user_id = auth.uid()
   );
 $$;
 

@@ -53,7 +53,7 @@ export default function CommunitiesPage() {
 
   const [channels, setChannels] = useState<CommunityChat[]>([])
   const [announcementChat, setAnnouncementChat] = useState<CommunityChat | null>(null)
-  const [members, setMembers] = useState<Member[]>([])
+  const [chatMemberIds, setChatMemberIds] = useState<string[]>([])
 
   // Create flow state
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -95,7 +95,6 @@ export default function CommunitiesPage() {
   useEffect(() => {
     if (!activeCommunityId) return
     loadCommunityChannels(activeCommunityId)
-    loadCommunityMembers(activeCommunityId)
   }, [activeCommunityId])
 
   const loadCommunities = async (userId: string) => {
@@ -138,21 +137,26 @@ export default function CommunitiesPage() {
     const groups = all.filter((c) => !c.announcement_only).sort((a, b) => a.name.localeCompare(b.name))
     setAnnouncementChat(ann || null)
     setChannels(groups)
-  }
 
-  const loadCommunityMembers = async (communityId: string) => {
-    const { data, error } = await supabase
-      .from('community_members')
-      .select('user_id, role, profile:profiles(display_name, username, avatar_url)')
-      .eq('community_id', communityId)
-
-    if (error) {
-      console.error('Error loading community members:', error)
-      return
+    // Fetch membership for these chats for the current user
+    try {
+      const chatIds = all.map((c) => c.id)
+      if (currentUser?.id && chatIds.length) {
+        const { data: cm } = await supabase
+          .from('chat_members')
+          .select('chat_id')
+          .eq('user_id', currentUser.id)
+          .in('chat_id', chatIds)
+        setChatMemberIds((cm || []).map((m: any) => m.chat_id))
+      } else {
+        setChatMemberIds([])
+      }
+    } catch {
+      setChatMemberIds([])
     }
-    setMembers((data as any) || [])
   }
 
+// Removed: loadCommunityMembers (membership per-chat is loaded alongside channels)
   const handleJoinCommunity = async (commId: string) => {
     try {
       const { error: joinErr } = await supabase

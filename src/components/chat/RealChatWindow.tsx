@@ -168,7 +168,12 @@ export function RealChatWindow({ chatId }: { chatId: string }) {
           setReplyTo(target)
         }
       } catch (e: any) {
-        setError(e?.message || 'Failed to load chat')
+        // Surface membership-specific errors more clearly
+        if (typeof e?.message === 'string' && e.message.includes('not_member')) {
+          setError('You are not a member of this group. Join the community or ask an admin to add you.')
+        } else {
+          setError(e?.message || 'Failed to load chat')
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
