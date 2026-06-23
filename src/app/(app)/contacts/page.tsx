@@ -82,26 +82,39 @@ export default function ContactsPage() {
     loadInitial()
   }, [])
 
-  // QR code generation
+  // QR code generation (robust: ensure element mounted and value non-empty; surface errors)
   useEffect(() => {
     if (!canvasRef.current || !currentUser) return
     const identifier = currentUser.username || currentUser.email || currentUser.id
     const profileLink = `https://kuikchat.io/add/${identifier}`
-    QRCode.toCanvas(
-      canvasRef.current,
-      profileLink,
-      {
-        width: 140,
-        margin: 1,
-        color: {
-          dark: '#000000',   // high-contrast black
-          light: '#FFFFFF',  // high-contrast white
-        },
-      },
-      (error) => {
-        if (error) console.error('Error generating contact QR code:', error)
-      }
-    )
+    if (!profileLink) return
+    const canvas = canvasRef.current
+    try {
+      // Defer one tick to ensure element is painted
+      requestAnimationFrame(() => {
+        QRCode.toCanvas(
+          canvas,
+          profileLink,
+          {
+            width: 140,
+            margin: 1,
+            color: {
+              dark: '#000000',   // high-contrast black
+              light: '#FFFFFF',  // high-contrast white
+            },
+          },
+          (error) => {
+            if (error) {
+              console.error('Error generating contact QR code:', error)
+              toast.error('Failed to render QR code')
+            }
+          }
+        )
+      })
+    } catch (e: any) {
+      console.error('QR generation exception:', e)
+      toast.error('QR generation failed')
+    }
   }, [currentUser])
 
   const fetchContacts = async () => {
