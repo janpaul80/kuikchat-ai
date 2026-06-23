@@ -62,7 +62,7 @@ export default function CommunitiesPage() {
   const [createDesc, setCreateDesc] = useState(
     'Hi everyone! This community is for members to chat in topic-based groups and get important announcements.'
   )
-  // const [createLogoFile, setCreateLogoFile] = useState<File | null>(null)  // Logo upload temporarily disabled
+  const [createLogoFile, setCreateLogoFile] = useState<File | null>(null)  // Logo upload optional
   const [creating, setCreating] = useState(false)
 
   const [loading, setLoading] = useState(true)
@@ -204,9 +204,8 @@ export default function CommunitiesPage() {
           is_public: true,
         })
         .select()
--        .single()
-+        .single()
-       if (error) {
+        .single()
+      if (error) {
 -        const msg = (error as any)?.message || 'Failed to create community'
 -        if ((error as any)?.code === '23505' || /duplicate key|unique/i.test(msg)) {
 -          toast.error('Slug already exists. Please choose a unique slug.')
