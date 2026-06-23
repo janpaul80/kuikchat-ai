@@ -14,6 +14,7 @@ import {
   Users,
   Loader2,
   Tag,
+  Share2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -67,6 +68,7 @@ export default function ContactsPage() {
   const [loadingBlockAction, setLoadingBlockAction] = useState<string | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [qrSvg, setQrSvg] = useState<string>('')
 
   useEffect(() => {
     async function loadInitial() {
@@ -88,45 +90,26 @@ export default function ContactsPage() {
     loadInitial()
   }, [])
 
-  // QR code generation (robust: ensure element mounted and value non-empty; surface errors; retry if canvas is not sized yet)
+  // Generate QR as SVG string
   useEffect(() => {
-    if (!canvasRef.current || !currentUser) return
+    if (!currentUser) return
     const profileLink = qrValue
     if (!profileLink) {
-      console.warn('QR: Empty value, skipping draw')
       toast.error('QR value is empty')
       return
     }
-    const canvas = canvasRef.current
-    const draw = () => {
-      const rect = canvas.getBoundingClientRect()
-      if (rect.width < 20 || rect.height < 20) {
-        // Try again shortly if not laid out yet
-        setTimeout(draw, 150)
-        return
-      }
-      console.log('QR draw', { value: profileLink, w: rect.width, h: rect.height })
-      QRCode.toCanvas(
-        canvas,
-        profileLink,
-        {
-          width: 140,
-          margin: 1,
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF',
-          },
-        },
-        (error) => {
-          if (error) {
-            console.error('Error generating contact QR code:', error)
-            toast.error('Failed to render QR code')
-          }
+    QRCode.toString(
+      profileLink,
+      { type: 'svg', width: 140, margin: 1, color: { dark: '#000000', light: '#FFFFFF' } },
+      (err, svg) => {
+        if (err) {
+          toast.error('Failed to generate QR')
+          console.error(err)
+          return
         }
-      )
-    }
-    // Defer one frame to ensure element is painted
-    requestAnimationFrame(draw)
+        setQrSvg(svg || '')
+      }
+    )
   }, [currentUser, qrValue])
 
   const fetchContacts = async () => {
@@ -460,9 +443,17 @@ export default function ContactsPage() {
             <QrIcon className="h-4 w-4 text-brand-blue-500" />
             Share Profile QR
           </h2>
-          <div className="mx-auto flex h-40 w-40 items-center justify-center border border-border bg-white p-2.5 rounded-xl">
-            <canvas ref={canvasRef} className="h-full w-full object-contain" />
-          </div>
+          <div className="flex items-center justify-center gap-2">
+          <h2 className="font-semibold">Share</h2>
+          <Share2 className="cursor-pointer" size={20} onClick={() => {navigator.clipboard.writeText(qrValue); toast.success('QR link copied')}} />
+        </div>
+        <div className="mx-auto flex h-40 w-40 items-center justify-center border border-border bg-white p-2.5 rounded-xl">
+          {qrSvg ? (
+            <div className="h-full w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+          ) : (
+            <div className="h-full w-full bg-white" />
+          )}
+        </div>
           {/* Temporary QA debug: show the encoded value so we can confirm it's non-empty */}
           <p className="text-[10px] text-muted-foreground break-all" data-testid="qr-source">
             QR source: {qrValue || '(empty)'}
