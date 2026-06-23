@@ -100,25 +100,52 @@ export default function ContactsPage() {
   // Generate QR on canvas
   useEffect(() => {
     if (!canvasRef.current || !qrValue) return
-    QRCode.toCanvas(
-      canvasRef.current,
-      qrValue,
-      {
-        width: 140,
-        margin: 1,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF',
-        },
-      },
-      (error) => {
-        if (error) {
-          console.error('Error generating QR code:', error)
-          toast.error('Failed to generate QR')
+
+    const canvas = canvasRef.current
+    let retryCount = 0
+
+    const draw = () => {
+      // Check if canvas is in DOM
+      if (!document.body.contains(canvas)) {
+        if (retryCount < 5) {
+          retryCount++
+          requestAnimationFrame(draw)
         }
+        return
       }
-    )
-  }, [qrValue])
+
+      // Check dimensions
+      const rect = canvas.getBoundingClientRect()
+      if (rect.width === 0 || rect.height === 0) {
+        if (retryCount < 5) {
+          retryCount++
+          setTimeout(draw, 100)
+        }
+        return
+      }
+
+      QRCode.toCanvas(
+        canvas,
+        qrValue,
+        {
+          width: 140,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF',
+          },
+        },
+        (error) => {
+          if (error) {
+            console.error('Error generating QR code:', error)
+            toast.error('Failed to generate QR')
+          }
+        }
+      )
+    }
+
+    requestAnimationFrame(draw)
+  }, [qrValue, loading])
 
   const fetchContacts = async () => {
     const { data: { user } } = await supabase.auth.getUser()

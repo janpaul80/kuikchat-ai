@@ -26,8 +26,19 @@ async function run(){
   const session = sessions.alice
   if (!session || !session.access_token) throw new Error('No QA session for alice; run npm run qa:auth:seed')
 
+  const targetUrl = 'https://kuikchat.io/contacts'
+  const domain = new URL(targetUrl).hostname
+
   const browser = await chromium.launch({ headless: true })
   const context = await browser.newContext({ acceptDownloads: true })
+  await context.addCookies([
+    {
+      name: storageKey,
+      value: encodeURIComponent(JSON.stringify(session)),
+      domain: domain,
+      path: '/',
+    }
+  ])
   const page = await context.newPage()
   try {
     // Seed Supabase session into localStorage before any script runs
@@ -48,7 +59,7 @@ async function run(){
     }, [storageKey, session])
 
     log('goto /contacts (with pre-seeded session)')
-    await page.goto('https://kuikchat.io/contacts', { waitUntil: 'domcontentloaded' })
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded' })
 
     // Confirm app shell visible and QR section present
     await page.getByText('Share Profile QR', { exact: false }).waitFor({ timeout: 15000 })
@@ -56,6 +67,8 @@ async function run(){
     // Wait for QR canvas and give a tick
     const canvas = await page.waitForSelector('canvas', { timeout: 15000 })
     await page.waitForTimeout(600)
+    await page.screenshot({ path: 'C:\\Users\\hartm\\kuikchat\\.tmp\\screenshot-success.png', fullPage: true })
+    log('Success screenshot saved to .tmp/screenshot-success.png')
 
     const dataUrl = await canvas.evaluate((el) => el.toDataURL('image/png'))
     if (!dataUrl || dataUrl.length < 500) throw new Error(`QR dataURL too small (len=${dataUrl?.length || 0})`)
@@ -71,6 +84,14 @@ async function run(){
     log(`Downloaded: ${path}`)
 
     console.log('\nCONFIRM: CONTACTS_QR_OK')
+  } catch (e) {
+    try {
+      await page.screenshot({ path: 'C:\\Users\\hartm\\kuikchat\\.tmp\\screenshot-fail.png', fullPage: true })
+      log(`Screenshot saved to .tmp/screenshot-fail.png`)
+    } catch (ssErr) {
+      log(`Failed to save screenshot: ${ssErr.message}`)
+    }
+    throw e
   } finally {
     await page.close(); await context.close(); await browser.close()
   }
