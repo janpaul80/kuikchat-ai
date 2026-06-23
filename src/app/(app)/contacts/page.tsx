@@ -49,9 +49,17 @@ interface BlockedUser {
 export default function ContactsPage() {
   const supabase = createClient()
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [origin, setOrigin] = useState('https://kuikchat.io')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin)
+    }
+  }, [])
+
   // Computed QR value for debug + render
   const qrValue = currentUser
-    ? `https://kuikchat.io/add/${
+    ? `${origin}/add/${
         currentUser.username || currentUser.email || currentUser.id
       }`
     : ''

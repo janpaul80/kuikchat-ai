@@ -31,13 +31,20 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
   const [avatarUrl, setAvatarUrl] = useState(initialProfile.avatar_url)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [origin, setOrigin] = useState('https://kuikchat.io')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin)
+    }
+  }, [])
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   // Generate QR Code
   useEffect(() => {
     if (!canvasRef.current || !username) return
-    const profileLink = `https://kuikchat.io/add/${username}`
+    const profileLink = `${origin}/add/${username}`
     QRCode.toCanvas(
       canvasRef.current,
       profileLink,
