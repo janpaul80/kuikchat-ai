@@ -48,6 +48,12 @@ interface BlockedUser {
 export default function ContactsPage() {
   const supabase = createClient()
   const [currentUser, setCurrentUser] = useState<any>(null)
+  // Computed QR value for debug + render
+  const qrValue = currentUser
+    ? `https://kuikchat.io/add/${
+        currentUser.username || currentUser.email || currentUser.id
+      }`
+    : ''
   const [contacts, setContacts] = useState<Contact[]>([])
   const [blocked, setBlocked] = useState<BlockedUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -82,40 +88,46 @@ export default function ContactsPage() {
     loadInitial()
   }, [])
 
-  // QR code generation (robust: ensure element mounted and value non-empty; surface errors)
+  // QR code generation (robust: ensure element mounted and value non-empty; surface errors; retry if canvas is not sized yet)
   useEffect(() => {
     if (!canvasRef.current || !currentUser) return
-    const identifier = currentUser.username || currentUser.email || currentUser.id
-    const profileLink = `https://kuikchat.io/add/${identifier}`
-    if (!profileLink) return
-    const canvas = canvasRef.current
-    try {
-      // Defer one tick to ensure element is painted
-      requestAnimationFrame(() => {
-        QRCode.toCanvas(
-          canvas,
-          profileLink,
-          {
-            width: 140,
-            margin: 1,
-            color: {
-              dark: '#000000',   // high-contrast black
-              light: '#FFFFFF',  // high-contrast white
-            },
-          },
-          (error) => {
-            if (error) {
-              console.error('Error generating contact QR code:', error)
-              toast.error('Failed to render QR code')
-            }
-          }
-        )
-      })
-    } catch (e: any) {
-      console.error('QR generation exception:', e)
-      toast.error('QR generation failed')
+    const profileLink = qrValue
+    if (!profileLink) {
+      console.warn('QR: Empty value, skipping draw')
+      toast.error('QR value is empty')
+      return
     }
-  }, [currentUser])
+    const canvas = canvasRef.current
+    const draw = () => {
+      const rect = canvas.getBoundingClientRect()
+      if (rect.width < 20 || rect.height < 20) {
+        // Try again shortly if not laid out yet
+        setTimeout(draw, 150)
+        return
+      }
+      console.log('QR draw', { value: profileLink, w: rect.width, h: rect.height })
+      QRCode.toCanvas(
+        canvas,
+        profileLink,
+        {
+          width: 140,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF',
+          },
+        },
+        (error) => {
+          if (error) {
+            console.error('Error generating contact QR code:', error)
+            toast.error('Failed to render QR code')
+          }
+        }
+      )
+    }
+    // Defer one frame to ensure element is painted
+    requestAnimationFrame(draw)
+  }, [currentUser, qrValue])
 
   const fetchContacts = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -451,6 +463,10 @@ export default function ContactsPage() {
           <div className="mx-auto flex h-40 w-40 items-center justify-center border border-border bg-white p-2.5 rounded-xl">
             <canvas ref={canvasRef} className="h-full w-full object-contain" />
           </div>
+          {/* Temporary QA debug: show the encoded value so we can confirm it's non-empty */}
+          <p className="text-[10px] text-muted-foreground break-all" data-testid="qr-source">
+            QR source: {qrValue || '(empty)'}
+          </p>
           <p className="text-xs text-muted-foreground">
             Let friends scan this code to link with your account instantly.
           </p>
