@@ -6,6 +6,7 @@ import {
   SettingsHeader,
 } from '@/components/settings/SettingsSection'
 import { NotificationsForm } from '@/components/settings/NotificationsForm'
+export const dynamic = 'force-dynamic'
 
 export default async function NotificationsSettingsPage() {
   const supabase = await createClient()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,6 +34,24 @@ interface NotificationsFormProps {
   }
 }
 
+const RINGTONES = {
+  default: { name: 'Message Tone', path: '/ringtones/message-for-you.mp3' },
+  'pop-blast': { name: 'Pop Blast', path: '/ringtones/pop-blast.mp3' },
+  'pop-fireworks': { name: 'Pop Fireworks', path: '/ringtones/pop-fireworks.mp3' },
+  'rock-power': { name: 'Rock Power', path: '/ringtones/rock-power.mp3' },
+  'anonymous-call': { name: 'Digital Call', path: '/ringtones/anonymous-call.mp3' },
+  malibu: { name: 'Malibu Ambient', path: '/ringtones/malibu.mp3' },
+  'k-pop': { name: 'K-Pop', path: '/ringtones/k-pop.mp3' },
+} as const
+
+const getNormalizedRingtone = (val: string) => {
+  if (val === 'classic') return 'pop-blast'
+  if (val === 'digital') return 'anonymous-call'
+  if (val === 'ambient') return 'malibu'
+  if (!val || !RINGTONES[val as keyof typeof RINGTONES]) return 'default'
+  return val
+}
+
 export function NotificationsForm({ initialNotifications }: NotificationsFormProps) {
   const supabase = createClient()
   const [msgNotifs, setMsgNotifs] = useState(initialNotifications.message_notifications)
@@ -42,9 +60,32 @@ export function NotificationsForm({ initialNotifications }: NotificationsFormPro
   const [vibrate, setVibrate] = useState(initialNotifications.vibrate)
   const [groupNotifs, setGroupNotifs] = useState(initialNotifications.group_notifications)
   const [callNotifs, setCallNotifs] = useState(initialNotifications.call_notifications)
-  const [callRingtone, setCallRingtone] = useState(initialNotifications.call_ringtone)
+  const [callRingtone, setCallRingtone] = useState(() => getNormalizedRingtone(initialNotifications.call_ringtone))
   const [dnd, setDnd] = useState(initialNotifications.do_not_disturb)
   const [emailNotifs, setEmailNotifs] = useState(initialNotifications.email_notifications)
+
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      }
+    }
+  }, [])
+
+  const playRingtonePreview = (toneKey: string) => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+    const tone = RINGTONES[toneKey as keyof typeof RINGTONES] || RINGTONES.default
+    const audio = new Audio(tone.path)
+    audio.volume = 0.5
+    audioRef.current = audio
+    audio.play().catch(err => console.error('Ringtone preview playback failed:', err))
+  }
 
   const handleUpdate = async (fields: Record<string, any>) => {
     try {
@@ -164,17 +205,19 @@ export function NotificationsForm({ initialNotifications }: NotificationsFormPro
             onValueChange={async (val: string) => {
               setCallRingtone(val)
               await handleUpdate({ call_ringtone: val })
+              playRingtonePreview(val)
               toast.success('Ringtone updated')
             }}
           >
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[180px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="default">Default Ringtone</SelectItem>
-              <SelectItem value="classic">Classic Bell</SelectItem>
-              <SelectItem value="digital">Digital Call</SelectItem>
-              <SelectItem value="ambient">Ambient Loop</SelectItem>
+              {Object.entries(RINGTONES).map(([key, item]) => (
+                <SelectItem key={key} value={key}>
+                  {item.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </SettingsRow>

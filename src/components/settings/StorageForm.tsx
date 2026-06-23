@@ -303,46 +303,6 @@ export function StorageForm() {
         </div>
       </SettingsSection>
 
-      {/* 4. Admin-Visible Headroom Monitoring */}
-      <SettingsSection title="KuikChat Server Headroom">
-        <div className="rounded-xl border border-border bg-card/40 p-5 space-y-4">
-          <div className="flex items-center gap-3">
-            <Server className="h-5 w-5 text-purple-400 animate-pulse" />
-            <div>
-              <p className="font-semibold text-sm">Physical Host Storage Pool</p>
-              <p className="text-xs text-muted-foreground">
-                Monitoring physical disk status on 217.154.11.234
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="space-y-1">
-              <span className="text-muted-foreground">Total Provisioned:</span>
-              <p className="font-bold text-foreground">{formatSize(data.headroom.totalProvisioned)}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-muted-foreground">Total Physical Used:</span>
-              <p className="font-bold text-foreground">{formatSize(data.headroom.totalUsed)}</p>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <Progress
-              value={(data.headroom.totalUsed / data.headroom.physicalDiskPool) * 100}
-              className="h-2 bg-background"
-            />
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>{formatSize(data.headroom.totalUsed)} used</span>
-              <span>{formatSize(data.headroom.physicalDiskPool)} host pool capacity</span>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-purple-500/5 border border-purple-500/10 p-3 text-[11px] text-purple-300">
-            <strong>Oversubscription Assumption:</strong> 11.25x ratio is maintained. 4,500 GB is provisioned against the physical 480 GB SSD pool. Alerts will trigger automatically at 80% physical utilization ({formatSize(data.headroom.physicalDiskPool * 0.8)}).
-          </div>
-        </div>
-      </SettingsSection>
     </div>
   )
 }
