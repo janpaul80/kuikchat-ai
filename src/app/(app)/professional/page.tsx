@@ -36,16 +36,29 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 const CATEGORY_OPTIONS = [
+  'Other business',
+  'Shopping & retail',
+  'Arts & entertainment',
+  'Tech & software',
+  'Beauty & cosmetic',
+  'Local service',
+  'Finance',
+  'Travel & transport',
+  'Health & fitness',
+  'Non-profit',
+  'Education',
   'Restaurant',
   'Salon & Beauty',
   'Shop / Retail',
   'Services',
-  'Tech & Software',
   'Consulting',
-  'Health & Fitness',
-  'Education',
   'Real Estate',
-  'Other',
+]
+
+const MODES = [
+  { id: 'selected', label: 'Open for selected hours' },
+  { id: 'always', label: 'Always open (24h)' },
+  { id: 'appointment', label: 'By appointment only' }
 ]
 
 interface CatalogItem {
@@ -83,7 +96,9 @@ export default function ProfessionalPage() {
   // Business Profile Form
   const [profileLoading, setProfileLoading] = useState(false)
   const [companyName, setCompanyName] = useState('')
-  const [category, setCategory] = useState('')
+  const [categories, setCategories] = useState<string[]>([])
+  const [showAllCategories, setShowAllCategories] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
   const [website, setWebsite] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -95,9 +110,19 @@ export default function ProfessionalPage() {
   const [mapCoords, setMapCoords] = useState({ lat: 51.505, lng: -0.09 })
 
   // Operating Hours
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-  const [hours, setHours] = useState<Record<string, { active: boolean; open: string; close: string }>>(
-    daysOfWeek.reduce((acc, day) => {
+  const [hoursMode, setHoursMode] = useState<'selected' | 'always' | 'appointment'>('selected')
+  const daysOfWeekKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+  const daysOfWeekLabels: Record<string, string> = {
+    mon: 'Monday',
+    tue: 'Tuesday',
+    wed: 'Wednesday',
+    thu: 'Thursday',
+    fri: 'Friday',
+    sat: 'Saturday',
+    sun: 'Sunday'
+  }
+  const [hoursDays, setHoursDays] = useState<Record<string, { active: boolean; open: string; close: string }>>(
+    daysOfWeekKeys.reduce((acc, day) => {
       acc[day] = { active: true, open: '09:00', close: '18:00' }
       return acc;
     }, {} as any)
@@ -244,7 +269,7 @@ export default function ProfessionalPage() {
       if (data) {
         setProfileExists(true)
         setCompanyName(data.company_name || '')
-        setCategory(data.category || '')
+        setCategories(data.categories || [])
         setWebsite(data.website || '')
         setEmail(data.email || '')
         setPhone(data.phone || '')
@@ -259,7 +284,26 @@ export default function ProfessionalPage() {
             setGallery(loadedHours.gallery || [])
             delete loadedHours.gallery
           }
-          setHours(loadedHours)
+          if (loadedHours.mode) {
+            setHoursMode(loadedHours.mode)
+          }
+          if (loadedHours.days) {
+            setHoursDays(loadedHours.days)
+          } else {
+            // Fallback for older format
+            const newDays = {} as any
+            daysOfWeekKeys.forEach(k => {
+              const oldLabel = daysOfWeekLabels[k];
+              if (loadedHours[oldLabel]) {
+                newDays[k] = loadedHours[oldLabel]
+              } else if (loadedHours[k]) {
+                newDays[k] = loadedHours[k]
+              } else {
+                newDays[k] = { active: false, open: '09:00', close: '18:00' }
+              }
+            })
+            setHoursDays(newDays)
+          }
         }
 
         // Address Parsing
@@ -278,32 +322,25 @@ export default function ProfessionalPage() {
     }
   }
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!companyName.trim()) {
-      toast.error('Company Name is required')
-      return
-    }
-
+  const handleSaveStep = async (step: number) => {
     setProfileLoading(true)
     try {
-      // Serialize Address
       const serializedAddress = JSON.stringify({
         addressText: addressText.trim(),
         lat: mapCoords.lat,
         lng: mapCoords.lng,
       })
 
-      // Combine hours & gallery
       const serializedHours = {
-        ...hours,
+        mode: hoursMode,
+        days: hoursDays,
         gallery,
       }
 
       const payload = {
         user_id: user.id,
         company_name: companyName.trim(),
-        category: category.trim(),
+        categories: categories,
         website: website.trim(),
         email: email.trim(),
         phone: phone.trim(),
@@ -315,19 +352,58 @@ export default function ProfessionalPage() {
         updated_at: new Date().toISOString(),
       }
 
-      // Upsert
       const { error } = await supabase
         .from('business_profiles')
         .upsert(payload, { onConflict: 'user_id' })
 
       if (error) throw error
       setProfileExists(true)
-      toast.success('Business Profile updated successfully!')
+      
+      if (step === 6) {
+        toast.success('Business Profile updated successfully!')
+      } else {
+        toast.success(`Step ${step} progress saved!`)
+      }
     } catch (err: any) {
       console.error(err)
-      toast.error(err.message || 'Failed to save business profile')
+      toast.error(err.message || `Failed to save step ${step} progress`)
     } finally {
       setProfileLoading(false)
+    }
+  }
+
+  const handleNextStep = async () => {
+    if (currentStep === 1 && !companyName.trim()) {
+      toast.error('Business Name is required')
+      return
+    }
+    if (currentStep === 2 && categories.length === 0) {
+      toast.error('Please select at least one category')
+      return
+    }
+
+    await handleSaveStep(currentStep)
+    
+    if (currentStep < 6) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const handleCategoryToggle = (cat: string) => {
+    if (categories.includes(cat)) {
+      setCategories(categories.filter(c => c !== cat))
+    } else {
+      if (categories.length >= 3) {
+        toast.error('You can select up to 3 categories')
+        return
+      }
+      setCategories([...categories, cat])
     }
   }
 
@@ -799,167 +875,469 @@ export default function ProfessionalPage() {
               </div>
             )}
 
-            <form onSubmit={handleSaveProfile} className="grid gap-6 md:grid-cols-3">
-              {/* Profile details */}
-              <div className="space-y-4 md:col-span-2 rounded-xl border border-border bg-card p-5">
-                <h3 className="font-semibold text-sm">Business Settings</h3>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="companyName">Business Name *</Label>
-                    <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="My Business Ltd." required />
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Stepped Setup Wizard */}
+              <div className="space-y-6 md:col-span-2 rounded-xl border border-border bg-card p-6">
+                
+                {/* Wizard Progress Bar */}
+                <div>
+                  <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                    <span>Step {currentStep} of 6</span>
+                    <span>{Math.round((currentStep / 6) * 100)}% Complete</span>
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="category">Category</Label>
-                    <select
-                      id="category"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="">Select a category…</option>
-                      {CATEGORY_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="website">Website</Label>
-                    <div className="relative">
-                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="website" className="pl-9" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="email">Business Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="email" className="pl-9" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@example.com" />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="phone">Phone</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="phone" className="pl-9" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 019-2834" />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="addressText">Address</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="addressText" className="pl-9" value={addressText} onChange={(e) => setAddressText(e.target.value)} placeholder="123 Main St, New York" />
-                    </div>
+                  <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-brand-gradient rounded-full transition-all duration-300" 
+                      style={{ width: `${(currentStep / 6) * 100}%` }} 
+                    />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="description">About / Description</Label>
-                  <textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Tell customers about your business, what you offer, and what makes you stand out…"
-                    rows={4}
-                    className="flex w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y min-h-[80px]"
-                  />
-                </div>
-              </div>
-
-              {/* Uploads & Hours */}
-              <div className="space-y-6">
-                {/* Images */}
-                <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-                  <h3 className="font-semibold text-sm">Branding</h3>
-                  <div className="space-y-3">
-                    {/* Logo upload */}
-                    <div className="space-y-1">
-                      <Label>Business Logo</Label>
-                      {logoUrl && (
-                        <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-lg border border-border object-contain mb-2 bg-zinc-900" />
-                      )}
-                      <Input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'logo')} />
-                      <p className="text-[10px] text-muted-foreground">Square image recommended (e.g. 256×256)</p>
+                {/* Step Content */}
+                <div className="min-h-[280px]">
+                  
+                  {/* Step 1: Basics */}
+                  {currentStep === 1 && (
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold text-foreground">Create your business profile</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Tell potential customers about your business with an easy, professional setup.
+                        </p>
+                      </div>
+                      <div className="space-y-1.5 pt-2">
+                        <Label htmlFor="companyName">Business Name *</Label>
+                        <Input 
+                          id="companyName" 
+                          value={companyName} 
+                          onChange={(e) => setCompanyName(e.target.value)} 
+                          placeholder="Enter your business name" 
+                          required 
+                        />
+                      </div>
                     </div>
-                    {/* Cover upload */}
-                    <div className="space-y-1">
-                      <Label>Cover / Banner Image</Label>
-                      {coverUrl && (
-                        <img src={coverUrl} alt="Cover" className="w-full h-20 rounded-lg border border-border object-cover mb-2" />
-                      )}
-                      <Input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'cover')} />
-                      <p className="text-[10px] text-muted-foreground">Wide landscape image (e.g. 1200×400)</p>
-                    </div>
-                  </div>
-                </div>
+                  )}
 
-                {/* Hours */}
-                <div className="rounded-xl border border-border bg-card p-5 space-y-3">
-                  <h3 className="font-semibold text-sm flex items-center gap-1.5">
-                    <Clock className="h-4 w-4 text-brand-blue-500" />
-                    Opening Hours
-                  </h3>
-                  <div className="space-y-2 text-xs">
-                    {daysOfWeek.map((day) => {
-                      const dayVal = hours[day] || { active: false, open: '09:00', close: '18:00' }
-                      return (
-                        <div key={day} className="flex items-center justify-between gap-2 py-1">
-                          <label className="flex items-center gap-1.5 cursor-pointer font-medium">
-                            <input
-                              type="checkbox"
-                              checked={dayVal.active}
-                              onChange={(e) => {
-                                setHours({
-                                  ...hours,
-                                  [day]: { ...dayVal, active: e.target.checked }
-                                })
-                              }}
-                              className="rounded border-border"
-                            />
-                            {day.slice(0, 3)}
-                          </label>
-                          {dayVal.active ? (
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="text"
-                                value={dayVal.open}
-                                onChange={(e) => {
-                                  setHours({
-                                    ...hours,
-                                    [day]: { ...dayVal, open: e.target.value }
-                                  })
-                                }}
-                                className="w-14 text-center bg-background border border-border rounded py-0.5"
-                                placeholder="09:00"
-                              />
-                              <span className="text-muted-foreground">–</span>
-                              <input
-                                type="text"
-                                value={dayVal.close}
-                                onChange={(e) => {
-                                  setHours({
-                                    ...hours,
-                                    [day]: { ...dayVal, close: e.target.value }
-                                  })
-                                }}
-                                className="w-14 text-center bg-background border border-border rounded py-0.5"
-                                placeholder="18:00"
-                              />
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground italic text-[11px]">Closed</span>
-                          )}
+                  {/* Step 2: Category */}
+                  {currentStep === 2 && (
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold text-foreground">Select your business category</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Choose up to three categories to show on your business profile.
+                        </p>
+                      </div>
+
+                      {/* Mobile Chips View (hidden on md+) */}
+                      <div className="block md:hidden space-y-4 pt-2">
+                        <div className="flex flex-wrap gap-2">
+                          {(showAllCategories ? CATEGORY_OPTIONS : CATEGORY_OPTIONS.slice(0, 6)).map((opt) => {
+                            const isSelected = categories.includes(opt);
+                            return (
+                              <div
+                                key={opt}
+                                onClick={() => handleCategoryToggle(opt)}
+                                className={`text-xs font-semibold py-2.5 px-4 rounded-lg border transition cursor-pointer select-none ${
+                                  isSelected 
+                                    ? 'bg-brand-gradient/10 border-brand-blue-500 text-white shadow-sm' 
+                                    : 'border-border bg-panel text-muted-foreground hover:text-foreground hover:border-muted-2'
+                                }`}
+                              >
+                                {opt}
+                              </div>
+                            );
+                          })}
                         </div>
-                      )
-                    })}
-                  </div>
+                        <div 
+                          onClick={() => setShowAllCategories(!showAllCategories)}
+                          className="text-xs font-bold text-brand-green-500 cursor-pointer hover:underline text-center mt-2"
+                        >
+                          {showAllCategories ? '- Show fewer categories' : '+ See more categories'}
+                        </div>
+                      </div>
+
+                      {/* Desktop Web Select View (hidden on md-hidden) */}
+                      <div className="hidden md:block space-y-4 pt-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="categorySelect">Categories (Max 3)</Label>
+                          <select
+                            id="categorySelect"
+                            value=""
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                handleCategoryToggle(val);
+                                e.target.value = "";
+                              }
+                            }}
+                            className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none"
+                            disabled={categories.length >= 3}
+                          >
+                            <option value="">
+                              {categories.length >= 3 ? 'Max categories selected' : 'Choose a category...'}
+                            </option>
+                            {CATEGORY_OPTIONS.filter(opt => !categories.includes(opt)).map((opt) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {categories.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {categories.map((cat) => (
+                              <Badge key={cat} variant="gradient" className="flex items-center gap-1 text-[11px] py-1 px-2.5">
+                                {cat}
+                                <button
+                                  type="button"
+                                  onClick={() => handleCategoryToggle(cat)}
+                                  className="hover:text-red-400 font-bold ml-1 text-xs"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                    </div>
+                  )}
+
+                  {/* Step 3: Hours */}
+                  {currentStep === 3 && (
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold text-foreground">Add your business hours</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Let customers know when you open and close each day.
+                        </p>
+                      </div>
+
+                      <div className="hoursmode space-y-2 pt-2">
+                        {MODES.map((m) => {
+                          const isSelected = hoursMode === m.id;
+                          return (
+                            <div
+                              key={m.id}
+                              onClick={() => setHoursMode(m.id as any)}
+                              className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition ${
+                                isSelected 
+                                  ? 'border-brand-blue-500 bg-card text-foreground font-semibold' 
+                                  : 'border-border bg-panel text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              <span className="text-xs sm:text-sm">{m.label}</span>
+                              <div className={`w-4 h-4 rounded-full border grid place-items-center ${
+                                isSelected ? 'border-brand-blue-500 bg-brand-gradient' : 'border-border'
+                              }`}>
+                                {isSelected && (
+                                  <svg className="w-2.5 h-2.5 text-white stroke-2 fill-none stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+                                    <path d="M20 6L9 17l-5-5"/>
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {hoursMode === 'selected' && (
+                        <div className="mt-4 bg-panel border border-border rounded-xl p-3 space-y-2">
+                          {daysOfWeekKeys.map((day) => {
+                            const dayVal = hoursDays[day] || { active: false, open: '09:00', close: '18:00' };
+                            return (
+                              <div key={day} className="flex items-center justify-between gap-4 py-1.5 border-b border-border/40 last:border-0">
+                                <label className="flex items-center gap-2 cursor-pointer font-medium text-xs sm:text-sm text-foreground">
+                                  <input
+                                    type="checkbox"
+                                    checked={dayVal.active}
+                                    onChange={(e) => {
+                                      setHoursDays({
+                                        ...hoursDays,
+                                        [day]: { ...dayVal, active: e.target.checked }
+                                      })
+                                    }}
+                                    className="rounded border-border bg-background focus:ring-brand-blue-500"
+                                  />
+                                  {daysOfWeekLabels[day]}
+                                </label>
+                                {dayVal.active ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <input
+                                      type="text"
+                                      value={dayVal.open}
+                                      onChange={(e) => {
+                                        setHoursDays({
+                                          ...hoursDays,
+                                          [day]: { ...dayVal, open: e.target.value }
+                                        })
+                                      }}
+                                      className="w-16 text-center text-xs bg-background border border-border rounded py-1 px-1 focus:outline-none focus:ring-1 focus:ring-brand-blue-500"
+                                      placeholder="09:00"
+                                    />
+                                    <span className="text-muted-foreground text-xs">–</span>
+                                    <input
+                                      type="text"
+                                      value={dayVal.close}
+                                      onChange={(e) => {
+                                        setHoursDays({
+                                          ...hoursDays,
+                                          [day]: { ...dayVal, close: e.target.value }
+                                        })
+                                      }}
+                                      className="w-16 text-center text-xs bg-background border border-border rounded py-1 px-1 focus:outline-none focus:ring-1 focus:ring-brand-blue-500"
+                                      placeholder="18:00"
+                                    />
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground/60 italic text-xs">Closed</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Step 4: Branding */}
+                  {currentStep === 4 && (
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold text-foreground">Upload your branding</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Add your business logo and cover image to personalize your storefront.
+                        </p>
+                      </div>
+                      <div className="space-y-4 pt-2">
+                        {/* Logo upload */}
+                        <div className="space-y-1.5">
+                          <Label>Business Logo</Label>
+                          {logoUrl && (
+                            <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-lg border border-border object-contain mb-2 bg-zinc-900" />
+                          )}
+                          <Input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'logo')} />
+                          <p className="text-[10px] text-muted-foreground">Square image recommended (e.g. 256×256)</p>
+                        </div>
+                        {/* Cover upload */}
+                        <div className="space-y-1.5">
+                          <Label>Cover / Banner Image</Label>
+                          {coverUrl && (
+                            <img src={coverUrl} alt="Cover" className="w-full h-20 rounded-lg border border-border object-cover mb-2" />
+                          )}
+                          <Input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'cover')} />
+                          <p className="text-[10px] text-muted-foreground">Wide landscape image (e.g. 1200×400)</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 5: Location & Contact */}
+                  {currentStep === 5 && (
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold text-foreground">Location & Contacts</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Provide your storefront address, website, and contact information.
+                        </p>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2 pt-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="website">Website</Label>
+                          <div className="relative">
+                            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input id="website" className="pl-9" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="email">Business Email</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input id="email" className="pl-9" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@example.com" />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="phone">Phone</Label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input id="phone" className="pl-9" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 019-2834" />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="addressText">Address</Label>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input id="addressText" className="pl-9" value={addressText} onChange={(e) => setAddressText(e.target.value)} placeholder="123 Main St, New York" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 6: Description */}
+                  {currentStep === 6 && (
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold text-foreground">About / Description</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Tell customers about your business, what you offer, and what makes you stand out.
+                        </p>
+                      </div>
+                      <div className="space-y-1.5 pt-2">
+                        <Label htmlFor="description">About / Description</Label>
+                        <textarea
+                          id="description"
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="Tell customers about your business, what you offer, and what makes you stand out…"
+                          rows={6}
+                          className="flex w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y min-h-[120px]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                 </div>
 
-                <Button type="submit" variant="gradient" className="w-full flex items-center justify-center gap-1.5 shadow-lg" disabled={profileLoading}>
-                  {profileLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  Save Business Profile
-                </Button>
+                {/* Navigation Buttons */}
+                <div className="flex items-center justify-between pt-4 border-t border-border/60">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handlePrevStep}
+                    className={currentStep === 1 ? 'invisible' : 'visible'}
+                  >
+                    Back
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="gradient"
+                    onClick={handleNextStep}
+                    className="px-6 flex items-center gap-1.5"
+                    disabled={profileLoading}
+                  >
+                    {profileLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : currentStep === 6 ? (
+                      'Save & Finish'
+                    ) : (
+                      'Continue'
+                    )}
+                  </Button>
+                </div>
+
               </div>
-            </form>
+
+              {/* Sidebar Preview (col-span-1) - Hidden on mobile */}
+              <div className="hidden md:block space-y-6">
+                <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                  <h3 className="font-semibold text-sm">Profile Preview</h3>
+                  
+                  {/* Banner / Cover */}
+                  <div className="relative h-24 rounded-lg bg-panel overflow-hidden border border-border/40">
+                    {coverUrl ? (
+                      <img src={coverUrl} alt="Cover Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-panel-2 to-panel-3 flex items-center justify-center text-muted-2 text-xs">
+                        No cover banner
+                      </div>
+                    )}
+                    
+                    {/* Logo */}
+                    <div className="absolute left-4 -bottom-6 w-12 h-12 rounded-lg bg-zinc-900 border border-border overflow-hidden">
+                      {logoUrl ? (
+                        <img src={logoUrl} alt="Logo Preview" className="w-full h-full object-contain" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-2 text-[10px]">Logo</div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Space for logo offset */}
+                  <div className="h-4" />
+
+                  {/* Business Identity */}
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm text-foreground">
+                      {companyName.trim() || 'Business Name'}
+                    </h4>
+                    {categories.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {categories.map((c) => (
+                          <Badge key={c} variant="outline" className="text-[9px] py-0 px-1 border-border/60">
+                            {c}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/60 italic">No categories selected</span>
+                    )}
+                  </div>
+
+                  {/* Contact Info Preview */}
+                  <div className="space-y-2 text-xs text-muted-foreground border-t border-border/40 pt-3">
+                    {phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-3.5 h-3.5 text-brand-green-500 shrink-0" />
+                        <span>{phone}</span>
+                      </div>
+                    )}
+                    {email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-3.5 h-3.5 text-brand-blue-500 shrink-0" />
+                        <span className="truncate">{email}</span>
+                      </div>
+                    )}
+                    {website && (
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-3.5 h-3.5 text-brand-blue-500 shrink-0" />
+                        <span className="truncate">{website}</span>
+                      </div>
+                    )}
+                    {addressText && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-brand-green-500 shrink-0" />
+                        <span className="truncate">{addressText}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description Preview */}
+                  {description && (
+                    <div className="text-xs text-muted-foreground/80 border-t border-border/40 pt-3 leading-relaxed">
+                      <p className="line-clamp-4">{description}</p>
+                    </div>
+                  )}
+
+                  {/* Operating Hours Preview */}
+                  <div className="border-t border-border/40 pt-3 space-y-1.5">
+                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-2 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-brand-blue-500" />
+                      Hours ({hoursMode === 'selected' ? 'Custom' : hoursMode === 'always' ? '24h' : 'Appointment'})
+                    </h4>
+                    {hoursMode === 'selected' ? (
+                      <div className="text-[10px] text-muted-foreground/80 space-y-0.5">
+                        {daysOfWeekKeys.slice(0, 5).map(day => {
+                          const val = hoursDays[day];
+                          return (
+                            <div key={day} className="flex justify-between">
+                              <span className="capitalize">{day}</span>
+                              <span>{val?.active ? `${val.open}-${val.close}` : 'Closed'}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : hoursMode === 'always' ? (
+                      <div className="text-[10px] text-brand-green-500 font-semibold">Open 24/7</div>
+                    ) : (
+                      <div className="text-[10px] text-brand-blue-500 font-semibold">By appointment only</div>
+                    )}
+                  </div>
+
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           {/* 3. Catalog Content */}
