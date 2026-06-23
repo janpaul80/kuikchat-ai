@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import {
   Briefcase,
@@ -31,7 +33,6 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 
 const CATEGORY_OPTIONS = [
