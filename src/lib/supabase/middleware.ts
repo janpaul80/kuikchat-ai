@@ -40,7 +40,8 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/hermes') ||
     pathname.startsWith('/contacts') ||
     pathname.startsWith('/settings') ||
-    pathname.startsWith('/professional')
+    pathname.startsWith('/professional') ||
+    pathname.startsWith('/add')
 
   const isAuthRoute =
     pathname.startsWith('/login') ||

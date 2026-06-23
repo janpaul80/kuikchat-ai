@@ -85,8 +85,20 @@ export default function AddContactPage({ params }: { params: { username: string 
         const targetUser = targetProfile as Profile
         setProfile(targetUser)
 
-        // 3. Determine if self-addition
-        if (targetUser.id === user.id) {
+        // 3. Fetch current user's profile to compare username/id safely
+        const { data: myProfile } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        // Determine if self-addition
+        const isSelfUser = 
+          targetUser.id.toLowerCase() === user.id.toLowerCase() ||
+          (myProfile && targetUser.id.toLowerCase() === myProfile.id.toLowerCase()) ||
+          (myProfile && targetUser.username.toLowerCase() === myProfile.username.toLowerCase())
+
+        if (isSelfUser) {
           setIsSelf(true)
           setLoading(false)
           return
@@ -116,7 +128,7 @@ export default function AddContactPage({ params }: { params: { username: string 
     }
 
     loadData()
-  }, [targetParam, supabase, router])
+  }, [targetParam])
 
   // Handle add contact operation
   const handleAddContact = async () => {
@@ -174,7 +186,7 @@ export default function AddContactPage({ params }: { params: { username: string 
   // Loading Screen
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background/50 relative overflow-hidden">
+      <div className="flex h-full w-full items-center justify-center bg-background/50 relative overflow-hidden">
         <div className="absolute inset-0 bg-brand-gradient opacity-[0.03] pointer-events-none" />
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 animate-spin text-brand-blue-500" />
@@ -189,7 +201,7 @@ export default function AddContactPage({ params }: { params: { username: string 
   // Error Screen / Not Found
   if (error || !profile) {
     return (
-      <div className="flex h-screen w-full items-center justify-center p-4 bg-background relative overflow-hidden">
+      <div className="flex h-full w-full items-center justify-center p-4 bg-background relative overflow-hidden">
         <div className="absolute inset-0 bg-brand-gradient opacity-[0.03] pointer-events-none" />
         <Card className="w-full max-w-md border-border bg-card/60 backdrop-blur-md shadow-2xl relative overflow-hidden group">
           <div className="absolute -top-10 -right-10 h-24 w-24 bg-destructive/10 rounded-full blur-xl group-hover:bg-destructive/20 transition-all duration-700" />
@@ -220,7 +232,7 @@ export default function AddContactPage({ params }: { params: { username: string 
 
   // Render main screen
   return (
-    <div className="flex h-screen w-full items-center justify-center p-4 bg-background relative overflow-hidden">
+    <div className="flex h-full w-full items-center justify-center p-4 bg-background relative overflow-hidden">
       {/* Decorative Glow Elements */}
       <div className="absolute top-1/4 left-1/4 h-72 w-72 bg-brand-blue-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
       <div className="absolute bottom-1/4 right-1/4 h-72 w-72 bg-brand-green-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />

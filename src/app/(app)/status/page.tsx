@@ -83,7 +83,7 @@ export default function StatusPage() {
           visibility,
           profiles:user_id (
             username,
-            full_name,
+            display_name,
             avatar_url
           )
         `)
@@ -105,7 +105,7 @@ export default function StatusPage() {
               status_id,
               profiles:viewer_id (
                 username,
-                full_name
+                display_name
               )
             `)
             .in('status_id', statusIds)
@@ -113,7 +113,7 @@ export default function StatusPage() {
           if (!viewsErr && views) {
             views.forEach((v: any) => {
               const prof = (Array.isArray(v.profiles) ? v.profiles[0] : v.profiles) as any
-              const name = prof?.full_name || prof?.username || 'Anonymous User'
+              const name = prof?.display_name || prof?.username || 'Anonymous User'
               if (!viewsMap[v.status_id]) {
                 viewsMap[v.status_id] = []
               }
@@ -129,7 +129,7 @@ export default function StatusPage() {
           return {
             id: item.id,
             user_id: item.user_id,
-            userName: prof?.full_name || prof?.username || 'KuikChat User',
+            userName: prof?.display_name || prof?.username || 'KuikChat User',
             avatar: prof?.avatar_url || null,
             text: item.body || '',
             background: item.bg_color || GRADIENTS[0],
@@ -210,7 +210,7 @@ export default function StatusPage() {
           visibility,
           profiles:user_id (
             username,
-            full_name,
+            display_name,
             avatar_url
           )
         `)
@@ -223,7 +223,7 @@ export default function StatusPage() {
         const newStatus: Status = {
           id: data.id,
           user_id: data.user_id,
-          userName: prof?.full_name || prof?.username || 'You',
+          userName: prof?.display_name || prof?.username || 'You',
           avatar: prof?.avatar_url || null,
           text: data.body || '',
           background: data.bg_color || GRADIENTS[0],
