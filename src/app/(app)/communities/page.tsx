@@ -189,86 +189,110 @@ export default function CommunitiesPage() {
     }
     if (!/^[a-z0-9-]{3,40}$/.test(createSlug)) {
       toast.error('Slug must be 3-40 lowercase characters, numbers, or dashes')
-      return
-    }
+      const handleCreateCommunity = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!createName.trim()) {
+          toast.error('Community name is required')
+          return
+        }
+        if (!/^[a-z0-9-]{3,40}$/.test(createSlug)) {
+          toast.error('Slug must be 3-40 lowercase characters, numbers, or dashes')
+          return
+        }
 
-    setCreating(true)
-    try {
-      const { data: comm, error } = await supabase
-        .from('communities')
-        .insert({
-          slug: createSlug,
-          name: createName.trim(),
-          description: createDesc.trim() || null,
-          owner_id: currentUser.id,
-          is_public: true,
-        })
-        .select()
-        .single()
-      if (error) {
--        const msg = (error as any)?.message || 'Failed to create community'
--        if ((error as any)?.code === '23505' || /duplicate key|unique/i.test(msg)) {
--          toast.error('Slug already exists. Please choose a unique slug.')
--        } else {
--          toast.error(msg)
--        }
--        setCreating(false)
--        return
-+        const msg = (error as any)?.message || 'Failed to create community'
-+        if ((error as any)?.code === '23505' || /duplicate key|unique/i.test(msg)) {
-+          toast.error('Slug already exists. Please choose a unique slug.')
-+        } else {
-+          toast.error(msg)
-+        }
-+        setCreating(false)
-+        return
-       }
-      await supabase.from('community_members').insert({ community_id: comm.id, user_id: currentUser.id, role: 'owner' })
-.insert({
-          type: 'group',
-          name: 'general',
-          description: 'General discussion',
-          created_by: currentUser.id,
-          is_public: true,
-          community_id: comm.id,
-        })
-        .select()
-        .single()
-      if (generalChat) {
-        await supabase.from('chat_members').insert({ chat_id: generalChat.id, user_id: currentUser.id, role: 'owner' })
+        setCreating(true)
+        try {
+          // 1) Create the community
+          const { data: comm, error: commErr } = await supabase
+            .from('communities')
+            .insert({
+              slug: createSlug,
+              name: createName.trim(),
+              description: createDesc.trim() || null,
+              owner_id: currentUser.id,
+              is_public: true,
+            })
+            .select()
+            .single()
+          if (commErr || !comm) {
+            const msg = (commErr as any)?.message || 'Failed to create community'
+            if ((commErr as any)?.code === '23505' || /duplicate key|unique/i.test(msg)) {
+              toast.error('Slug already exists. Please choose a unique slug.')
+            } else {
+              toast.error(msg)
+            }
+            return
+          }
+
+          // 2) Add creator as owner of the community
+          await supabase.from('community_members').insert({ community_id: comm.id, user_id: currentUser.id, role: 'owner' })
+
+          // 3) Create General chat and add owner
+          const { data: generalChat, error: generalErr } = await supabase
+            .from('chats')
+            .insert({
+              type: 'group',
+              name: 'general',
+              description: 'General discussion',
+              created_by: currentUser.id,
+              is_public: true,
+              community_id: comm.id,
+            })
+            .select()
+            .single()
+          if (generalErr) throw generalErr
+          if (generalChat) {
+            await supabase.from('chat_members').insert({ chat_id: generalChat.id, user_id: currentUser.id, role: 'owner' })
+          }
+
+          // 4) Create Announcements chat and add owner
+          const { data: annChat, error: annErr } = await supabase
+            .from('chats')
+            .insert({
+              type: 'group',
+              name: 'announcements',
+              description: 'Official updates from the owner',
+              created_by: currentUser.id,
+              is_public: true,
+              community_id: comm.id,
+              announcement_only: true,
+            })
+            .select()
+            .single()
+          if (annErr) throw annErr
+          if (annChat) {
+            await supabase.from('chat_members').insert({ chat_id: annChat.id, user_id: currentUser.id, role: 'owner' })
+          }
+
+          // 5) Optional logo upload — warn but do not block on failure
+          if (createLogoFile) {
+            try {
+              const path = `communities/${comm.id}/${createLogoFile.name}`
+              const { error: upErr } = await supabase.storage.from('avatars').upload(path, createLogoFile, { upsert: true, cacheControl: '3600' })
+              if (!upErr) {
+                const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
+                if (pub?.publicUrl) await supabase.from('communities').update({ logo_url: pub.publicUrl }).eq('id', comm.id)
+              } else {
+                throw upErr
+              }
+            } catch (e: any) {
+              console.warn('Logo upload failed, continuing without logo:', e?.message || e)
+              toast.warning(`Logo upload failed: ${e?.message || 'continuing without a logo'}`)
+            }
+          }
+
+          toast.success(`Community "${createName}" created`)
+          setShowCreateModal(false)
+          setCreateName('')
+          setCreateDesc('')
+          await loadCommunities(currentUser.id)
+          setActiveCommunityId(comm.id)
+        } catch (err: any) {
+          toast.error(err?.message || 'Failed to create community')
+        } finally {
+          setCreating(false)
+        }
       }
-
-      const { data: annChat } = await supabase
-        .from('chats')
-        .insert({
-          type: 'group',
-          name: 'announcements',
-          description: 'Official updates from the owner',
-          created_by: currentUser.id,
-          is_public: true,
-          community_id: comm.id,
-          announcement_only: true,
-        })
-        .select()
-        .single()
-      if (annChat) {
-        await supabase.from('chat_members').insert({ chat_id: annChat.id, user_id: currentUser.id, role: 'owner' })
-      }
-
-      // Logo upload disabled: skipping logo storage logic
-
-      toast.success(`Community "${createName}" created`)
-      setShowCreateModal(false)
-      setCreateName('')
-      setCreateDesc('')
-      await loadCommunities(currentUser.id)
-      setActiveCommunityId(comm.id)
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to create community')
-    } finally {
-      setCreating(false)
-    }
-  }
 
   const openGroupChat = (chatId: string) => {
     router.push(`/chats/${chatId}`)
