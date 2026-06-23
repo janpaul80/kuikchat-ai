@@ -34,15 +34,18 @@ import { createClient } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 
-// Dynamically import Leaflet Map to avoid SSR issues
-const LeafletMap = dynamic(() => import('@/components/professional/LeafletMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-[280px] rounded-xl border border-border bg-card/40 flex items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-brand-blue-500" />
-    </div>
-  ),
-})
+const CATEGORY_OPTIONS = [
+  'Restaurant',
+  'Salon & Beauty',
+  'Shop / Retail',
+  'Services',
+  'Tech & Software',
+  'Consulting',
+  'Health & Fitness',
+  'Education',
+  'Real Estate',
+  'Other',
+]
 
 interface CatalogItem {
   id: string
@@ -66,6 +69,7 @@ export default function ProfessionalPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState<string>('personal')
+  const [profileExists, setProfileExists] = useState(false)
 
   // Analytics Stats
   const [stats, setStats] = useState({
@@ -237,6 +241,7 @@ export default function ProfessionalPage() {
       if (error) throw error
 
       if (data) {
+        setProfileExists(true)
         setCompanyName(data.company_name || '')
         setCategory(data.category || '')
         setWebsite(data.website || '')
@@ -315,6 +320,7 @@ export default function ProfessionalPage() {
         .upsert(payload, { onConflict: 'user_id' })
 
       if (error) throw error
+      setProfileExists(true)
       toast.success('Business Profile updated successfully!')
     } catch (err: any) {
       console.error(err)
@@ -324,7 +330,7 @@ export default function ProfessionalPage() {
     }
   }
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'cover' | 'gallery') => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'cover') => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -333,7 +339,7 @@ export default function ProfessionalPage() {
       const filePath = `${user.id}/${Date.now()}-${Math.random()}.${fileExt}`
 
       const { error: uploadError } = await supabase.storage
-        .from('catalog') // using public catalog bucket
+        .from('catalog')
         .upload(filePath, file, { upsert: true })
 
       if (uploadError) throw uploadError
@@ -343,15 +349,13 @@ export default function ProfessionalPage() {
 
       if (field === 'logo') {
         setLogoUrl(publicUrl)
-      } else if (field === 'cover') {
-        setCoverUrl(publicUrl)
       } else {
-        setGallery((prev) => [...prev, publicUrl])
+        setCoverUrl(publicUrl)
       }
-      toast.success('File uploaded successfully!')
+      toast.success(`${field === 'logo' ? 'Logo' : 'Cover image'} uploaded! Remember to click Save to keep your changes.`)
     } catch (err: any) {
       console.error(err)
-      toast.error('Failed to upload image')
+      toast.error(`Failed to upload ${field === 'logo' ? 'logo' : 'cover image'}. Your other fields are safe — click Save to keep them. Then try the image again.`)
     }
   }
 
@@ -779,18 +783,43 @@ export default function ProfessionalPage() {
 
           {/* 2. Profile Content */}
           <TabsContent value="profile" className="outline-none">
+            {/* Empty state prompt for unfilled profiles */}
+            {!profileExists && !companyName.trim() && (
+              <div className="mb-6 rounded-xl border border-brand-blue-500/20 bg-brand-blue-500/5 p-5 flex items-start gap-4">
+                <div className="p-2 bg-brand-blue-500/10 rounded-lg text-brand-blue-500 mt-0.5 shrink-0">
+                  <Store className="h-5 w-5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-foreground">Complete your business profile</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Set up your business identity so customers can discover you on KuikChat. Fill in your company name, upload a logo, add your hours, and tell people what you do.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSaveProfile} className="grid gap-6 md:grid-cols-3">
               {/* Profile details */}
               <div className="space-y-4 md:col-span-2 rounded-xl border border-border bg-card p-5">
                 <h3 className="font-semibold text-sm">Business Settings</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1">
-                    <Label htmlFor="companyName">Company Name *</Label>
+                    <Label htmlFor="companyName">Business Name *</Label>
                     <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="My Business Ltd." required />
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="category">Category</Label>
-                    <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Retail, Consulting, AI Developer" />
+                    <select
+                      id="category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">Select a category…</option>
+                      {CATEGORY_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="website">Website</Label>
@@ -814,7 +843,7 @@ export default function ProfessionalPage() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="addressText">Address / Storefront Location</Label>
+                    <Label htmlFor="addressText">Address</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input id="addressText" className="pl-9" value={addressText} onChange={(e) => setAddressText(e.target.value)} placeholder="123 Main St, New York" />
@@ -823,17 +852,15 @@ export default function ProfessionalPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="description">Business Description</Label>
-                  <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description of what you do..." />
-                </div>
-
-                {/* Leaflet map integration */}
-                <div className="space-y-2 mt-4">
-                  <Label>Interactive Map Pin Location</Label>
-                  <LeafletMap value={mapCoords} onChange={(coords) => setMapCoords(coords)} />
-                  <p className="text-[10px] text-muted-foreground">
-                    Selected coordinates: {mapCoords.lat.toFixed(6)}, {mapCoords.lng.toFixed(6)}
-                  </p>
+                  <Label htmlFor="description">About / Description</Label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Tell customers about your business, what you offer, and what makes you stand out…"
+                    rows={4}
+                    className="flex w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y min-h-[80px]"
+                  />
                 </div>
               </div>
 
@@ -841,7 +868,7 @@ export default function ProfessionalPage() {
               <div className="space-y-6">
                 {/* Images */}
                 <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-                  <h3 className="font-semibold text-sm">Media Attachments</h3>
+                  <h3 className="font-semibold text-sm">Branding</h3>
                   <div className="space-y-3">
                     {/* Logo upload */}
                     <div className="space-y-1">
@@ -850,14 +877,16 @@ export default function ProfessionalPage() {
                         <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-lg border border-border object-contain mb-2 bg-zinc-900" />
                       )}
                       <Input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'logo')} />
+                      <p className="text-[10px] text-muted-foreground">Square image recommended (e.g. 256×256)</p>
                     </div>
                     {/* Cover upload */}
                     <div className="space-y-1">
-                      <Label>Cover Banner</Label>
+                      <Label>Cover / Banner Image</Label>
                       {coverUrl && (
                         <img src={coverUrl} alt="Cover" className="w-full h-20 rounded-lg border border-border object-cover mb-2" />
                       )}
                       <Input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'cover')} />
+                      <p className="text-[10px] text-muted-foreground">Wide landscape image (e.g. 1200×400)</p>
                     </div>
                   </div>
                 </div>
@@ -866,7 +895,7 @@ export default function ProfessionalPage() {
                 <div className="rounded-xl border border-border bg-card p-5 space-y-3">
                   <h3 className="font-semibold text-sm flex items-center gap-1.5">
                     <Clock className="h-4 w-4 text-brand-blue-500" />
-                    Operating Hours
+                    Opening Hours
                   </h3>
                   <div className="space-y-2 text-xs">
                     {daysOfWeek.map((day) => {
@@ -885,7 +914,7 @@ export default function ProfessionalPage() {
                               }}
                               className="rounded border-border"
                             />
-                            {day}
+                            {day.slice(0, 3)}
                           </label>
                           {dayVal.active ? (
                             <div className="flex items-center gap-1.5">
@@ -898,10 +927,10 @@ export default function ProfessionalPage() {
                                     [day]: { ...dayVal, open: e.target.value }
                                   })
                                 }}
-                                className="w-12 text-center bg-background border border-border rounded py-0.5"
+                                className="w-14 text-center bg-background border border-border rounded py-0.5"
                                 placeholder="09:00"
                               />
-                              <span>to</span>
+                              <span className="text-muted-foreground">–</span>
                               <input
                                 type="text"
                                 value={dayVal.close}
@@ -911,7 +940,7 @@ export default function ProfessionalPage() {
                                     [day]: { ...dayVal, close: e.target.value }
                                   })
                                 }}
-                                className="w-12 text-center bg-background border border-border rounded py-0.5"
+                                className="w-14 text-center bg-background border border-border rounded py-0.5"
                                 placeholder="18:00"
                               />
                             </div>
@@ -926,7 +955,7 @@ export default function ProfessionalPage() {
 
                 <Button type="submit" variant="gradient" className="w-full flex items-center justify-center gap-1.5 shadow-lg" disabled={profileLoading}>
                   {profileLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  Save Business Info
+                  Save Business Profile
                 </Button>
               </div>
             </form>
