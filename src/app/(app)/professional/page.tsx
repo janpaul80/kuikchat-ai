@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 
 // Dynamically import Leaflet Map to avoid SSR issues
 const LeafletMap = dynamic(() => import('@/components/professional/LeafletMap'), {
@@ -64,6 +65,7 @@ export default function ProfessionalPage() {
   const [activeTab, setActiveTab] = useState('analytics')
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [mode, setMode] = useState<string>('personal')
 
   // Analytics Stats
   const [stats, setStats] = useState({
@@ -126,6 +128,17 @@ export default function ProfessionalPage() {
         if (!authedUser) return
         setUser(authedUser)
 
+        // Query the profile mode
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('mode')
+          .eq('id', authedUser.id)
+          .single()
+        
+        if (profile) {
+          setMode(profile.mode || 'personal')
+        }
+
         await Promise.all([
           fetchAnalytics(authedUser.id),
           fetchBusinessProfile(authedUser.id),
@@ -140,6 +153,33 @@ export default function ProfessionalPage() {
     }
     loadData()
   }, [])
+
+  // Realtime subscription for profile changes (mode)
+  useEffect(() => {
+    if (!user) return
+
+    const channel = supabase
+      .channel(`profile_mode_${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.new && 'mode' in payload.new) {
+            setMode(payload.new.mode || 'personal')
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user, supabase])
 
   // ==========================================
   // 1. ANALYTICS DB QUERIES
@@ -584,6 +624,106 @@ export default function ProfessionalPage() {
     )
   }
 
+  if (mode !== 'professional') {
+    return (
+      <div className="flex h-full flex-col overflow-hidden bg-background text-foreground">
+        {/* Brand Header */}
+        <div className="flex h-16 items-center justify-between border-b border-border bg-card px-6 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <Briefcase className="h-5 w-5 text-brand-blue-500" />
+            <h1 className="text-lg font-bold tracking-tight text-brand-gradient">
+              Professional Mode
+            </h1>
+            <Badge variant="outline" className="border-brand-blue-500/30 text-brand-blue-500">Discover</Badge>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto flex items-center justify-center p-6 bg-gradient-to-br from-background via-background to-brand-blue-500/5">
+          <div className="relative max-w-2xl w-full border border-border bg-card/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl space-y-6 overflow-hidden">
+            {/* Ambient decorative glow */}
+            <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-brand-blue-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute -left-24 -bottom-24 h-48 w-48 rounded-full bg-brand-blue-500/5 blur-3xl pointer-events-none" />
+            
+            <div className="flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 rounded-2xl bg-brand-gradient p-4 flex items-center justify-center shadow-lg shadow-brand-blue-500/20 transform transition-transform hover:scale-105 duration-300">
+                <Briefcase className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-black tracking-tight bg-brand-gradient bg-clip-text text-transparent">
+                Unlock KuikChat Professional
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Convert your personal account into a discoverable in-app business profile. Access an advanced suite of communication, presentation, and tracking tools.
+              </p>
+            </div>
+
+            <div className="border-t border-border/60 pt-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-brand-blue-500 mb-4 text-center">
+                What's Included in Business Mode
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-accent/40 transition-colors">
+                  <div className="p-2 bg-brand-blue-500/10 rounded-lg text-brand-blue-500 mt-0.5 shrink-0">
+                    <Store className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold">Business Profile & Catalog</h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Showcase your website, contact info, hours, logo, and a visually premium storefront catalog.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-accent/40 transition-colors">
+                  <div className="p-2 bg-brand-blue-500/10 rounded-lg text-brand-blue-500 mt-0.5 shrink-0">
+                    <MapPin className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold">Interactive Location Map</h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Link your storefront coordinates on a Leaflet map to help users nearby locate your shop.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-accent/40 transition-colors">
+                  <div className="p-2 bg-brand-blue-500/10 rounded-lg text-brand-blue-500 mt-0.5 shrink-0">
+                    <Send className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold">Broadcast Marketing</h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Keep your customer segments engaged with broad update dispatches and promo announcements.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-accent/40 transition-colors">
+                  <div className="p-2 bg-brand-blue-500/10 rounded-lg text-brand-blue-500 mt-0.5 shrink-0">
+                    <BookOpen className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold">CRM & Quick Reply Templates</h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Save custom templated text shortcuts to reply to repetitive customer questions instantly.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center pt-4">
+              <Link href="/settings/profile" passHref legacyBehavior>
+                <Button variant="gradient" className="px-8 py-5 text-sm font-bold shadow-lg shadow-brand-blue-500/10 hover:shadow-brand-blue-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                  Turn on Business Mode in Settings
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background text-foreground">
       {/* Brand Header */}
@@ -622,50 +762,17 @@ export default function ProfessionalPage() {
             </TabsTrigger>
           </TabsList>
 
-          {/* 1. Analytics Content (Database-backed) */}
+          {/* 1. Analytics Content (Neutral Empty State) */}
           <TabsContent value="analytics" className="space-y-6 outline-none">
-            <div className="grid gap-4 sm:grid-cols-4">
-              <div className="rounded-xl border border-border bg-card p-5 space-y-2 relative overflow-hidden">
-                <p className="text-xs font-medium text-muted-foreground">Messages Sent</p>
-                <p className="text-3xl font-bold">{stats.sent}</p>
-                <div className="absolute right-4 bottom-4 text-brand-blue-500/10"><Send className="h-12 w-12" /></div>
+            <div className="flex flex-col items-center justify-center p-12 border border-dashed border-border rounded-xl text-center space-y-4 bg-card/20">
+              <div className="p-3 bg-brand-blue-500/10 rounded-full text-brand-blue-500">
+                <BarChart2 className="h-8 w-8" />
               </div>
-              <div className="rounded-xl border border-border bg-card p-5 space-y-2 relative overflow-hidden">
-                <p className="text-xs font-medium text-muted-foreground">Messages Received</p>
-                <p className="text-3xl font-bold">{stats.received}</p>
-                <div className="absolute right-4 bottom-4 text-brand-green-500/10"><TrendingUp className="h-12 w-12" /></div>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-5 space-y-2 relative overflow-hidden">
-                <p className="text-xs font-medium text-muted-foreground">Active Chats</p>
-                <p className="text-3xl font-bold">{stats.chats}</p>
-                <div className="absolute right-4 bottom-4 text-purple-500/10"><Clock className="h-12 w-12" /></div>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-5 space-y-2 relative overflow-hidden">
-                <p className="text-xs font-medium text-muted-foreground">Earnings Generated</p>
-                <p className="text-3xl font-bold">${stats.earnings.toFixed(2)}</p>
-                <div className="absolute right-4 bottom-4 text-yellow-500/10"><DollarSign className="h-12 w-12" /></div>
-              </div>
-            </div>
-
-            {/* Campaign conversion stats mock card */}
-            <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-              <h3 className="font-semibold text-sm">Campaign Click-through Rates</h3>
-              <div className="space-y-3">
-                {[
-                  { label: 'Q3 Promo Blast', pct: 68, count: '30/44 clicked', color: 'bg-brand-blue-500' },
-                  { label: 'Product Update Broadcast', pct: 45, count: '9/20 clicked', color: 'bg-brand-green-500' },
-                  { label: 'Feedback Survey Request', pct: 28, count: '14/50 clicked', color: 'bg-purple-500' },
-                ].map((item) => (
-                  <div key={item.label} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-foreground">{item.label}</span>
-                      <span className="text-muted-foreground">{item.count} ({item.pct}%)</span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-background overflow-hidden">
-                      <div className={`h-full ${item.color}`} style={{ width: `${item.pct}%` }} />
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-foreground">No Analytics Data Available</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Analytics tracking is active, but there are no client interactions, campaigns, or invoice payments recorded yet. Metrics will appear automatically once user interactions start.
+                </p>
               </div>
             </div>
           </TabsContent>

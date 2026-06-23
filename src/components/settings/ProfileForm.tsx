@@ -11,6 +11,7 @@ import { SettingsSection } from '@/components/settings/SettingsSection'
 import { getInitials } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { Switch } from '@/components/ui/switch'
 
 interface ProfileFormProps {
   initialProfile: {
@@ -20,6 +21,7 @@ interface ProfileFormProps {
     bio: string | null
     avatar_url: string | null
     email: string | null
+    mode: string
   }
 }
 
@@ -32,6 +34,27 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [origin, setOrigin] = useState('https://kuikchat.io')
+  const [isBusinessMode, setIsBusinessMode] = useState(initialProfile.mode === 'professional')
+
+  const handleModeToggle = async (checked: boolean) => {
+    const newMode = checked ? 'professional' : 'personal'
+    setIsBusinessMode(checked)
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ mode: newMode })
+        .eq('id', initialProfile.id)
+
+      if (error) throw error
+
+      toast.success(`Business Mode turned ${checked ? 'on' : 'off'} successfully!`)
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.message || 'Failed to update Business Mode')
+      setIsBusinessMode(!checked)
+    }
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -216,6 +239,22 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
         <div className="space-y-2">
           <Label>Email</Label>
           <Input value={initialProfile.email || ''} disabled />
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title="Business Mode">
+        <div className="flex items-center justify-between py-2">
+          <div className="space-y-0.5">
+            <Label htmlFor="business-mode-toggle" className="text-sm font-medium">Business Mode</Label>
+            <p className="text-xs text-muted-foreground">
+              Turn on Business Mode to unlock professional tools, customize your company profile, create a product catalog, and more.
+            </p>
+          </div>
+          <Switch
+            id="business-mode-toggle"
+            checked={isBusinessMode}
+            onCheckedChange={handleModeToggle}
+          />
         </div>
       </SettingsSection>
 

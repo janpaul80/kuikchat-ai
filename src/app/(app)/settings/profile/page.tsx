@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AlertCircle } from 'lucide-react'
@@ -17,7 +19,7 @@ export default async function ProfileSettingsPage() {
   // Query database profiles table as primary source of truth
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, username, display_name, bio, avatar_url')
+    .select('id, username, display_name, bio, avatar_url, mode')
     .eq('id', user.id)
     .single()
 
@@ -44,6 +46,7 @@ export default async function ProfileSettingsPage() {
     bio: profile.bio || '',
     avatar_url: profile.avatar_url,
     email: user.email || null,
+    mode: profile.mode || 'personal',
   }
 
   return (
