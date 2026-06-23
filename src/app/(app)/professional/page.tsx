@@ -39,20 +39,16 @@ const CATEGORY_OPTIONS = [
   'Other business',
   'Shopping & retail',
   'Arts & entertainment',
-  'Tech & software',
-  'Beauty & cosmetic',
+  'Beauty, cosmetic & personal care',
   'Local service',
   'Finance',
-  'Travel & transport',
-  'Health & fitness',
-  'Non-profit',
+  'Travel and transport',
+  'Vehicle, aircraft and boat',
+  'Non-profit organisation',
+  'Residence',
   'Education',
   'Restaurant',
-  'Salon & Beauty',
-  'Shop / Retail',
-  'Services',
-  'Consulting',
-  'Real Estate',
+  'Tech & software',
 ]
 
 const MODES = [
@@ -79,11 +75,12 @@ interface QuickReply {
 
 export default function ProfessionalPage() {
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState('analytics')
+  const [activeTab, setActiveTab] = useState('profile')
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState<string>('personal')
   const [profileExists, setProfileExists] = useState(false)
+  const [isWizardActive, setIsWizardActive] = useState(false)
 
   // Analytics Stats
   const [stats, setStats] = useState({
@@ -123,7 +120,7 @@ export default function ProfessionalPage() {
   }
   const [hoursDays, setHoursDays] = useState<Record<string, { active: boolean; open: string; close: string }>>(
     daysOfWeekKeys.reduce((acc, day) => {
-      acc[day] = { active: true, open: '09:00', close: '18:00' }
+      acc[day] = { active: false, open: '09:00', close: '18:00' }
       return acc;
     }, {} as any)
   )
@@ -145,10 +142,7 @@ export default function ProfessionalPage() {
   const [newReplyText, setNewReplyText] = useState('')
 
   // Broadcasts State (Mock/UI wrapper)
-  const [broadcasts, setBroadcasts] = useState([
-    { id: '1', name: 'All Enterprise Clients', recipients: 12, lastSent: '2026-06-20' },
-    { id: '2', name: 'Q3 Leads List', recipients: 45, lastSent: 'Never' },
-  ])
+  const [broadcasts, setBroadcasts] = useState<any[]>([])
   const [newBroadcastName, setNewBroadcastName] = useState('')
 
   useEffect(() => {
@@ -268,6 +262,7 @@ export default function ProfessionalPage() {
 
       if (data) {
         setProfileExists(true)
+        setIsWizardActive(false)
         setCompanyName(data.company_name || '')
         setCategories(data.categories || [])
         setWebsite(data.website || '')
@@ -332,6 +327,9 @@ export default function ProfessionalPage() {
             setAddressText(data.address || '')
           }
         }
+      } else {
+        setProfileExists(false)
+        setIsWizardActive(true)
       }
     } catch (err) {
       console.error('Error loading business profile:', err)
@@ -375,6 +373,7 @@ export default function ProfessionalPage() {
       setProfileExists(true)
       
       if (step === 6) {
+        setIsWizardActive(false)
         toast.success('Business Profile updated successfully!')
       } else {
         toast.success(`Step ${step} progress saved!`)
@@ -819,162 +818,531 @@ export default function ProfessionalPage() {
       </div>
     )
   }
-
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-background text-foreground">
+    <div className="flex h-full flex-col overflow-hidden bg-[#070709] text-[#e7e9f0] biz-container">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .biz-container {
+          --bg: #070709;
+          --bg-2: #0b0c10;
+          --panel: #0e0f14;
+          --panel-2: #121319;
+          --panel-3: #171922;
+          --line: #1c1e26;
+          --line-2: #272a35;
+          --text: #e7e9f0;
+          --muted: #838a9c;
+          --muted-2: #565d6e;
+          --blue: hsl(217, 84%, 56%);
+          --green: hsl(150, 52%, 42%);
+          --accent: hsl(184, 55%, 46%);
+          --grad: linear-gradient(135deg, hsl(217, 72%, 50%), hsl(160, 48%, 40%));
+          --grad-soft: linear-gradient(135deg, hsl(217 72% 50% / .10), hsl(160 48% 40% / .10));
+        }
+        
+        .biz-iconcluster {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+          margin: 18px 0 24px;
+        }
+        
+        .biz-tile {
+          width: 58px;
+          height: 58px;
+          border-radius: 15px;
+          background: var(--panel-2);
+          border: 1px solid var(--line-2);
+          display: grid;
+          place-items: center;
+          color: var(--text);
+        }
+        
+        .biz-tile svg {
+          width: 26px;
+          height: 26px;
+          stroke-width: 1.5;
+        }
+        
+        .biz-tile.tile-1 { color: hsl(217, 80%, 64%); }
+        .biz-tile.tile-2 { color: hsl(184, 50%, 56%); }
+        .biz-tile.tile-3 { color: hsl(155, 46%, 54%); }
+        
+        .biz-center {
+          text-align: center;
+        }
+        
+        .biz-h1 {
+          font-size: 24px;
+          font-weight: 700;
+          letter-spacing: -.02em;
+          line-height: 1.2;
+          margin-bottom: 8px;
+          color: var(--text);
+        }
+        
+        .biz-lead {
+          color: var(--muted);
+          font-size: 13.5px;
+          line-height: 1.55;
+          margin-bottom: 20px;
+        }
+        
+        .biz-label {
+          font-size: 11.5px;
+          font-weight: 600;
+          color: var(--muted);
+          margin: 0 0 7px;
+          display: block;
+          letter-spacing: .02em;
+          text-transform: uppercase;
+        }
+        
+        .biz-input, .biz-textarea, .biz-select {
+          width: 100%;
+          background: var(--panel);
+          border: 1px solid var(--line-2);
+          color: var(--text);
+          border-radius: 10px;
+          padding: 12px 13px;
+          font-size: 13.5px;
+          outline: none;
+          transition: .15s;
+        }
+        
+        .biz-input:focus, .biz-textarea:focus, .biz-select:focus {
+          border-color: var(--blue);
+          box-shadow: 0 0 0 3px hsl(217 84% 56% / .12);
+        }
+        
+        .biz-input::placeholder, .biz-textarea::placeholder {
+          color: var(--muted-2);
+        }
+        
+        .biz-btn {
+          border: 0;
+          border-radius: 11px;
+          padding: 13px 20px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          background: var(--grad);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: .16s;
+        }
+        
+        .biz-btn:hover:not(:disabled) {
+          filter: brightness(1.07);
+        }
+        
+        .biz-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        
+        .biz-btn.ghost {
+          background: var(--panel-2);
+          border: 1px solid var(--line-2);
+          color: var(--text);
+        }
+        
+        .biz-field {
+          margin-bottom: 18px;
+        }
+        
+        .biz-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        
+        .biz-chip {
+          font-size: 12px;
+          font-weight: 550;
+          padding: 9px 14px;
+          border-radius: 8px;
+          border: 1px solid var(--line-2);
+          color: var(--muted);
+          cursor: pointer;
+          background: var(--panel);
+          transition: .14s;
+          user-select: none;
+        }
+        
+        .biz-chip:hover {
+          color: var(--text);
+          border-color: var(--muted-2);
+        }
+        
+        .biz-chip.on {
+          background: var(--grad-soft);
+          border-color: var(--blue);
+          color: #fff;
+        }
+        
+        .biz-seemore {
+          color: hsl(155, 46%, 54%);
+          font-weight: 600;
+          font-size: 12.5px;
+          text-align: center;
+          margin-top: 16px;
+          cursor: pointer;
+        }
+        
+        .biz-hoursrow {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 12px 0;
+          border-bottom: 1px solid var(--line);
+        }
+        
+        .biz-hoursrow:last-child {
+          border-bottom: 0;
+        }
+        
+        .biz-hoursrow .day {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          font-size: 13.5px;
+          font-weight: 550;
+          color: var(--text);
+        }
+        
+        .biz-toggle {
+          width: 40px;
+          height: 23px;
+          border-radius: 999px;
+          background: var(--line-2);
+          position: relative;
+          cursor: pointer;
+          flex: 0 0 40px;
+          transition: .18s;
+        }
+        
+        .biz-toggle::after {
+          content: "";
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          width: 19px;
+          height: 19px;
+          border-radius: 50%;
+          background: #fff;
+          transition: .18s;
+        }
+        
+        .biz-toggle.on {
+          background: var(--grad);
+        }
+        
+        .biz-toggle.on::after {
+          left: 19px;
+        }
+        
+        .biz-timepill-input {
+          background: var(--panel);
+          border: 1px solid var(--line-2);
+          border-radius: 7px;
+          padding: 6px 9px;
+          font-size: 12px;
+          color: var(--text);
+          width: 65px;
+          text-align: center;
+          outline: none;
+          font-variant-numeric: tabular-nums;
+          transition: border-color 0.15s;
+        }
+        
+        .biz-timepill-input:focus {
+          border-color: var(--blue);
+        }
+        
+        .biz-hoursmode {
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .biz-moderow {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 15px 12px;
+          border-bottom: 1px solid var(--line);
+          cursor: pointer;
+          font-size: 14px;
+          color: var(--muted);
+          background: var(--panel);
+          border-radius: 8px;
+          margin-bottom: 8px;
+          border: 1px solid var(--line-2);
+          transition: .14s;
+        }
+        
+        .biz-moderow:last-child {
+          margin-bottom: 0;
+        }
+        
+        .biz-moderow.on {
+          color: var(--text);
+          font-weight: 600;
+          border-color: var(--blue);
+          background: var(--panel-2);
+        }
+        
+        .biz-moderow .chk {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          border: 1.5px solid var(--line-2);
+          display: grid;
+          place-items: center;
+        }
+        
+        .biz-moderow.on .chk {
+          border-color: var(--blue);
+          background: var(--grad);
+        }
+        
+        .biz-moderow.on .chk svg {
+          width: 11px;
+          height: 11px;
+          stroke: #fff;
+          stroke-width: 2.4;
+        }
+        
+        .biz-progress {
+          height: 3px;
+          border-radius: 999px;
+          background: var(--line);
+          overflow: hidden;
+          margin: 8px 0 24px;
+        }
+        
+        .biz-progress > i {
+          display: block;
+          height: 100%;
+          background: var(--grad);
+          border-radius: 999px;
+        }
+        
+        .biz-filebox {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: var(--panel);
+          border: 1px solid var(--line-2);
+          border-radius: 10px;
+          padding: 10px 12px;
+          font-size: 12.5px;
+          color: var(--muted);
+          position: relative;
+          cursor: pointer;
+          min-height: 44px;
+        }
+        
+        .biz-filebox .b {
+          background: var(--panel-3);
+          border: 1px solid var(--line-2);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 11.5px;
+          color: var(--text);
+          font-weight: 600;
+        }
+        
+        .biz-filebox input[type="file"] {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          cursor: pointer;
+        }
+        
+        .biz-iconinput {
+          position: relative;
+        }
+        
+        .biz-iconinput .lic {
+          position: absolute;
+          left: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--muted-2);
+        }
+        
+        .biz-iconinput .input {
+          padding-left: 38px;
+        }
+        
+        .biz-note {
+          margin-top: 16px;
+          font-size: 11.5px;
+          color: var(--muted-2);
+          text-align: center;
+          line-height: 1.65;
+        }
+      ` }} />
+
       {/* Brand Header */}
-      <div className="flex h-16 items-center justify-between border-b border-border bg-card px-6 shrink-0">
+      <div className="flex h-16 items-center justify-between border-b border-[var(--line)] bg-[var(--panel)] px-6 shrink-0">
         <div className="flex items-center gap-2.5">
-          <Briefcase className="h-5 w-5 text-brand-blue-500" />
-          <h1 className="text-lg font-bold tracking-tight text-brand-gradient">
-            Professional Mode
+          <span className="w-7 h-7 rounded-lg bg-[var(--grad)] grid place-items-center">
+            <svg viewBox="0 0 24 24" className="w-4.5 h-4.5 stroke-[#fff] fill-none stroke-[1.8]"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 8.5-8.5 8.38 8.38 0 0 1 8.5 8.5z"/></svg>
+          </span>
+          <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            KuikChat Professional
           </h1>
-          <Badge variant="gradient">Business</Badge>
+          <Badge className="bg-[var(--panel-3)] border border-[var(--line-2)] text-[var(--muted)] hover:bg-[var(--panel-3)]">Business</Badge>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full max-w-2xl bg-card border border-border">
-            <TabsTrigger value="analytics" className="text-xs font-semibold">
-              <BarChart2 className="mr-1.5 h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="text-xs font-semibold">
-              <Settings className="mr-1.5 h-4 w-4" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="catalog" className="text-xs font-semibold">
-              <Store className="mr-1.5 h-4 w-4" />
-              Catalog
-            </TabsTrigger>
-            <TabsTrigger value="quickreplies" className="text-xs font-semibold">
-              <BookOpen className="mr-1.5 h-4 w-4" />
-              Shortcuts
-            </TabsTrigger>
-            <TabsTrigger value="broadcasts" className="text-xs font-semibold">
-              <Send className="mr-1.5 h-4 w-4" />
-              Broadcasts
-            </TabsTrigger>
-          </TabsList>
-
-          {/* 1. Analytics Content (Neutral Empty State) */}
-          <TabsContent value="analytics" className="space-y-6 outline-none">
-            <div className="flex flex-col items-center justify-center p-12 border border-dashed border-border rounded-xl text-center space-y-4 bg-card/20">
-              <div className="p-3 bg-brand-blue-500/10 rounded-full text-brand-blue-500">
-                <BarChart2 className="h-8 w-8" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-base font-bold text-foreground">No Analytics Data Available</h3>
-                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  Analytics tracking is active, but there are no client interactions, campaigns, or invoice payments recorded yet. Metrics will appear automatically once user interactions start.
-                </p>
-              </div>
-            </div>
-          </TabsContent>
+          {profileExists && !isWizardActive && (
+            <TabsList className="grid grid-cols-4 w-full max-w-xl bg-[var(--panel)] border border-[var(--line)] rounded-xl p-1">
+              <TabsTrigger 
+                value="profile" 
+                className="text-xs font-semibold text-[var(--muted)] data-[state=active]:bg-[var(--panel-3)] data-[state=active]:text-white data-[state=active]:shadow-none rounded-lg py-2"
+              >
+                <Settings className="mr-1.5 h-4 w-4" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger 
+                value="catalog" 
+                className="text-xs font-semibold text-[var(--muted)] data-[state=active]:bg-[var(--panel-3)] data-[state=active]:text-white data-[state=active]:shadow-none rounded-lg py-2"
+              >
+                <Store className="mr-1.5 h-4 w-4" />
+                Catalog
+              </TabsTrigger>
+              <TabsTrigger 
+                value="quickreplies" 
+                className="text-xs font-semibold text-[var(--muted)] data-[state=active]:bg-[var(--panel-3)] data-[state=active]:text-white data-[state=active]:shadow-none rounded-lg py-2"
+              >
+                <BookOpen className="mr-1.5 h-4 w-4" />
+                Shortcuts
+              </TabsTrigger>
+              <TabsTrigger 
+                value="broadcasts" 
+                className="text-xs font-semibold text-[var(--muted)] data-[state=active]:bg-[var(--panel-3)] data-[state=active]:text-white data-[state=active]:shadow-none rounded-lg py-2"
+              >
+                <Send className="mr-1.5 h-4 w-4" />
+                Broadcasts
+              </TabsTrigger>
+            </TabsList>
+          )}
 
           {/* 2. Profile Content */}
           <TabsContent value="profile" className="outline-none">
-            {/* Empty state prompt for unfilled profiles */}
-            {!profileExists && !companyName.trim() && (
-              <div className="mb-6 rounded-xl border border-brand-blue-500/20 bg-brand-blue-500/5 p-5 flex items-start gap-4">
-                <div className="p-2 bg-brand-blue-500/10 rounded-lg text-brand-blue-500 mt-0.5 shrink-0">
-                  <Store className="h-5 w-5" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-foreground">Complete your business profile</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Set up your business identity so customers can discover you on KuikChat. Fill in your company name, upload a logo, add your hours, and tell people what you do.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="grid gap-6 md:grid-cols-3">
-              {/* Stepped Setup Wizard */}
-              <div className="space-y-6 md:col-span-2 rounded-xl border border-border bg-card p-6">
-                
-                {/* Wizard Progress Bar */}
-                <div>
-                  <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                    <span>Step {currentStep} of 6</span>
-                    <span>{Math.round((currentStep / 6) * 100)}% Complete</span>
+            {(!profileExists || isWizardActive) ? (
+              /* Stepped Setup Wizard (Centered, No Sidebar, No Tabs) */
+              <div className="max-w-md w-full mx-auto bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-6 shadow-2xl relative overflow-hidden my-6">
+                {/* Wizard Header with back arrow and progress bar */}
+                <div className="flex flex-col gap-3 mb-6">
+                  <div className="flex items-center justify-between">
+                    {currentStep > 1 ? (
+                      <button 
+                        onClick={handlePrevStep} 
+                        className="text-[var(--muted)] hover:text-white transition-colors"
+                        type="button"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5"><path d="M15 19l-7-7 7-7"/></svg>
+                      </button>
+                    ) : (
+                      <div className="w-5 h-5" />
+                    )}
+                    {currentStep > 1 && (
+                      <span className="text-xs text-[var(--muted)] font-semibold">
+                        Step {currentStep} of 6
+                      </span>
+                    )}
+                    <div className="w-5 h-5" />
                   </div>
-                  <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-brand-gradient rounded-full transition-all duration-300" 
-                      style={{ width: `${(currentStep / 6) * 100}%` }} 
-                    />
-                  </div>
-                </div>
-
-                {/* Step Content */}
-                <div className="min-h-[280px]">
-                  
-                  {/* Step 1: Basics */}
-                  {currentStep === 1 && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-foreground">Create your business profile</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Tell potential customers about your business with an easy, professional setup.
-                        </p>
-                      </div>
-                      <div className="space-y-1.5 pt-2">
-                        <Label htmlFor="companyName">Business Name *</Label>
-                        <Input 
-                          id="companyName" 
-                          value={companyName} 
-                          onChange={(e) => setCompanyName(e.target.value)} 
-                          placeholder="Enter your business name" 
-                          required 
-                        />
-                      </div>
+                  {currentStep > 1 && (
+                    <div className="biz-progress">
+                      <i style={{ width: `${(currentStep / 6) * 100}%` }} />
                     </div>
                   )}
+                </div>
 
-                  {/* Step 2: Category */}
-                  {currentStep === 2 && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-foreground">Select your business category</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Choose up to three categories to show on your business profile.
-                        </p>
-                      </div>
-
-                      {/* Mobile Chips View (hidden on md+) */}
-                      <div className="block md:hidden space-y-4 pt-2">
-                        <div className="flex flex-wrap gap-2">
-                          {(showAllCategories ? CATEGORY_OPTIONS : CATEGORY_OPTIONS.slice(0, 6)).map((opt) => {
-                            const isSelected = categories.includes(opt);
-                            return (
-                              <div
-                                key={opt}
-                                onClick={() => handleCategoryToggle(opt)}
-                                className={`text-xs font-semibold py-2.5 px-4 rounded-lg border transition cursor-pointer select-none ${
-                                  isSelected 
-                                    ? 'bg-brand-gradient/10 border-brand-blue-500 text-white shadow-sm' 
-                                    : 'border-border bg-panel text-muted-foreground hover:text-foreground hover:border-muted-2'
-                                }`}
-                              >
-                                {opt}
-                              </div>
-                            );
-                          })}
+                <div className="min-h-[300px] flex flex-col justify-between">
+                  {/* Step Contents */}
+                  <div className="flex-1 pb-6">
+                    {/* Step 1: Basics */}
+                    {currentStep === 1 && (
+                      <div className="space-y-4">
+                        <div className="biz-iconcluster">
+                          <div className="biz-tile tile-1">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l1.5-5h15L21 9M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9zM4 9a3 3 0 0 0 5 0 3 3 0 0 0 6 0 3 3 0 0 0 5 0"/></svg>
+                          </div>
+                          <div className="biz-tile tile-2">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </div>
+                          <div className="biz-tile tile-3">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                          </div>
                         </div>
-                        <div 
-                          onClick={() => setShowAllCategories(!showAllCategories)}
-                          className="text-xs font-bold text-brand-green-500 cursor-pointer hover:underline text-center mt-2"
-                        >
-                          {showAllCategories ? '- Show fewer categories' : '+ See more categories'}
+                        <div className="biz-center">
+                          <div className="biz-h1">Create your<br />business profile</div>
+                          <p className="biz-lead">Tell potential customers about your business with an easy, professional setup.</p>
                         </div>
+                        <div className="biz-field">
+                          <span className="biz-label">Business name</span>
+                          <input 
+                            type="text"
+                            id="companyName" 
+                            value={companyName} 
+                            onChange={(e) => setCompanyName(e.target.value)} 
+                            placeholder="Enter your business name" 
+                            className="biz-input"
+                            required 
+                          />
+                        </div>
+                        <p className="biz-note">Your KuikChat business profile is visible to any logged-in user.</p>
                       </div>
+                    )}
 
-                      {/* Desktop Web Select View (hidden on md-hidden) */}
-                      <div className="hidden md:block space-y-4 pt-2">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="categorySelect">Categories (Max 3)</Label>
+                    {/* Step 2: Category */}
+                    {currentStep === 2 && (
+                      <div className="space-y-4">
+                        <div className="biz-center">
+                          <div className="biz-h1">Select your<br />business category</div>
+                          <p className="biz-lead">Choose up to three categories to show on your business profile.</p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="biz-chips">
+                            {(showAllCategories ? CATEGORY_OPTIONS : CATEGORY_OPTIONS.slice(0, 10)).map((opt) => {
+                              const isSelected = categories.includes(opt);
+                              return (
+                                <div
+                                  key={opt}
+                                  onClick={() => handleCategoryToggle(opt)}
+                                  className={`biz-chip ${isSelected ? 'on' : ''}`}
+                                >
+                                  {opt}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div 
+                            onClick={() => setShowAllCategories(!showAllCategories)}
+                            className="biz-seemore"
+                          >
+                            {showAllCategories ? 'Show fewer categories' : '+ See more categories'}
+                          </div>
+                        </div>
+
+                        {/* Quick Search Dropdown on Setup */}
+                        <div className="space-y-1.5 pt-4 border-t border-[var(--line)]">
+                          <span className="biz-label">Quick Search / Select Category</span>
                           <select
                             id="categorySelect"
                             value=""
@@ -985,7 +1353,7 @@ export default function ProfessionalPage() {
                                 e.target.value = "";
                               }
                             }}
-                            className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none"
+                            className="biz-select text-xs"
                             disabled={categories.length >= 3}
                           >
                             <option value="">
@@ -996,240 +1364,237 @@ export default function ProfessionalPage() {
                             ))}
                           </select>
                         </div>
-
-                        {categories.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {categories.map((cat) => (
-                              <Badge key={cat} variant="gradient" className="flex items-center gap-1 text-[11px] py-1 px-2.5">
-                                {cat}
-                                <button
-                                  type="button"
-                                  onClick={() => handleCategoryToggle(cat)}
-                                  className="hover:text-red-400 font-bold ml-1 text-xs"
-                                >
-                                  ×
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
                       </div>
+                    )}
 
-                    </div>
-                  )}
+                    {/* Step 3: Hours */}
+                    {currentStep === 3 && (
+                      <div className="space-y-4">
+                        <div className="biz-center">
+                          <div className="biz-h1">Add your<br />business hours</div>
+                          <p className="biz-lead">Let customers know when you open and close each day.</p>
+                        </div>
 
-                  {/* Step 3: Hours */}
-                  {currentStep === 3 && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-foreground">Add your business hours</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Let customers know when you open and close each day.
-                        </p>
-                      </div>
-
-                      <div className="hoursmode space-y-2 pt-2">
-                        {MODES.map((m) => {
-                          const isSelected = hoursMode === m.id;
-                          return (
-                            <div
-                              key={m.id}
-                              onClick={() => setHoursMode(m.id as any)}
-                              className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition ${
-                                isSelected 
-                                  ? 'border-brand-blue-500 bg-card text-foreground font-semibold' 
-                                  : 'border-border bg-panel text-muted-foreground hover:text-foreground'
-                              }`}
-                            >
-                              <span className="text-xs sm:text-sm">{m.label}</span>
-                              <div className={`w-4 h-4 rounded-full border grid place-items-center ${
-                                isSelected ? 'border-brand-blue-500 bg-brand-gradient' : 'border-border'
-                              }`}>
-                                {isSelected && (
-                                  <svg className="w-2.5 h-2.5 text-white stroke-2 fill-none stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
-                                    <path d="M20 6L9 17l-5-5"/>
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {hoursMode === 'selected' && (
-                        <div className="mt-4 bg-panel border border-border rounded-xl p-3 space-y-2">
-                          {daysOfWeekKeys.map((day) => {
-                            const dayVal = hoursDays[day] || { active: false, open: '09:00', close: '18:00' };
+                        <div className="biz-hoursmode space-y-2">
+                          {MODES.map((m) => {
+                            const isSelected = hoursMode === m.id;
                             return (
-                              <div key={day} className="flex items-center justify-between gap-4 py-1.5 border-b border-border/40 last:border-0">
-                                <label className="flex items-center gap-2 cursor-pointer font-medium text-xs sm:text-sm text-foreground">
-                                  <input
-                                    type="checkbox"
-                                    checked={dayVal.active}
-                                    onChange={(e) => {
-                                      setHoursDays({
-                                        ...hoursDays,
-                                        [day]: { ...dayVal, active: e.target.checked }
-                                      })
-                                    }}
-                                    className="rounded border-border bg-background focus:ring-brand-blue-500"
-                                  />
-                                  {daysOfWeekLabels[day]}
-                                </label>
-                                {dayVal.active ? (
-                                  <div className="flex items-center gap-1.5">
-                                    <input
-                                      type="text"
-                                      value={dayVal.open}
-                                      onChange={(e) => {
-                                        setHoursDays({
-                                          ...hoursDays,
-                                          [day]: { ...dayVal, open: e.target.value }
-                                        })
-                                      }}
-                                      className="w-16 text-center text-xs bg-background border border-border rounded py-1 px-1 focus:outline-none focus:ring-1 focus:ring-brand-blue-500"
-                                      placeholder="09:00"
-                                    />
-                                    <span className="text-muted-foreground text-xs">–</span>
-                                    <input
-                                      type="text"
-                                      value={dayVal.close}
-                                      onChange={(e) => {
-                                        setHoursDays({
-                                          ...hoursDays,
-                                          [day]: { ...dayVal, close: e.target.value }
-                                        })
-                                      }}
-                                      className="w-16 text-center text-xs bg-background border border-border rounded py-1 px-1 focus:outline-none focus:ring-1 focus:ring-brand-blue-500"
-                                      placeholder="18:00"
-                                    />
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground/60 italic text-xs">Closed</span>
-                                )}
+                              <div
+                                key={m.id}
+                                onClick={() => setHoursMode(m.id as any)}
+                                className={`biz-moderow ${isSelected ? 'on' : ''}`}
+                                style={{ marginBottom: 0 }}
+                              >
+                                <span>{m.label}</span>
+                                <div className="chk">
+                                  {isSelected && (
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L9 17l-5-5"/></svg>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
                         </div>
-                      )}
-                    </div>
-                  )}
 
-                  {/* Step 4: Branding */}
-                  {currentStep === 4 && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-foreground">Upload your branding</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Add your business logo and cover image to personalize your storefront.
-                        </p>
+                        {hoursMode === 'selected' && (
+                          <div className="mt-4 bg-[var(--panel-2)] border border-[var(--line)] rounded-xl p-4 space-y-1">
+                            {daysOfWeekKeys.map((day) => {
+                              const dayVal = hoursDays[day] || { active: false, open: '09:00', close: '18:00' };
+                              return (
+                                <div key={day} className="biz-hoursrow flex items-center justify-between py-2.5 border-b border-[var(--line)] last:border-b-0">
+                                  <div className="flex flex-col">
+                                    <span className="font-semibold text-xs capitalize text-[var(--text)]">{daysOfWeekLabels[day]}</span>
+                                    {dayVal.active ? (
+                                      <div className="flex items-center gap-1.5 mt-1">
+                                        <input
+                                          type="text"
+                                          value={dayVal.open}
+                                          onChange={(e) => {
+                                            setHoursDays({
+                                              ...hoursDays,
+                                              [day]: { ...dayVal, open: e.target.value }
+                                            })
+                                          }}
+                                          className="biz-timepill-input"
+                                          placeholder="09:00"
+                                        />
+                                        <span className="text-[var(--muted-2)] text-xs">–</span>
+                                        <input
+                                          type="text"
+                                          value={dayVal.close}
+                                          onChange={(e) => {
+                                            setHoursDays({
+                                              ...hoursDays,
+                                              [day]: { ...dayVal, close: e.target.value }
+                                            })
+                                          }}
+                                          className="biz-timepill-input"
+                                          placeholder="18:00"
+                                        />
+                                      </div>
+                                    ) : (
+                                      <span className="text-[10px] text-[var(--muted-2)] mt-0.5">Closed</span>
+                                    )}
+                                  </div>
+                                  <div 
+                                    onClick={() => {
+                                      setHoursDays({
+                                        ...hoursDays,
+                                        [day]: { ...dayVal, active: !dayVal.active }
+                                      })
+                                    }}
+                                    className={`biz-toggle ${dayVal.active ? 'on' : ''}`}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-4 pt-2">
-                        {/* Logo upload */}
-                        <div className="space-y-1.5">
-                          <Label>Business Logo</Label>
-                          {logoUrl && (
-                            <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-lg border border-border object-contain mb-2 bg-zinc-900" />
-                          )}
-                          <Input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'logo')} />
-                          <p className="text-[10px] text-muted-foreground">Square image recommended (e.g. 256×256)</p>
-                        </div>
-                        {/* Cover upload */}
-                        <div className="space-y-1.5">
-                          <Label>Cover / Banner Image</Label>
-                          {coverUrl && (
-                            <img src={coverUrl} alt="Cover" className="w-full h-20 rounded-lg border border-border object-cover mb-2" />
-                          )}
-                          <Input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'cover')} />
-                          <p className="text-[10px] text-muted-foreground">Wide landscape image (e.g. 1200×400)</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Step 5: Location & Contact */}
-                  {currentStep === 5 && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-foreground">Location & Contacts</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Provide your storefront address, website, and contact information.
-                        </p>
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-2 pt-2">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="website">Website</Label>
-                          <div className="relative">
-                            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input id="website" className="pl-9" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
+                    {/* Step 4: Branding */}
+                    {currentStep === 4 && (
+                      <div className="space-y-4">
+                        <div className="biz-center">
+                          <div className="biz-h1">Upload your<br />branding</div>
+                          <p className="biz-lead">Add your business logo and cover image to personalize your storefront.</p>
+                        </div>
+                        <div className="space-y-4 pt-2">
+                          <div className="biz-field">
+                            <span className="biz-label">Business Logo</span>
+                            <div className="biz-filebox">
+                              <span className="b">Choose file</span>
+                              <span className="truncate">{logoUrl ? 'logo.png (uploaded)' : 'No file chosen'}</span>
+                              <input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'logo')} />
+                            </div>
+                            {logoUrl && (
+                              <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-lg border border-[var(--line-2)] object-contain mt-2 bg-zinc-900" />
+                            )}
+                            <p className="hint">Square image recommended (256×256)</p>
+                          </div>
+                          <div className="biz-field">
+                            <span className="biz-label">Cover / Banner Image</span>
+                            <div className="biz-filebox">
+                              <span className="b">Choose file</span>
+                              <span className="truncate">{coverUrl ? 'cover.jpg (uploaded)' : 'No file chosen'}</span>
+                              <input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'cover')} />
+                            </div>
+                            {coverUrl && (
+                              <img src={coverUrl} alt="Cover" className="w-full h-20 rounded-lg border border-[var(--line-2)] object-cover mt-2" />
+                            )}
+                            <p className="hint">Wide landscape image (e.g. 1200×400)</p>
                           </div>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="email">Business Email</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input id="email" className="pl-9" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@example.com" />
-                          </div>
+                      </div>
+                    )}
+
+                    {/* Step 5: Location & Contact */}
+                    {currentStep === 5 && (
+                      <div className="space-y-4">
+                        <div className="biz-center">
+                          <div className="biz-h1">Location &amp;<br />Contact Info</div>
+                          <p className="biz-lead">Provide your storefront address, website, and contact information.</p>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="phone">Phone</Label>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input id="phone" className="pl-9" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 019-2834" />
+                        <div className="space-y-3 pt-2">
+                          <div className="biz-field">
+                            <span className="biz-label">Website</span>
+                            <div className="biz-iconinput">
+                              <span className="lic">
+                                <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+                              </span>
+                              <input 
+                                type="text"
+                                id="website" 
+                                value={website} 
+                                onChange={(e) => setWebsite(e.target.value)} 
+                                placeholder="https://example.com" 
+                                className="biz-input pl-10"
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="addressText">Address</Label>
-                          <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input id="addressText" className="pl-9" value={addressText} onChange={(e) => setAddressText(e.target.value)} placeholder="123 Main St, New York" />
+
+                          <div className="biz-field">
+                            <span className="biz-label">Business Email</span>
+                            <div className="biz-iconinput">
+                              <span className="lic">
+                                <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+                              </span>
+                              <input 
+                                type="email"
+                                id="email" 
+                                value={email} 
+                                onChange={(e) => setEmail(e.target.value)} 
+                                placeholder="contact@example.com" 
+                                className="biz-input pl-10"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="biz-field">
+                            <span className="biz-label">Phone</span>
+                            <div className="biz-iconinput">
+                              <span className="lic">
+                                <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.6a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.5-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.6 2.6.7a2 2 0 0 1 1.7 2z"/></svg>
+                              </span>
+                              <input 
+                                type="text"
+                                id="phone" 
+                                value={phone} 
+                                onChange={(e) => setPhone(e.target.value)} 
+                                placeholder="+1 (555) 019-2834" 
+                                className="biz-input pl-10"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="biz-field">
+                            <span className="biz-label">Address</span>
+                            <div className="biz-iconinput">
+                              <span className="lic">
+                                <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                              </span>
+                              <input 
+                                type="text"
+                                id="addressText" 
+                                value={addressText} 
+                                onChange={(e) => setAddressText(e.target.value)} 
+                                placeholder="123 Main St, New York" 
+                                className="biz-input pl-10"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Step 6: Description */}
-                  {currentStep === 6 && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-foreground">About / Description</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Tell customers about your business, what you offer, and what makes you stand out.
-                        </p>
+                    {/* Step 6: Description */}
+                    {currentStep === 6 && (
+                      <div className="space-y-4">
+                        <div className="biz-center">
+                          <div className="biz-h1">About /<br />Description</div>
+                          <p className="biz-lead">Tell customers about your business, what you offer, and what makes you stand out.</p>
+                        </div>
+                        <div className="biz-field pt-2">
+                          <span className="biz-label">About / Description</span>
+                          <textarea
+                            id="description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Tell customers about your business, what you offer, and what makes you stand out…"
+                            rows={6}
+                            className="biz-textarea"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-1.5 pt-2">
-                        <Label htmlFor="description">About / Description</Label>
-                        <textarea
-                          id="description"
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Tell customers about your business, what you offer, and what makes you stand out…"
-                          rows={6}
-                          className="flex w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y min-h-[120px]"
-                        />
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
-                </div>
-
-                {/* Navigation Buttons */}
-                <div className="flex items-center justify-between pt-4 border-t border-border/60">
-                  <Button
+                  {/* Wizard Continue Button */}
+                  <button
                     type="button"
-                    variant="ghost"
-                    onClick={handlePrevStep}
-                    className={currentStep === 1 ? 'invisible' : 'visible'}
-                  >
-                    Back
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="gradient"
                     onClick={handleNextStep}
-                    className="px-6 flex items-center gap-1.5"
+                    className="biz-btn w-full mt-4 flex items-center justify-center gap-1.5"
                     disabled={profileLoading}
                   >
                     {profileLoading ? (
@@ -1239,120 +1604,299 @@ export default function ProfessionalPage() {
                     ) : (
                       'Continue'
                     )}
-                  </Button>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Settings Dashboard (Tabs + Two-Column Settings, Screen 8) */
+              <div className="grid gap-6 md:grid-cols-3">
+                {/* Left Column: Business Settings Card (col-span-2) */}
+                <div className="space-y-6 md:col-span-2 rounded-xl border border-[var(--line)] bg-[var(--panel)] p-6">
+                  <h3 className="text-sm font-bold border-b border-[var(--line)] pb-3 flex items-center gap-2 text-[#e7e9f0]">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[var(--muted)]"><path d="M12 20h9M3 20v-8c0-2.2 1.8-4 4-4h10c2.2 0 4 1.8 4 4v8M3 12h18M12 2v6"/></svg>
+                    Business Settings
+                  </h3>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="biz-field">
+                      <span className="biz-label">Business Name *</span>
+                      <input 
+                        type="text" 
+                        id="companyName"
+                        value={companyName} 
+                        onChange={(e) => setCompanyName(e.target.value)} 
+                        className="biz-input" 
+                        placeholder="e.g. AtlasLM"
+                        required
+                      />
+                    </div>
+                    <div className="biz-field">
+                      <span className="biz-label">Category *</span>
+                      <div className="biz-chips mb-2 mt-1">
+                        {categories.map((c) => (
+                          <span 
+                            key={c} 
+                            onClick={() => handleCategoryToggle(c)} 
+                            className="biz-chip on"
+                          >
+                            {c} <span className="text-[9px] ml-1">×</span>
+                          </span>
+                        ))}
+                      </div>
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            handleCategoryToggle(val);
+                            e.target.value = "";
+                          }
+                        }}
+                        className="biz-select text-xs py-2"
+                        disabled={categories.length >= 3}
+                      >
+                        <option value="">
+                          {categories.length >= 3 ? 'Max 3 categories selected' : 'Add category...'}
+                        </option>
+                        {CATEGORY_OPTIONS.filter(opt => !categories.includes(opt)).map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="biz-field">
+                      <span className="biz-label">Website</span>
+                      <div className="biz-iconinput">
+                        <span className="lic">
+                          <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+                        </span>
+                        <input 
+                          type="text" 
+                          value={website} 
+                          onChange={(e) => setWebsite(e.target.value)} 
+                          className="biz-input pl-10" 
+                          placeholder="https://example.com"
+                        />
+                      </div>
+                    </div>
+                    <div className="biz-field">
+                      <span className="biz-label">Business Email</span>
+                      <div className="biz-iconinput">
+                        <span className="lic">
+                          <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+                        </span>
+                        <input 
+                          type="email" 
+                          value={email} 
+                          onChange={(e) => setEmail(e.target.value)} 
+                          className="biz-input pl-10" 
+                          placeholder="contact@example.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="biz-field">
+                      <span className="biz-label">Phone</span>
+                      <div className="biz-iconinput">
+                        <span className="lic">
+                          <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.6a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.5-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.6 2.6.7a2 2 0 0 1 1.7 2z"/></svg>
+                        </span>
+                        <input 
+                          type="text" 
+                          value={phone} 
+                          onChange={(e) => setPhone(e.target.value)} 
+                          className="biz-input pl-10" 
+                          placeholder="+1 (555) 000-0000"
+                        />
+                      </div>
+                    </div>
+                    <div className="biz-field">
+                      <span className="biz-label">Address</span>
+                      <div className="biz-iconinput">
+                        <span className="lic">
+                          <svg className="ic w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </span>
+                        <input 
+                          type="text" 
+                          value={addressText} 
+                          onChange={(e) => setAddressText(e.target.value)} 
+                          className="biz-input pl-10" 
+                          placeholder="123 Main St, Vienna"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="biz-field">
+                    <span className="biz-label">About / Description</span>
+                    <textarea 
+                      value={description} 
+                      onChange={(e) => setDescription(e.target.value)} 
+                      rows={5} 
+                      className="biz-textarea" 
+                      placeholder="Describe your business..."
+                    />
+                  </div>
+
+                  {/* Save button and run wizard link */}
+                  <div className="flex items-center justify-between pt-4 border-t border-[var(--line)]">
+                    <button 
+                      onClick={() => {
+                        setIsWizardActive(true);
+                        setCurrentStep(1);
+                      }}
+                      className="text-xs text-[var(--muted)] hover:text-white underline transition-colors"
+                      type="button"
+                    >
+                      Re-run Setup Wizard
+                    </button>
+
+                    <button 
+                      onClick={async () => {
+                        if (!companyName.trim()) {
+                          toast.error('Business Name is required');
+                          return;
+                        }
+                        if (categories.length === 0) {
+                          toast.error('Please select at least one category');
+                          return;
+                        }
+                        await handleSaveStep(6);
+                      }}
+                      disabled={profileLoading}
+                      className="biz-btn px-6 py-2.5"
+                      type="button"
+                    >
+                      {profileLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Save Settings'
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-              </div>
-
-              {/* Sidebar Preview (col-span-1) - Hidden on mobile */}
-              <div className="hidden md:block space-y-6">
-                <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-                  <h3 className="font-semibold text-sm">Profile Preview</h3>
-                  
-                  {/* Banner / Cover */}
-                  <div className="relative h-24 rounded-lg bg-panel overflow-hidden border border-border/40">
-                    {coverUrl ? (
-                      <img src={coverUrl} alt="Cover Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-panel-2 to-panel-3 flex items-center justify-center text-muted-2 text-xs">
-                        No cover banner
+                {/* Right Column: Branding & Hours cards */}
+                <div className="space-y-6 col-span-1">
+                  {/* Branding Card */}
+                  <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5 space-y-4">
+                    <h3 className="text-xs font-bold border-b border-[var(--line)] pb-3 flex items-center gap-2 text-[#e7e9f0]">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[var(--muted)]"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                      Branding
+                    </h3>
+                    <div className="biz-field">
+                      <span className="biz-label">Business Logo</span>
+                      <div className="biz-filebox">
+                        <span className="b">Choose file</span>
+                        <span className="truncate">{logoUrl ? 'logo.png (uploaded)' : 'No file chosen'}</span>
+                        <input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'logo')} />
                       </div>
-                    )}
-                    
-                    {/* Logo */}
-                    <div className="absolute left-4 -bottom-6 w-12 h-12 rounded-lg bg-zinc-900 border border-border overflow-hidden">
-                      {logoUrl ? (
-                        <img src={logoUrl} alt="Logo Preview" className="w-full h-full object-contain" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-2 text-[10px]">Logo</div>
+                      {logoUrl && (
+                        <img src={logoUrl} alt="Logo" className="h-12 w-12 rounded-lg border border-[var(--line-2)] object-contain mt-2 bg-zinc-900" />
+                      )}
+                    </div>
+                    <div className="biz-field">
+                      <span className="biz-label">Cover / Banner</span>
+                      <div className="biz-filebox">
+                        <span className="b">Choose file</span>
+                        <span className="truncate">{coverUrl ? 'cover.jpg (uploaded)' : 'No file chosen'}</span>
+                        <input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'cover')} />
+                      </div>
+                      {coverUrl && (
+                        <img src={coverUrl} alt="Cover" className="w-full h-14 rounded-lg border border-[var(--line-2)] object-cover mt-2" />
                       )}
                     </div>
                   </div>
-                  
-                  {/* Space for logo offset */}
-                  <div className="h-4" />
 
-                  {/* Business Identity */}
-                  <div className="space-y-1">
-                    <h4 className="font-bold text-sm text-foreground">
-                      {companyName.trim() || 'Business Name'}
-                    </h4>
-                    {categories.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {categories.map((c) => (
-                          <Badge key={c} variant="outline" className="text-[9px] py-0 px-1 border-border/60">
-                            {c}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground/60 italic">No categories selected</span>
-                    )}
-                  </div>
-
-                  {/* Contact Info Preview */}
-                  <div className="space-y-2 text-xs text-muted-foreground border-t border-border/40 pt-3">
-                    {phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-3.5 h-3.5 text-brand-green-500 shrink-0" />
-                        <span>{phone}</span>
-                      </div>
-                    )}
-                    {email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-3.5 h-3.5 text-brand-blue-500 shrink-0" />
-                        <span className="truncate">{email}</span>
-                      </div>
-                    )}
-                    {website && (
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-3.5 h-3.5 text-brand-blue-500 shrink-0" />
-                        <span className="truncate">{website}</span>
-                      </div>
-                    )}
-                    {addressText && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-brand-green-500 shrink-0" />
-                        <span className="truncate">{addressText}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Description Preview */}
-                  {description && (
-                    <div className="text-xs text-muted-foreground/80 border-t border-border/40 pt-3 leading-relaxed">
-                      <p className="line-clamp-4">{description}</p>
+                  {/* Operating Hours Card */}
+                  <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5 space-y-4">
+                    <h3 className="text-xs font-bold border-b border-[var(--line)] pb-3 flex items-center gap-2 text-[#e7e9f0]">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[var(--muted)]"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                      Opening Hours
+                    </h3>
+                    <div className="biz-hoursmode space-y-2">
+                      {MODES.map((m) => {
+                        const isSelected = hoursMode === m.id;
+                        return (
+                          <div
+                            key={m.id}
+                            onClick={() => setHoursMode(m.id as any)}
+                            className={`biz-moderow py-2 px-3 text-xs mb-0 ${isSelected ? 'on' : ''}`}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <span>{m.label}</span>
+                            <div className="chk">
+                              {isSelected && (
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L9 17l-5-5"/></svg>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
 
-                  {/* Operating Hours Preview */}
-                  <div className="border-t border-border/40 pt-3 space-y-1.5">
-                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-2 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-brand-blue-500" />
-                      Hours ({hoursMode === 'selected' ? 'Custom' : hoursMode === 'always' ? '24h' : 'Appointment'})
-                    </h4>
-                    {hoursMode === 'selected' ? (
-                      <div className="text-[10px] text-muted-foreground/80 space-y-0.5">
-                        {daysOfWeekKeys.slice(0, 5).map(day => {
-                          const val = hoursDays[day];
+                    {hoursMode === 'selected' && (
+                      <div className="bg-[var(--panel-2)] border border-[var(--line)] rounded-xl p-3 space-y-1 mt-2">
+                        {daysOfWeekKeys.map((day) => {
+                          const dayVal = hoursDays[day] || { active: false, open: '09:00', close: '18:00' };
                           return (
-                            <div key={day} className="flex justify-between">
-                              <span className="capitalize">{day}</span>
-                              <span>{val?.active ? `${val.open}-${val.close}` : 'Closed'}</span>
+                            <div key={day} className="biz-hoursrow flex items-center justify-between py-2 border-b border-[var(--line)] last:border-b-0">
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-xs capitalize text-[var(--text)]">{daysOfWeekLabels[day]}</span>
+                                {dayVal.active ? (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <input
+                                      type="text"
+                                      value={dayVal.open}
+                                      onChange={(e) => {
+                                        setHoursDays({
+                                          ...hoursDays,
+                                          [day]: { ...dayVal, open: e.target.value }
+                                        })
+                                      }}
+                                      className="biz-timepill-input h-7 py-1 px-2 text-[11px] w-[55px]"
+                                      placeholder="09:00"
+                                    />
+                                    <span className="text-[var(--muted-2)] text-[10px]">–</span>
+                                    <input
+                                      type="text"
+                                      value={dayVal.close}
+                                      onChange={(e) => {
+                                        setHoursDays({
+                                          ...hoursDays,
+                                          [day]: { ...dayVal, close: e.target.value }
+                                        })
+                                      }}
+                                      className="biz-timepill-input h-7 py-1 px-2 text-[11px] w-[55px]"
+                                      placeholder="18:00"
+                                    />
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-[var(--muted-2)] mt-0.5">Closed</span>
+                                )}
+                              </div>
+                              <div 
+                                onClick={() => {
+                                  setHoursDays({
+                                    ...hoursDays,
+                                    [day]: { ...dayVal, active: !dayVal.active }
+                                  })
+                                }}
+                                className={`biz-toggle ${dayVal.active ? 'on' : ''}`}
+                              />
                             </div>
                           );
                         })}
                       </div>
-                    ) : hoursMode === 'always' ? (
-                      <div className="text-[10px] text-brand-green-500 font-semibold">Open 24/7</div>
-                    ) : (
-                      <div className="text-[10px] text-brand-blue-500 font-semibold">By appointment only</div>
                     )}
                   </div>
-
                 </div>
               </div>
-            </div>
+            )}
           </TabsContent>
 
           {/* 3. Catalog Content */}
@@ -1529,20 +2073,26 @@ export default function ProfessionalPage() {
               <div className="md:col-span-2 space-y-4">
                 <h3 className="font-semibold text-sm">Active Broadcast Lists</h3>
                 <div className="space-y-3">
-                  {broadcasts.map((list) => (
-                    <div key={list.id} className="rounded-xl border border-border bg-card/60 p-4 flex items-center justify-between gap-4">
-                      <div>
-                        <h4 className="font-semibold text-foreground">{list.name}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {list.recipients} recipients • Last Sent: {list.lastSent}
-                        </p>
-                      </div>
-                      <Button size="sm" variant="outline" className="flex items-center gap-1.5 text-brand-blue-500 hover:bg-brand-blue-500/5 hover:text-brand-blue-600 border-brand-blue-500/30" onClick={() => handleSendBroadcast(list.name)}>
-                        <Send className="h-3.5 w-3.5" />
-                        Send Now
-                      </Button>
+                  {broadcasts.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--panel-2)]/30 p-8 text-center">
+                      <p className="text-sm text-[var(--muted-2)]">No broadcast lists yet</p>
                     </div>
-                  ))}
+                  ) : (
+                    broadcasts.map((list) => (
+                      <div key={list.id} className="rounded-xl border border-border bg-card/60 p-4 flex items-center justify-between gap-4">
+                        <div>
+                          <h4 className="font-semibold text-foreground">{list.name}</h4>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {list.recipients} recipients • Last Sent: {list.lastSent}
+                          </p>
+                        </div>
+                        <Button size="sm" variant="outline" className="flex items-center gap-1.5 text-brand-blue-500 hover:bg-brand-blue-500/5 hover:text-brand-blue-600 border-brand-blue-500/30" onClick={() => handleSendBroadcast(list.name)}>
+                          <Send className="h-3.5 w-3.5" />
+                          Send Now
+                        </Button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
