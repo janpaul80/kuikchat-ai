@@ -76,7 +76,6 @@ export default function ContactsPage() {
   const [loadingBlockAction, setLoadingBlockAction] = useState<string | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [qrSvg, setQrSvg] = useState<string>('')
 
   useEffect(() => {
     async function loadInitial() {
@@ -98,27 +97,28 @@ export default function ContactsPage() {
     loadInitial()
   }, [])
 
-  // Generate QR as SVG string
+  // Generate QR on canvas
   useEffect(() => {
-    if (!currentUser) return
-    const profileLink = qrValue
-    if (!profileLink) {
-      toast.error('QR value is empty')
-      return
-    }
-    QRCode.toString(
-      profileLink,
-      { type: 'svg', width: 140, margin: 1, color: { dark: '#000000', light: '#FFFFFF' } },
-      (err, svg) => {
-        if (err) {
+    if (!canvasRef.current || !qrValue) return
+    QRCode.toCanvas(
+      canvasRef.current,
+      qrValue,
+      {
+        width: 140,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+      },
+      (error) => {
+        if (error) {
+          console.error('Error generating QR code:', error)
           toast.error('Failed to generate QR')
-          console.error(err)
-          return
         }
-        setQrSvg(svg || '')
       }
     )
-  }, [currentUser, qrValue])
+  }, [qrValue])
 
   const fetchContacts = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -168,6 +168,33 @@ export default function ContactsPage() {
     link.download = `kuikchat-contact-qr-${currentUser?.username || 'user'}.png`
     link.click()
   }
+
+  const handleShare = async () => {
+    if (!qrValue) return
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Add me on KuikChat',
+          text: `Scan or click to add me as a contact on KuikChat!`,
+          url: qrValue,
+        })
+        toast.success('Shared successfully!')
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('Share failed:', err)
+          copyToClipboard()
+        }
+      }
+    } else {
+      copyToClipboard()
+    }
+  }
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(qrValue)
+    toast.success('Link copied to clipboard!')
+  }
+
 
   const handleAddContact = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -452,20 +479,16 @@ export default function ContactsPage() {
             Share Profile QR
           </h2>
           <div className="flex items-center justify-center gap-2">
-          <h2 className="font-semibold">Share</h2>
-          <Share2 className="cursor-pointer" size={20} onClick={() => {navigator.clipboard.writeText(qrValue); toast.success('QR link copied')}} />
-        </div>
-        <div className="mx-auto flex h-40 w-40 items-center justify-center border border-border bg-white p-2.5 rounded-xl">
-          {qrSvg ? (
-            <div className="h-full w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
-          ) : (
-            <div className="h-full w-full bg-white" />
-          )}
-        </div>
-          {/* Temporary QA debug: show the encoded value so we can confirm it's non-empty */}
-          <p className="text-[10px] text-muted-foreground break-all" data-testid="qr-source">
-            QR source: {qrValue || '(empty)'}
-          </p>
+            <h2 className="font-semibold text-xs">Share</h2>
+            <Share2
+              className="cursor-pointer hover:text-brand-blue-500 transition-colors"
+              size={18}
+              onClick={handleShare}
+            />
+          </div>
+          <div className="mx-auto flex h-40 w-40 items-center justify-center border border-border bg-white p-2.5 rounded-xl">
+            <canvas ref={canvasRef} className="h-full w-full object-contain" />
+          </div>
           <p className="text-xs text-muted-foreground">
             Let friends scan this code to link with your account instantly.
           </p>
