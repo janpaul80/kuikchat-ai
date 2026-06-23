@@ -62,7 +62,7 @@ export default function CommunitiesPage() {
   const [createDesc, setCreateDesc] = useState(
     'Hi everyone! This community is for members to chat in topic-based groups and get important announcements.'
   )
-  const [createLogoFile, setCreateLogoFile] = useState<File | null>(null)
+  // const [createLogoFile, setCreateLogoFile] = useState<File | null>(null)  // Logo upload temporarily disabled
   const [creating, setCreating] = useState(false)
 
   const [loading, setLoading] = useState(true)
@@ -204,21 +204,28 @@ export default function CommunitiesPage() {
           is_public: true,
         })
         .select()
-        .single()
-      if (error) {
-        if (error.code === '23505') {
-          toast.error('Slug already exists. Please choose a unique slug.')
-        } else {
-          throw error
-        }
-        return
-      }
-
+-        .single()
++        .single()
+       if (error) {
+-        const msg = (error as any)?.message || 'Failed to create community'
+-        if ((error as any)?.code === '23505' || /duplicate key|unique/i.test(msg)) {
+-          toast.error('Slug already exists. Please choose a unique slug.')
+-        } else {
+-          toast.error(msg)
+-        }
+-        setCreating(false)
+-        return
++        const msg = (error as any)?.message || 'Failed to create community'
++        if ((error as any)?.code === '23505' || /duplicate key|unique/i.test(msg)) {
++          toast.error('Slug already exists. Please choose a unique slug.')
++        } else {
++          toast.error(msg)
++        }
++        setCreating(false)
++        return
+       }
       await supabase.from('community_members').insert({ community_id: comm.id, user_id: currentUser.id, role: 'owner' })
-
-      const { data: generalChat } = await supabase
-        .from('chats')
-        .insert({
+.insert({
           type: 'group',
           name: 'general',
           description: 'General discussion',
@@ -249,18 +256,7 @@ export default function CommunitiesPage() {
         await supabase.from('chat_members').insert({ chat_id: annChat.id, user_id: currentUser.id, role: 'owner' })
       }
 
-      if (createLogoFile) {
-        try {
-          const path = `communities/${comm.id}/${createLogoFile.name}`
-          const { error: upErr } = await supabase.storage.from('avatars').upload(path, createLogoFile, { upsert: true, cacheControl: '3600' })
-          if (!upErr) {
-            const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
-            if (pub?.publicUrl) await supabase.from('communities').update({ logo_url: pub.publicUrl }).eq('id', comm.id)
-          }
-        } catch (e) {
-          console.warn('Logo upload failed, continuing without logo')
-        }
-      }
+      // Logo upload disabled: skipping logo storage logic
 
       toast.success(`Community "${createName}" created`)
       setShowCreateModal(false)
@@ -429,10 +425,14 @@ export default function CommunitiesPage() {
             </div>
 
             <form onSubmit={handleCreateCommunity} className="space-y-4">
-              <div className="space-y-1.5">
+              {/* Logo upload temporarily disabled. Logo will be optional later */}
+              {/* <div className="space-y-1.5">
                 <Label htmlFor="commLogo">Logo</Label>
-                <input id="commLogo" type="file" accept="image/*" onChange={(e) => setCreateLogoFile(e.target.files?.[0] || null)} className="text-xs" />
-              </div>
+                <label htmlFor="commLogo" className="inline-flex items-center cursor-pointer">
+                  <span className="px-3 py-1 border border-border rounded bg-card text-xs">Browse</span>
+-                  <input id="commLogo" type="file" accept="image/*" onChange={(e) => {/* no-op */}} className="sr-only" />
++                  <input id="commLogo" type="file" accept="image/*" onChange={(e) => setCreateLogoFile(e.target.files?.[0] || null)} className="sr-only" />
+                 </label>
 
               <div className="space-y-1.5">
                 <Label htmlFor="commName">Community Name</Label>
