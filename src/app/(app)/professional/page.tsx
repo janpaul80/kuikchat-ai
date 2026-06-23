@@ -282,22 +282,38 @@ export default function ProfessionalPage() {
           const loadedHours = { ...data.hours }
           if (loadedHours.gallery) {
             setGallery(loadedHours.gallery || [])
-            delete loadedHours.gallery
           }
           if (loadedHours.mode) {
             setHoursMode(loadedHours.mode)
           }
+          
           if (loadedHours.days) {
-            setHoursDays(loadedHours.days)
+            const cleanedDays = {} as any
+            daysOfWeekKeys.forEach(k => {
+              const dayData = loadedHours.days[k];
+              if (dayData && typeof dayData === 'object' && !Array.isArray(dayData)) {
+                cleanedDays[k] = {
+                  active: !!dayData.active,
+                  open: dayData.open || '09:00',
+                  close: dayData.close || '18:00'
+                }
+              } else {
+                cleanedDays[k] = { active: false, open: '09:00', close: '18:00' }
+              }
+            })
+            setHoursDays(cleanedDays)
           } else {
             // Fallback for older format
             const newDays = {} as any
             daysOfWeekKeys.forEach(k => {
               const oldLabel = daysOfWeekLabels[k];
-              if (loadedHours[oldLabel]) {
-                newDays[k] = loadedHours[oldLabel]
-              } else if (loadedHours[k]) {
-                newDays[k] = loadedHours[k]
+              const dayData = loadedHours[oldLabel] || loadedHours[k];
+              if (dayData && typeof dayData === 'object' && !Array.isArray(dayData)) {
+                newDays[k] = {
+                  active: !!dayData.active,
+                  open: dayData.open || '09:00',
+                  close: dayData.close || '18:00'
+                }
               } else {
                 newDays[k] = { active: false, open: '09:00', close: '18:00' }
               }
@@ -334,7 +350,6 @@ export default function ProfessionalPage() {
       const serializedHours = {
         mode: hoursMode,
         days: hoursDays,
-        gallery,
       }
 
       const payload = {
