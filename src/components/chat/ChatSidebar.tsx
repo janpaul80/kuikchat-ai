@@ -10,7 +10,8 @@ import {
   Sun,
   EyeOff,
   LogOut,
-  Lock
+  Lock,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,12 +23,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/kuikchat-logo.png";
 
-export type SidebarView = "Chats" | "Status" | "Communities" | "Vanish Mode" | "Settings" | "Hidden";
+export type SidebarView = "Chats" | "Status" | "Communities" | "Vanish Mode" | "Settings" | "Hidden" | "Business";
 
 const navItems: { icon: typeof MessageCircle; label: SidebarView }[] = [
   { icon: MessageCircle, label: "Chats" },
   { icon: CircleDot, label: "Status" },
   { icon: Users, label: "Communities" },
+  { icon: Briefcase, label: "Business" },
   { icon: EyeOff, label: "Vanish Mode" },
 ];
 
@@ -193,8 +195,8 @@ export const MobileBottomNav = ({ activeView, onViewChange }: ChatSidebarProps) 
   const mobileNavItems = [
     { icon: MessageCircle, label: "Chats" as SidebarView },
     { icon: CircleDot, label: "Status" as SidebarView },
+    { icon: Briefcase, label: "Business" as SidebarView },
     { icon: Lock, label: "Hidden" as SidebarView },
-    { icon: Users, label: "Communities" as SidebarView },
     { icon: Settings, label: "Settings" as SidebarView },
   ];
 
