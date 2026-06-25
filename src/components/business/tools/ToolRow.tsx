@@ -4,35 +4,56 @@ import type { LucideIcon } from "lucide-react";
 interface ToolRowProps {
   icon: LucideIcon;
   label: string;
+  description?: string;
   comingSoon?: boolean;
+  iconBgColor?: string;
+  iconColor?: string;
   onClick?: () => void;
+  showDivider?: boolean;
 }
 
-export const ToolRow = ({ icon: Icon, label, comingSoon = false, onClick }: ToolRowProps) => {
+export const ToolRow = ({
+  icon: Icon,
+  label,
+  description,
+  comingSoon = false,
+  iconBgColor = "bg-muted",
+  iconColor = "text-muted-foreground",
+  onClick,
+  showDivider = true,
+}: ToolRowProps) => {
   return (
-    <button
-      onClick={comingSoon ? undefined : onClick}
-      disabled={comingSoon}
-      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/30 hover:bg-muted/60 disabled:cursor-default transition-colors group"
-    >
-      {/* Icon */}
-      <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-      </div>
+    <div className="flex flex-col">
+      <button
+        onClick={comingSoon ? undefined : onClick}
+        disabled={comingSoon && !onClick}
+        className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/20 active:bg-muted/30 transition-colors text-left disabled:cursor-default"
+      >
+        {/* Icon container — circular with brand-tinted bg, like WA Business */}
+        <div className={`w-10 h-10 rounded-full ${iconBgColor} flex items-center justify-center shrink-0`}>
+          <Icon className={`w-5 h-5 ${iconColor}`} />
+        </div>
 
-      {/* Label */}
-      <span className="flex-1 text-left text-sm font-medium text-foreground">
-        {label}
-      </span>
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground leading-tight">{label}</p>
+          {description && (
+            <p className="text-xs text-muted-foreground mt-0.5 leading-tight line-clamp-1">{description}</p>
+          )}
+        </div>
 
-      {/* Coming soon badge or chevron */}
-      {comingSoon ? (
-        <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-          Soon
-        </span>
-      ) : (
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        {/* Right: coming soon badge or chevron */}
+        {comingSoon ? (
+          <span className="text-[10px] font-semibold text-muted-foreground/60 bg-muted/60 px-2 py-0.5 rounded-full shrink-0">
+            Soon
+          </span>
+        ) : (
+          <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+        )}
+      </button>
+      {showDivider && (
+        <div className="ml-[68px] h-px bg-border/50" />
       )}
-    </button>
+    </div>
   );
 };
