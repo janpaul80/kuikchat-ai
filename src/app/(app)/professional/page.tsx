@@ -8,7 +8,6 @@ import {
   Plus,
   Trash2,
   Send,
-  BarChart2,
   Store,
   BookOpen,
   Loader2,
@@ -82,13 +81,6 @@ export default function ProfessionalPage() {
   const [profileExists, setProfileExists] = useState(false)
   const [isWizardActive, setIsWizardActive] = useState(false)
 
-  // Analytics Stats
-  const [stats, setStats] = useState({
-    sent: 0,
-    received: 0,
-    chats: 0,
-    earnings: 0,
-  })
 
   // Business Profile Form
   const [profileLoading, setProfileLoading] = useState(false)
@@ -164,7 +156,6 @@ export default function ProfessionalPage() {
         }
 
         await Promise.all([
-          fetchAnalytics(authedUser.id),
           fetchBusinessProfile(authedUser.id),
           fetchCatalog(authedUser.id),
           fetchQuickReplies(authedUser.id),
@@ -205,47 +196,6 @@ export default function ProfessionalPage() {
     }
   }, [user, supabase])
 
-  // ==========================================
-  // 1. ANALYTICS DB QUERIES
-  // ==========================================
-  const fetchAnalytics = async (userId: string) => {
-    try {
-      // Messages Sent
-      const { count: sentCount } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('sender_id', userId)
-
-      // Messages Received
-      const { count: receivedCount } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .neq('sender_id', userId)
-
-      // Chats Count
-      const { count: chatsCount } = await supabase
-        .from('chats')
-        .select('*', { count: 'exact', head: true })
-
-      // Paid Invoices Earnings
-      const { data: invoices } = await supabase
-        .from('invoices')
-        .select('total_cents')
-        .eq('business_id', userId)
-        .eq('status', 'paid')
-
-      const earningsSum = invoices ? invoices.reduce((acc, cur) => acc + (cur.total_cents || 0), 0) / 100 : 0
-
-      setStats({
-        sent: sentCount || 0,
-        received: receivedCount || 0,
-        chats: chatsCount || 0,
-        earnings: earningsSum,
-      })
-    } catch (err) {
-      console.error('Error fetching analytics:', err)
-    }
-  }
 
   // ==========================================
   // 2. BUSINESS PROFILE ACTIONS
