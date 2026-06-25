@@ -158,6 +158,7 @@ export default function ProfessionalPage() {
         await Promise.all([
           fetchBusinessProfile(authedUser.id),
           fetchCatalog(authedUser.id),
+        fetchBroadcasts(authedUser.id),
           fetchQuickReplies(authedUser.id),
         ])
       } catch (err) {
@@ -596,29 +597,57 @@ export default function ProfessionalPage() {
   }
 
   // ==========================================
-  // 5. BROADCASTS ACTIONS
+  // 5. BROADCASTS ACTIONS (Supabase-backed)
   // ==========================================
-  const handleCreateBroadcast = (e: React.FormEvent) => {
+  const fetchBroadcasts = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('broadcast_lists')
+        .select('id, name, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setBroadcasts(data || [])
+    } catch (err: any) {
+      console.error('Error fetching broadcasts:', err)
+    }
+  }
+
+  const handleCreateBroadcast = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newBroadcastName.trim()) {
       toast.error('Broadcast list name is required')
       return
     }
-    setBroadcasts([
-      ...broadcasts,
-      {
-        id: Date.now().toString(),
-        name: newBroadcastName.trim(),
-        recipients: Math.floor(Math.random() * 20) + 1,
-        lastSent: 'Never',
-      },
-    ])
-    setNewBroadcastName('')
-    toast.success('Broadcast list created!')
+    try {
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData?.user) { toast.error('Not authenticated'); return }
+      const { error } = await supabase
+        .from('broadcast_lists')
+        .insert({ user_id: userData.user.id, name: newBroadcastName.trim() })
+      if (error) throw error
+      setNewBroadcastName('')
+      toast.success('Broadcast list created!')
+      await fetchBroadcasts(userData.user.id)
+    } catch (err: any) {
+      console.error(err)
+      toast.error('Failed to create broadcast list')
+    }
   }
 
-  const handleSendBroadcast = (name: string) => {
-    toast.success(`Broadcast message dispatched to ${name}`)
+  const handleDeleteBroadcast = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('broadcast_lists')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+      setBroadcasts(broadcasts.filter((b: any) => b.id !== id))
+      toast.success('Broadcast list removed')
+    } catch (err: any) {
+      console.error(err)
+      toast.error('Failed to delete broadcast list')
+    }
   }
 
   // Helper: Format cent currency
@@ -2258,18 +2287,21 @@ export default function ProfessionalPage() {
                       <p className="text-sm text-[var(--muted-2)]">No broadcast lists yet</p>
                     </div>
                   ) : (
-                    broadcasts.map((list) => (
+                    broadcasts.map((list: any) => (
                       <div key={list.id} className="rounded-xl border border-border bg-card/60 p-4 flex items-center justify-between gap-4">
                         <div>
                           <h4 className="font-semibold text-foreground">{list.name}</h4>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {list.recipients} recipients • Last Sent: {list.lastSent}
+                            Created {new Date(list.created_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <Button size="sm" variant="outline" className="flex items-center gap-1.5 text-brand-blue-500 hover:bg-brand-blue-500/5 hover:text-brand-blue-600 border-brand-blue-500/30" onClick={() => handleSendBroadcast(list.name)}>
-                          <Send className="h-3.5 w-3.5" />
-                          Send Now
-                        </Button>
+                        <button
+                          onClick={() => handleDeleteBroadcast(list.id)}
+                          className="text-xs text-[var(--muted)] hover:text-red-400 transition-colors px-2 py-1 rounded"
+                          title="Delete list"
+                        >
+                          Remove
+                        </button>
                       </div>
                     ))
                   )}
