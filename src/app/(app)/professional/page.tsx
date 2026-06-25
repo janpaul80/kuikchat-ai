@@ -719,10 +719,10 @@ export default function ProfessionalPage() {
             <div className="absolute -left-24 -bottom-24 h-48 w-48 rounded-full bg-brand-blue-500/5 blur-3xl pointer-events-none" />
             
             <div className="flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 rounded-2xl bg-brand-gradient p-4 flex items-center justify-center shadow-lg shadow-brand-blue-500/20 transform transition-transform hover:scale-105 duration-300">
-                <Briefcase className="h-8 w-8 text-white" />
+              <div className="h-11 w-11 rounded-xl bg-brand-gradient p-2.5 flex items-center justify-center shadow-md shadow-brand-blue-500/20">
+                <Briefcase className="h-5 w-5 text-white" />
               </div>
-              <h2 className="text-2xl font-black tracking-tight bg-brand-gradient bg-clip-text text-transparent">
+              <h2 className="text-xl font-extrabold tracking-tight bg-brand-gradient bg-clip-text text-transparent">
                 Unlock KuikChat Professional
               </h2>
               <p className="text-sm text-muted-foreground max-w-md">
@@ -820,15 +820,15 @@ export default function ProfessionalPage() {
         
         .biz-iconcluster {
           display: flex;
-          gap: 12px;
+          gap: 10px;
           justify-content: center;
-          margin: 18px 0 24px;
+          margin: 12px 0 18px;
         }
         
         .biz-tile {
-          width: 58px;
-          height: 58px;
-          border-radius: 15px;
+          width: 44px;
+          height: 44px;
+          border-radius: 11px;
           background: var(--panel-2);
           border: 1px solid var(--line-2);
           display: grid;
@@ -837,9 +837,9 @@ export default function ProfessionalPage() {
         }
         
         .biz-tile svg {
-          width: 26px;
-          height: 26px;
-          stroke-width: 1.5;
+          width: 18px;
+          height: 18px;
+          stroke-width: 1.6;
         }
         
         .biz-tile.tile-1 { color: hsl(217, 80%, 64%); }
@@ -851,19 +851,19 @@ export default function ProfessionalPage() {
         }
         
         .biz-h1 {
-          font-size: 24px;
-          font-weight: 700;
-          letter-spacing: -.02em;
-          line-height: 1.2;
-          margin-bottom: 8px;
+          font-size: 22px;
+          font-weight: 750;
+          letter-spacing: -.025em;
+          line-height: 1.18;
+          margin-bottom: 6px;
           color: var(--text);
         }
         
         .biz-lead {
           color: var(--muted);
-          font-size: 13.5px;
-          line-height: 1.55;
-          margin-bottom: 20px;
+          font-size: 13px;
+          line-height: 1.5;
+          margin-bottom: 16px;
         }
         
         .biz-label {
@@ -1434,16 +1434,49 @@ export default function ProfessionalPage() {
 
               </div>
             ) : (
-              /* Redirect to profile to complete setup first */
-              <div className="text-center py-12">
-                <p className="text-sm text-[var(--muted)] mb-4">Set up your business profile to unlock the hub</p>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('profile')}
-                  className="biz-btn px-6 py-2.5"
-                >
-                  Get Started
-                </button>
+              /* Hub locked: profile setup required */
+              <div className="flex items-center justify-center py-8">
+                <div className="max-w-sm w-full text-center space-y-5">
+                  {/* Icon badge */}
+                  <div className="flex justify-center">
+                    <span className="w-12 h-12 rounded-2xl border border-[var(--line-2)] bg-[var(--panel-2)] grid place-items-center">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-5 h-5 text-[var(--muted)]">
+                        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                      </svg>
+                    </span>
+                  </div>
+
+                  {/* Heading + subtext */}
+                  <div className="space-y-1.5">
+                    <h3 className="text-base font-bold text-[var(--text)] tracking-tight">Complete your Business Profile</h3>
+                    <p className="text-[13px] text-[var(--muted)] leading-snug">
+                      Finish setup to unlock catalog, broadcasts, quick replies, and the full business hub.
+                    </p>
+                  </div>
+
+                  {/* Steps */}
+                  <div className="text-left space-y-2 bg-[var(--panel-2)] border border-[var(--line)] rounded-xl p-4">
+                    {[
+                      'Name your business',
+                      'Choose your category',
+                      'Add contact & hours',
+                    ].map((step, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="w-5 h-5 rounded-full bg-[var(--panel-3)] border border-[var(--line-2)] text-[var(--muted-2)] text-[10px] font-bold grid place-items-center shrink-0">{i + 1}</span>
+                        <p className="text-[12px] text-[var(--muted)]">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('profile')}
+                    className="biz-btn w-full"
+                  >
+                    Set Up Business Profile
+                  </button>
+                </div>
               </div>
             )}
           </TabsContent>
