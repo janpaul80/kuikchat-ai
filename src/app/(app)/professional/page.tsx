@@ -75,7 +75,7 @@ interface QuickReply {
 
 export default function ProfessionalPage() {
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState('profile')
+  const [activeTab, setActiveTab] = useState('hub')
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState<string>('personal')
@@ -1206,38 +1206,268 @@ export default function ProfessionalPage() {
 
       <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {profileExists && !isWizardActive && (
-            <TabsList className="grid grid-cols-4 w-full max-w-xl bg-[var(--panel)] border border-[var(--line)] rounded-xl p-1">
-              <TabsTrigger 
-                value="profile" 
-                className="text-xs font-semibold text-[var(--muted)] data-[state=active]:bg-[var(--panel-3)] data-[state=active]:text-white data-[state=active]:shadow-none rounded-lg py-2"
+          {/* Back button / breadcrumb — shown when not on hub */}
+          {activeTab !== 'hub' && profileExists && !isWizardActive && (
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('hub')}
+                className="flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] transition-colors"
               >
-                <Settings className="mr-1.5 h-4 w-4" />
-                Profile
-              </TabsTrigger>
-              <TabsTrigger 
-                value="catalog" 
-                className="text-xs font-semibold text-[var(--muted)] data-[state=active]:bg-[var(--panel-3)] data-[state=active]:text-white data-[state=active]:shadow-none rounded-lg py-2"
-              >
-                <Store className="mr-1.5 h-4 w-4" />
-                Catalog
-              </TabsTrigger>
-              <TabsTrigger 
-                value="quickreplies" 
-                className="text-xs font-semibold text-[var(--muted)] data-[state=active]:bg-[var(--panel-3)] data-[state=active]:text-white data-[state=active]:shadow-none rounded-lg py-2"
-              >
-                <BookOpen className="mr-1.5 h-4 w-4" />
-                Shortcuts
-              </TabsTrigger>
-              <TabsTrigger 
-                value="broadcasts" 
-                className="text-xs font-semibold text-[var(--muted)] data-[state=active]:bg-[var(--panel-3)] data-[state=active]:text-white data-[state=active]:shadow-none rounded-lg py-2"
-              >
-                <Send className="mr-1.5 h-4 w-4" />
-                Broadcasts
-              </TabsTrigger>
-            </TabsList>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+                  <path d="M15 19l-7-7 7-7"/>
+                </svg>
+                Business Hub
+              </button>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-[var(--muted-2)]">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+              <span className="text-xs text-[var(--text)] capitalize font-medium">
+                {activeTab === 'profile' ? 'Profile' : activeTab === 'catalog' ? 'Catalog' : activeTab === 'quickreplies' ? 'Quick Replies' : activeTab === 'broadcasts' ? 'Broadcasts' : activeTab}
+              </span>
+            </div>
           )}
+
+          {/* HUB HOME VIEW */}
+          <TabsContent value="hub" className="outline-none">
+            {profileExists && !isWizardActive ? (
+              <div className="space-y-4 max-w-2xl">
+
+                {/* For You — Promo Card */}
+                <div className="rounded-xl border border-[var(--blue)]/30 bg-[var(--grad-soft)] p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold text-[var(--text)] mb-0.5">Upgrade to Business Pro</p>
+                    <p className="text-[11px] text-[var(--muted)] leading-relaxed">Unlock verified badge, priority support &amp; advanced analytics</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toast('Coming soon')}
+                    className="shrink-0 biz-btn ghost text-xs px-3 py-2 rounded-lg"
+                    style={{ fontSize: '11px', padding: '7px 14px', borderRadius: '8px' }}
+                  >
+                    Learn more
+                  </button>
+                </div>
+
+                {/* GROUP: Grow */}
+                <div>
+                  <p className="text-[10px] tracking-widest uppercase text-[var(--muted)] font-semibold mb-2 px-1">Grow</p>
+                  <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] overflow-hidden divide-y divide-[var(--line)]">
+                    {/* Catalog */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('catalog')}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[var(--panel-2)] transition-colors text-left"
+                    >
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[hsl(184,50%,56%)]">
+                        <Store className="w-4.5 h-4.5" style={{ width: '18px', height: '18px' }} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[var(--text)]">Catalog</p>
+                        <p className="text-[11px] text-[var(--muted)]">List your products &amp; services</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
+                    {/* Broadcasts */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('broadcasts')}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[var(--panel-2)] transition-colors text-left"
+                    >
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[hsl(155,46%,54%)]">
+                        <Send className="w-4.5 h-4.5" style={{ width: '18px', height: '18px' }} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[var(--text)]">Broadcasts</p>
+                        <p className="text-[11px] text-[var(--muted)]">Send messages to multiple contacts</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* GROUP: Organize */}
+                <div>
+                  <p className="text-[10px] tracking-widest uppercase text-[var(--muted)] font-semibold mb-2 px-1">Organize</p>
+                  <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] overflow-hidden divide-y divide-[var(--line)]">
+                    {/* Lists & Labels — Coming Soon */}
+                    <div className="w-full flex items-center gap-3 px-4 py-3.5 opacity-50 cursor-not-allowed">
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[var(--muted)]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: '18px', height: '18px' }}>
+                          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                          <rect x="9" y="3" width="6" height="4" rx="1"/>
+                          <path d="M9 12h6M9 16h4"/>
+                        </svg>
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-[var(--text)]">Lists &amp; Labels</p>
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-[var(--panel-3)] border border-[var(--line-2)] text-[var(--muted)] px-1.5 py-0.5 rounded-full">Soon</span>
+                        </div>
+                        <p className="text-[11px] text-[var(--muted)]">Organise contacts with lists &amp; tags</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
+                    </div>
+                    {/* Greeting message — Coming Soon */}
+                    <div className="w-full flex items-center gap-3 px-4 py-3.5 opacity-50 cursor-not-allowed">
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[var(--muted)]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: '18px', height: '18px' }}>
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                          <path d="M8 10h.01M12 10h.01M16 10h.01"/>
+                        </svg>
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-[var(--text)]">Greeting message</p>
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-[var(--panel-3)] border border-[var(--line-2)] text-[var(--muted)] px-1.5 py-0.5 rounded-full">Soon</span>
+                        </div>
+                        <p className="text-[11px] text-[var(--muted)]">Auto-send a welcome to new contacts</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
+                    </div>
+                    {/* Away message — Coming Soon */}
+                    <div className="w-full flex items-center gap-3 px-4 py-3.5 opacity-50 cursor-not-allowed">
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[var(--muted)]">
+                        <Clock className="w-4.5 h-4.5" style={{ width: '18px', height: '18px' }} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-[var(--text)]">Away message</p>
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-[var(--panel-3)] border border-[var(--line-2)] text-[var(--muted)] px-1.5 py-0.5 rounded-full">Soon</span>
+                        </div>
+                        <p className="text-[11px] text-[var(--muted)]">Reply automatically when you&apos;re away</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
+                    </div>
+                    {/* Quick Replies */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('quickreplies')}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[var(--panel-2)] transition-colors text-left"
+                    >
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[hsl(217,80%,64%)]">
+                        <BookOpen className="w-4.5 h-4.5" style={{ width: '18px', height: '18px' }} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[var(--text)]">Quick replies</p>
+                        <p className="text-[11px] text-[var(--muted)]">Shortcut templates for fast replies</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
+                    {/* Connect Instagram & Facebook — Coming Soon */}
+                    <div className="w-full flex items-center gap-3 px-4 py-3.5 opacity-50 cursor-not-allowed">
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[var(--muted)]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: '18px', height: '18px' }}>
+                          <rect x="2" y="2" width="20" height="20" rx="5"/>
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                        </svg>
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-[var(--text)]">Connect Instagram &amp; Facebook</p>
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-[var(--panel-3)] border border-[var(--line-2)] text-[var(--muted)] px-1.5 py-0.5 rounded-full">Soon</span>
+                        </div>
+                        <p className="text-[11px] text-[var(--muted)]">Sync messages from your social pages</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* GROUP: Manage */}
+                <div>
+                  <p className="text-[10px] tracking-widest uppercase text-[var(--muted)] font-semibold mb-2 px-1">Manage</p>
+                  <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] overflow-hidden divide-y divide-[var(--line)]">
+                    {/* Profile */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('profile')}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[var(--panel-2)] transition-colors text-left"
+                    >
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[hsl(217,80%,64%)]">
+                        <Settings className="w-4.5 h-4.5" style={{ width: '18px', height: '18px' }} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[var(--text)]">Profile</p>
+                        <p className="text-[11px] text-[var(--muted)]">Business name, category, contact info</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
+                    {/* Branding */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('profile')}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[var(--panel-2)] transition-colors text-left"
+                    >
+                      <span className="w-9 h-9 rounded-lg bg-[var(--panel-3)] border border-[var(--line-2)] grid place-items-center shrink-0 text-[hsl(155,46%,54%)]">
+                        <ImageIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px' }} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[var(--text)]">Branding</p>
+                        <p className="text-[11px] text-[var(--muted)]">Logo, cover image, gallery</p>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[var(--muted-2)] shrink-0">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* How to get started */}
+                <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-4 space-y-3">
+                  <p className="text-xs font-bold text-[var(--text)]">How to get started</p>
+                  <div className="space-y-2.5">
+                    <div className="flex items-start gap-3">
+                      <span className="w-5 h-5 rounded-full bg-[var(--grad)] text-white text-[9px] font-bold grid place-items-center shrink-0 mt-0.5">1</span>
+                      <p className="text-[12px] text-[var(--muted)] leading-snug">Complete your profile</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="w-5 h-5 rounded-full bg-[var(--grad)] text-white text-[9px] font-bold grid place-items-center shrink-0 mt-0.5">2</span>
+                      <p className="text-[12px] text-[var(--muted)] leading-snug">Add your first catalog item</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="w-5 h-5 rounded-full bg-[var(--grad)] text-white text-[9px] font-bold grid place-items-center shrink-0 mt-0.5">3</span>
+                      <p className="text-[12px] text-[var(--muted)] leading-snug">Share your business link</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            ) : (
+              /* Redirect to profile to complete setup first */
+              <div className="text-center py-12">
+                <p className="text-sm text-[var(--muted)] mb-4">Set up your business profile to unlock the hub</p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('profile')}
+                  className="biz-btn px-6 py-2.5"
+                >
+                  Get Started
+                </button>
+              </div>
+            )}
+          </TabsContent>
 
           {/* 2. Profile Content */}
           <TabsContent value="profile" className="outline-none">
