@@ -1,0 +1,26 @@
+:root {
+  /* Color Palette */
+  --pt-bg: #121212; /* dark background */
+  --pt-surface: #1E1E1E; /* slightly lighter surface */
+  --pt-text-primary: #E0E0E0;
+  --pt-text-secondary: #A0A0A0;
+  --pt-muted: #555555;
+
+  /* Accent Gradient */
+  --pt-accent-start: #0055CC; /* deep blue */
+  --pt-accent-end: #00AA55; /* rich green */
+
+  /* Spacing & Sizing */
+  --pt-spacing-unit: 16px;
+  --pt-radius: 8px;
+  --pt-icon-size: 20px;
+
+  /* Button */
+  --pt-button-padding-vertical: 12px;
+  --pt-button-padding-horizontal: 24px;
+
+  /* Typography */
+  --pt-font-family: 'Roboto', sans-serif;
+  --pt-font-size-base: 14px;
+  --pt-heading-size: 24px;
+}
