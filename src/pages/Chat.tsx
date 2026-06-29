@@ -50,7 +50,7 @@ const Chat = () => {
       case "Vanish Mode":
         return <VanishModeView />;
       case "Settings":
-        return <SettingsView />;
+        return <SettingsView onViewChange={setActiveView} />;
       case "Hidden":
         return <HiddenChatsVault />;
       case "Business":

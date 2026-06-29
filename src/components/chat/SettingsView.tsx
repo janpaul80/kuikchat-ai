@@ -1,5 +1,23 @@
-import { useState } from "react";
-import { Bell, Lock, Palette, HelpCircle, Info, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Bell,
+  Lock,
+  HelpCircle,
+  ChevronRight,
+  Megaphone,
+  Store,
+  Star,
+  Users,
+  Laptop,
+  Key,
+  MessageSquare,
+  ArrowUpDown,
+  Link as LinkIcon,
+  Heart,
+  Search,
+  QrCode,
+  Smile,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfile } from "@/hooks/useProfile";
@@ -9,18 +27,16 @@ import { PrivacySettings } from "./settings/PrivacySettings";
 import { AppearanceSettings } from "./settings/AppearanceSettings";
 import { HelpSettings } from "./settings/HelpSettings";
 import { AboutSettings } from "./settings/AboutSettings";
+import { SidebarView } from "./ChatSidebar";
+import { toast } from "sonner";
 
 type SettingsPage = "main" | "notifications" | "privacy" | "appearance" | "help" | "about";
 
-const settingsItems = [
-  { icon: Bell, label: "Notifications", description: "Message, group & call tones", page: "notifications" as const },
-  { icon: Lock, label: "Privacy", description: "Block contacts, disappearing messages", page: "privacy" as const },
-  { icon: Palette, label: "Appearance", description: "Theme, wallpapers, chat settings", page: "appearance" as const },
-  { icon: HelpCircle, label: "Help", description: "Help center, contact us, privacy policy", page: "help" as const },
-  { icon: Info, label: "About", description: "App info and licenses", page: "about" as const },
-];
+interface SettingsViewProps {
+  onViewChange?: (view: SidebarView) => void;
+}
 
-export const SettingsView = () => {
+export const SettingsView = ({ onViewChange }: SettingsViewProps) => {
   const { profile } = useProfile();
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [currentPage, setCurrentPage] = useState<SettingsPage>("main");
@@ -29,7 +45,7 @@ export const SettingsView = () => {
     if (profile?.display_name) {
       return profile.display_name.slice(0, 2).toUpperCase();
     }
-    return "U";
+    return "PH";
   };
 
   const handleBack = () => setCurrentPage("main");
@@ -51,48 +67,176 @@ export const SettingsView = () => {
     return <AboutSettings onBack={handleBack} />;
   }
 
+  // Settings Items configuration to match the exact grouping from screenshots 8.jpg and 9.jpg
+  const groups = [
+    {
+      id: "group-1",
+      items: [
+        {
+          icon: Megaphone,
+          label: "Advertise",
+          onClick: () => toast.info("Advertise features coming soon!"),
+        },
+        {
+          icon: Store,
+          label: "Business tools",
+          onClick: () => {
+            if (onViewChange) {
+              onViewChange("Business");
+            }
+          },
+        },
+      ],
+    },
+    {
+      id: "group-2",
+      items: [
+        {
+          icon: Star,
+          label: "Starred",
+          onClick: () => toast.info("Starred messages coming soon!"),
+        },
+        {
+          icon: Megaphone,
+          label: "Broadcast messages",
+          onClick: () => toast.info("Broadcast features coming soon!"),
+        },
+        {
+          icon: Users,
+          label: "Communities",
+          onClick: () => {
+            if (onViewChange) {
+              onViewChange("Communities");
+            }
+          },
+        },
+        {
+          icon: Laptop,
+          label: "Linked devices",
+          onClick: () => toast.info("Linked devices coming soon!"),
+        },
+      ],
+    },
+    {
+      id: "group-3",
+      items: [
+        {
+          icon: Key,
+          label: "Account",
+          onClick: () => toast.info("Account settings coming soon!"),
+        },
+        {
+          icon: Lock,
+          label: "Privacy",
+          onClick: () => setCurrentPage("privacy"),
+        },
+        {
+          icon: MessageSquare,
+          label: "Chats",
+          onClick: () => setCurrentPage("appearance"),
+        },
+        {
+          icon: Bell,
+          label: "Notifications",
+          onClick: () => setCurrentPage("notifications"),
+        },
+        {
+          icon: ArrowUpDown,
+          label: "Storage and data",
+          onClick: () => toast.info("Storage settings coming soon!"),
+        },
+        {
+          icon: LinkIcon,
+          label: "Facebook and Instagram",
+          onClick: () => toast.info("Social integration coming soon!"),
+        },
+      ],
+    },
+    {
+      id: "group-4",
+      items: [
+        {
+          icon: HelpCircle,
+          label: "Help and feedback",
+          onClick: () => setCurrentPage("help"),
+        },
+        {
+          icon: Heart,
+          label: "Invite a contact",
+          onClick: () => toast.info("Invite contact link copied to clipboard!"),
+        },
+      ],
+    },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col bg-card">
-      <div className="p-4 border-b border-border">
-        <h2 className="text-xl font-semibold">Settings</h2>
+    <div className="flex-1 flex flex-col bg-background overflow-hidden">
+      {/* Header — matches Settings tab header */}
+      <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-card border-b border-border">
+        <h1 className="text-xl font-bold text-foreground">Settings</h1>
+        <div className="flex items-center gap-1">
+          <button className="w-9 h-9 rounded-full hover:bg-muted/50 flex items-center justify-center transition-colors">
+            <Search className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <button className="w-9 h-9 rounded-full hover:bg-muted/50 flex items-center justify-center transition-colors">
+            <QrCode className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          {/* Profile */}
-          <div 
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
+        <div className="p-4 space-y-5 pb-8">
+          {/* Profile Card — matches Paul-Hartmann GmbH style */}
+          <div
+            className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border/50 hover:bg-muted/30 cursor-pointer transition-all duration-300"
             onClick={() => setShowProfileEdit(true)}
           >
-            <Avatar className="w-16 h-16">
+            <Avatar className="w-16 h-16 border-2 border-primary/20">
               <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="brand-gradient text-primary-foreground text-xl">
+              <AvatarFallback className="brand-gradient text-primary-foreground text-xl font-semibold">
                 {getInitials()}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <p className="font-medium">{profile?.display_name || 'Set your name'}</p>
-              <p className="text-sm text-muted-foreground">{profile?.about || 'Add your status'}</p>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-bold text-foreground truncate">
+                {profile?.display_name || "Paul-Hartmann GmbH"}
+              </h3>
+              <div className="flex items-center gap-1.5 mt-0.5 text-emerald-500">
+                <Smile className="w-4 h-4 shrink-0" />
+                <p className="text-xs font-medium truncate">
+                  {profile?.about || "Who's your team today?"}
+                </p>
+              </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <ChevronRight className="w-5 h-5 text-muted-foreground/60 shrink-0" />
           </div>
 
-          {/* Settings Items */}
-          <div className="space-y-1">
-            {settingsItems.map((item) => (
-              <div 
-                key={item.label}
-                onClick={() => setCurrentPage(item.page)}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
+          {/* Grouped Settings Items */}
+          <div className="space-y-4">
+            {groups.map((group) => (
+              <div
+                key={group.id}
+                className="bg-card rounded-xl overflow-hidden border border-border/50"
               >
-                <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">{item.label}</p>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                {group.items.map((item, idx) => (
+                  <div key={item.label}>
+                    <button
+                      onClick={item.onClick}
+                      className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-muted/20 active:bg-muted/30 transition-colors text-left"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                        <item.icon className="w-4.5 h-4.5 text-muted-foreground" />
+                      </div>
+                      <span className="flex-1 text-sm font-medium text-foreground leading-tight">
+                        {item.label}
+                      </span>
+                      <ChevronRight className="w-4.5 h-4.5 text-muted-foreground/40 shrink-0" />
+                    </button>
+                    {idx < group.items.length - 1 && (
+                      <div className="ml-14 h-px bg-border/50" />
+                    )}
+                  </div>
+                ))}
               </div>
             ))}
           </div>

@@ -11,7 +11,7 @@ import {
   EyeOff,
   LogOut,
   Lock,
-  Briefcase,
+  Store,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +29,7 @@ const navItems: { icon: typeof MessageCircle; label: SidebarView }[] = [
   { icon: MessageCircle, label: "Chats" },
   { icon: CircleDot, label: "Status" },
   { icon: Users, label: "Communities" },
-  { icon: Briefcase, label: "Business" },
+  { icon: Store, label: "Business" },
   { icon: EyeOff, label: "Vanish Mode" },
 ];
 
@@ -116,7 +116,7 @@ export const ChatSidebar = ({ activeView, onViewChange }: ChatSidebarProps) => {
               </div>
             </TooltipTrigger>
             <TooltipContent side="right">
-              <p>{item.label}</p>
+              <p>{item.label === "Business" ? "Tools" : item.label}</p>
             </TooltipContent>
           </Tooltip>
         ))}
@@ -195,7 +195,7 @@ export const MobileBottomNav = ({ activeView, onViewChange }: ChatSidebarProps) 
   const mobileNavItems = [
     { icon: MessageCircle, label: "Chats" as SidebarView },
     { icon: CircleDot, label: "Status" as SidebarView },
-    { icon: Briefcase, label: "Business" as SidebarView },
+    { icon: Store, label: "Business" as SidebarView },
     { icon: Lock, label: "Hidden" as SidebarView },
     { icon: Settings, label: "Settings" as SidebarView },
   ];
@@ -226,7 +226,7 @@ export const MobileBottomNav = ({ activeView, onViewChange }: ChatSidebarProps) 
               }`} />
             <span className={`text-xs relative z-10 ${activeView === item.label ? "font-medium" : ""
               }`}>
-              {item.label === "Hidden" ? "Vault" : item.label}
+              {item.label === "Hidden" ? "Vault" : item.label === "Business" ? "Tools" : item.label}
             </span>
           </motion.button>
         ))}
