@@ -7,6 +7,7 @@ import { CommunitiesView } from "@/components/chat/CommunitiesView";
 import { VanishModeView } from "@/components/chat/VanishModeView";
 import { SettingsView } from "@/components/chat/SettingsView";
 import { HiddenChatsVault } from "@/components/chat/HiddenChatsVault";
+import { BusinessToolsHub } from "@/components/business/BusinessToolsHub";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useUsers } from "@/hooks/useUsers";
 import logo from "@/assets/kuikchat-logo.png";
@@ -52,6 +53,8 @@ const Chat = () => {
         return <SettingsView />;
       case "Hidden":
         return <HiddenChatsVault />;
+      case "Business":
+        return <BusinessToolsHub />;
       case "Chats":
       default:
         return (
