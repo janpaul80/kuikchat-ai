@@ -15,7 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { PromoCard } from "./tools/PromoCard";
 import { ToolGroup, type ToolItem } from "./tools/ToolGroup";
 import { useProfile } from "@/hooks/useProfile";
-import { ProfileEditDialog } from "../chat/ProfileEditDialog";
+import { BusinessWizard } from "./tools/BusinessWizard";
 import { toast } from "sonner";
 
 export const BusinessToolsHub = () => {
@@ -141,7 +141,7 @@ export const BusinessToolsHub = () => {
         </div>
       </ScrollArea>
 
-      <ProfileEditDialog open={showProfileEdit} onOpenChange={setShowProfileEdit} />
+      <BusinessWizard open={showProfileEdit} onOpenChange={setShowProfileEdit} />
     </div>
   );
 };

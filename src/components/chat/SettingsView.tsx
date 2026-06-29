@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfile } from "@/hooks/useProfile";
-import { ProfileEditDialog } from "./ProfileEditDialog";
+import { BusinessWizard } from "../business/tools/BusinessWizard";
 import { NotificationsSettings } from "./settings/NotificationsSettings";
 import { PrivacySettings } from "./settings/PrivacySettings";
 import { AppearanceSettings } from "./settings/AppearanceSettings";
@@ -243,7 +243,7 @@ export const SettingsView = ({ onViewChange }: SettingsViewProps) => {
         </div>
       </ScrollArea>
 
-      <ProfileEditDialog open={showProfileEdit} onOpenChange={setShowProfileEdit} />
+      <BusinessWizard open={showProfileEdit} onOpenChange={setShowProfileEdit} />
     </div>
   );
 };
