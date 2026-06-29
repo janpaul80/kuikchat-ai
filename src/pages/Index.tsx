@@ -9,7 +9,7 @@ import { LandingChatbot } from "@/components/landing/LandingChatbot";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black text-white dark">
       <Header />
       <main>
         <Hero />
