@@ -2,152 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>KuikChat</title>
-    
-    <!-- PWA & iOS Tags -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#075E54">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="KuikChat">
-    <link rel="apple-touch-icon" href="/vite.svg">
+    <title>KuikChat - AI-Powered Communication Platform | Privacy-First Messaging</title>
+    <meta name="description" content="KuikChat is your Communication Command Center. Privacy-first, lightning-fast messaging with AI superpowers. End-to-end encrypted with smart translation, AI assistant, and cross-platform sync." />
+    <meta name="keywords" content="messaging app, AI chat, encrypted messaging, privacy chat, secure communication, AI assistant, cross-platform messaging" />
+    <meta name="author" content="HEFTCoder Labs" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              'kuik-green': '#075E54',
-              'kuik-light-green': '#128C7E',
-              'kuik-accent': '#25D366',
-              'kuik-bg': '#ECE5DD',
-              'kuik-outgoing-msg': '#DCF8C6',
-              'kuik-incoming-msg': '#FFFFFF',
-              'kuik-panel-header': '#F0F2F5',
-              
-              // Dark theme colors
-              'kuik-dark-bg': '#121212',
-              'kuik-dark-panel': '#1E1E1E',
-              'kuik-dark-header': '#2D2D2D',
-              'kuik-dark-incoming-msg': '#2D2D2D',
-              'kuik-dark-outgoing-msg': '#056162',
-              'kuik-dark-text-primary': '#EAEAEA',
-              'kuik-dark-text-secondary': '#A0A0A0',
-            },
-            animation: {
-              'fade-in': 'fadeIn 0.3s ease-in-out',
-              'fade-in-up': 'fadeInUp 0.3s ease-out',
-              'fade-in-fast': 'fadeIn 0.15s ease-in-out',
-              'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite',
-              'nod': 'nod 1s ease-in-out infinite',
-              'bloom': 'bloom 2s ease-in-out infinite',
-              'jitter': 'jitter 0.3s linear infinite',
-              'ripple': 'ripple 1.5s ease-in-out infinite',
-              'explode': 'explode 0.8s ease-out infinite',
-            },
-            keyframes: {
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              },
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              shake: {
-                '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
-                '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
-                '30%, 50%, 70%': { transform: 'translate3d(-3px, 0, 0)' },
-                '40%, 60%': { transform: 'translate3d(3px, 0, 0)' }
-              },
-              nod: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-3px)' }
-              },
-              bloom: {
-                '0%, 100%': { filter: 'blur(0px)', textShadow: '0 0 0px currentColor' },
-                '50%': { filter: 'blur(0.3px)', textShadow: '0 0 8px currentColor' }
-              },
-              jitter: {
-                '0%': { transform: 'translate(0,0)' },
-                '25%': { transform: 'translate(1px, 1px)' },
-                '50%': { transform: 'translate(-1px, -1px)' },
-                '75%': { transform: 'translate(1px, -1px)' },
-                '100%': { transform: 'translate(-1px, 1px)' }
-              },
-              ripple: {
-                '0%, 100%': { transform: 'skewX(0deg)' },
-                '50%': { transform: 'skewX(-10deg)' }
-              },
-              explode: {
-                '0%': { transform: 'scale(1)' },
-                '50%': { transform: 'scale(1.1) rotate(1deg)' },
-                '100%': { transform: 'scale(1)' }
-              }
-            }
-          },
-        },
-      }
-    </script>
-    <style>
-      /* Liquid Glass Backgrounds */
-      body {
-        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-        min-height: 100vh;
-      }
-      .dark body {
-        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-      }
-      
-      /* Custom Scrollbar for Webkit */
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: rgba(156, 163, 175, 0.5);
-        border-radius: 20px;
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: rgba(75, 85, 99, 0.5);
-      }
+    <!-- Mobile Web App -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="KuikChat" />
+    <meta name="application-name" content="KuikChat" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="msapplication-TileColor" content="#000000" />
 
-      /* Hide scrollbar for snap containers */
-      .no-scrollbar::-webkit-scrollbar {
-          display: none;
-      }
-      .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-      }
-      
-      .mask-image-gradient {
-        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-        -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
-    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.0.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.473.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-</head>
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="KuikChat - AI-Powered Communication Platform" />
+    <meta property="og:description" content="Privacy-first, lightning-fast messaging with AI superpowers. Your Communication Command Center." />
+    <meta property="og:site_name" content="KuikChat" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KuikChat - AI-Powered Communication Platform" />
+    <meta name="twitter:description" content="Privacy-first, lightning-fast messaging with AI superpowers." />
+
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://kuikchat.io" />
+  </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -120,7 +120,10 @@ export const BusinessWizard = ({ open, onOpenChange }: BusinessWizardProps) => {
           
           if (data.hours) {
             // Restore hours mode if saved
-            const hoursData = data.hours as any;
+            const hoursData = data.hours as unknown as {
+              mode?: "selected" | "always" | "appointment";
+              details?: BusinessHours;
+            };
             if (hoursData.mode) {
               setHoursMode(hoursData.mode);
             }

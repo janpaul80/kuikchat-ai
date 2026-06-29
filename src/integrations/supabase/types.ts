@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_profiles: {
+        Row: {
+          address: string | null
+          categories: string[] | null
+          company_name: string
+          created_at: string
+          description: string | null
+          email: string | null
+          hours: Json | null
+          id: string
+          logo_url: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          categories?: string[] | null
+          company_name: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          hours?: Json | null
+          id?: string
+          logo_url?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          categories?: string[] | null
+          company_name?: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          hours?: Json | null
+          id?: string
+          logo_url?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       call_signals: {
         Row: {
           call_type: string
