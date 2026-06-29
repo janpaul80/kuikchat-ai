@@ -1,0 +1,48 @@
+@import './designTokens.module.css';
+
+.entry {
+  background-color: var(--pt-bg);
+  color: var(--pt-text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: var(--pt-spacing-unit);
+}
+
+.header {
+  font-family: var(--pt-font-family);
+  font-size: var(--pt-heading-size);
+  margin-bottom: var(--pt-spacing-unit);
+}
+
+.pill {
+  background: linear-gradient(90deg, var(--pt-accent-start), var(--pt-accent-end));
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: var(--pt-radius);
+  margin-left: 8px;
+  font-size: var(--pt-font-size-base);
+}
+
+.subheader {
+  color: var(--pt-text-secondary);
+  margin-bottom: calc(var(--pt-spacing-unit) * 2);
+}
+
+.cta {
+  background: linear-gradient(90deg, var(--pt-accent-start), var(--pt-accent-end));
+  color: #fff;
+  border: none;
+  border-radius: var(--pt-radius);
+  padding: var(--pt-button-padding-vertical) var(--pt-button-padding-horizontal);
+  font-family: var(--pt-font-family);
+  font-size: var(--pt-font-size-base);
+  cursor: pointer;
+}
+
+.cta:hover {
+  opacity: 0.9;
+}

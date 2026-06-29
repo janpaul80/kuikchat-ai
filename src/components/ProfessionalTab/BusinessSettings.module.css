@@ -1,0 +1,81 @@
+@import './designTokens.module.css';
+
+.container {
+  background-color: var(--pt-bg);
+  color: var(--pt-text-primary);
+  padding: var(--pt-spacing-unit);
+}
+
+.breadcrumb {
+  font-size: var(--pt-font-size-base);
+  color: var(--pt-text-secondary);
+  margin-bottom: var(--pt-spacing-unit);
+}
+
+.separator {
+  margin: 0 4px;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pt-spacing-unit);
+}
+
+.sectionTitle {
+  font-size: var(--pt-heading-size);
+  margin-bottom: var(--pt-spacing-unit);
+}
+
+.form label {
+  display: block;
+  margin-bottom: var(--pt-spacing-unit);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: var(--pt-radius);
+  border: 1px solid var(--pt-muted);
+  background-color: var(--pt-surface);
+  color: var(--pt-text-primary);
+}
+
+.linkContainer {
+  margin: var(--pt-spacing-unit) 0;
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: var(--pt-accent-start);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: var(--pt-font-size-base);
+}
+
+.saveButton {
+  background: linear-gradient(90deg, var(--pt-accent-start), var(--pt-accent-end));
+  color: #fff;
+  border: none;
+  padding: var(--pt-button-padding-vertical) var(--pt-button-padding-horizontal);
+  border-radius: var(--pt-radius);
+  cursor: pointer;
+  font-family: var(--pt-font-family);
+}
+
+.rightColumn .brandingSection,
+.rightColumn .hoursSection {
+  margin-bottom: var(--pt-spacing-unit);
+}
+
+.uploads > div {
+  margin-bottom: var(--pt-spacing-unit);
+}
+
+.hoursGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
