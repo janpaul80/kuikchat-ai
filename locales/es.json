@@ -1,0 +1,226 @@
+{
+  "sidebar": {
+    "chats": "Chats",
+    "status": "Estados",
+    "communities": "Comunidades",
+    "settings": "Ajustes"
+  },
+  "contactList": {
+    "title": "Chats",
+    "newChat": "Nuevo chat",
+    "searchPlaceholder": "Buscar o empezar un chat nuevo"
+  },
+  "chatWindow": {
+    "welcomeTitle": "Bienvenido a KuikChat",
+    "welcomeMessage": "Selecciona un chat para empezar a enviar mensajes o haz llamadas y videollamadas cifradas de extremo a extremo.",
+    "encryptionNotice": "Tus mensajes personales y llamadas están cifrados de extremo a extremo.",
+    "dataCharges": "KuikChat usa la conexión a internet de tu teléfono (datos o Wi-Fi). Pueden aplicarse cargos por datos.",
+    "typing": "escribiendo...",
+    "online": "en línea",
+    "participants": "participantes",
+    "viewGroupInfo": "Ver información del grupo",
+    "startVoiceCall": "Iniciar llamada de voz",
+    "startVideoCall": "Iniciar videollamada",
+    "searchMessages": "Buscar mensajes",
+    "openMediaGallery": "Abrir galería multimedia",
+    "searchPlaceholder": "Buscar...",
+    "noResults": "No hay resultados",
+    "of": "de",
+    "verifiedTooltip": "Cifrado de extremo a extremo. Contacto verificado.",
+    "unverifiedTooltip": "Cifrado de extremo a extremo. Haz clic para verificar.",
+    "encryptedTooltip": "Cifrado de extremo a extremo.",
+    "pinnedMessage": "Mensaje Fijado",
+    "pinnedMessages": "{count} Mensajes Fijados",
+    "vanishModeOn": "Modo Efímero ACTIVADO",
+    "vanishModeOff": "Modo Efímero DESACTIVADO",
+    "vanishModeDescription": "Los mensajes desaparecen cuando desactivas el Modo Efímero.",
+    "turnOffVanishMode": "Desactivar Modo Efímero",
+    "screenshotDetected": "📸 ¡{user} hizo una captura de pantalla!"
+  },
+  "chatInput": {
+    "placeholder": "Escribe un mensaje...",
+    "placeholderDisabled": "Solo los administradores pueden enviar mensajes",
+    "placeholderSending": "Enviando...",
+    "placeholderRecording": "Grabando...",
+    "placeholderAiAsk": "Pregúntale a la IA lo que sea...",
+    "placeholderAiArt": "Describe el arte que quieres crear...",
+    "thinking": "Pensando...",
+    "creating": "Creando...",
+    "sendMessage": "Enviar mensaje",
+    "replyingTo": "Respondiendo a",
+    "cancelReply": "Cancelar respuesta",
+    "videoNote": "Nota de Video",
+    "recordingVideoNote": "Grabando Nota de Video...",
+    "scheduleMessage": "Programar Mensaje"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "profileTitle": "Perfil",
+    "username": "Nombre de usuario",
+    "editProfileBtn": "Editar",
+    "backupTitle": "Copia de seguridad de chats",
+    "lastBackup": "Última copia:",
+    "noBackup": "No se encontró copia",
+    "backupNow": "Hacer copia ahora",
+    "restore": "Restaurar desde copia",
+    "backupSuccess": "¡Copia de seguridad de chats realizada con éxito!",
+    "backupFail": "Error al hacer la copia de seguridad. El almacenamiento local puede estar lleno.",
+    "restoreConfirm": "¿Estás seguro de que quieres restaurar tus chats? Esto sobrescribirá las conversaciones actuales.",
+    "restoreSuccess": "¡Chats restaurados con éxito!",
+    "restoreFail": "Error al restaurar los chats. Los datos de la copia pueden estar corruptos.",
+    "restoreNoBackup": "¡No se encontró ninguna copia de seguridad!",
+    "backupNote": "Las copias se guardan localmente en tu navegador. Limpiar los datos del navegador también eliminará tu copia de seguridad.",
+    "timerTitle": "Temporizador de mensajes predeterminado",
+    "timerNote": "Establece un temporizador predeterminado para los nuevos chats. Esto no afectará a los chats existentes.",
+    "languageTitle": "Idioma",
+    "languageNote": "Elige tu idioma preferido para la aplicación.",
+    "privacyTitle": "Privacidad",
+    "changePassword": "Cambiar contraseña de Chats Ocultos",
+    "resetHiddenChats": "Restablecer Chats Ocultos",
+    "noPasswordSet": "Haz clic derecho en un chat para ocultarlo y establecer una contraseña.",
+    "aboutTitle": "Acerca de KuikChat",
+    "adFree": "<strong>Experiencia Sin Anuncios:</strong> KuikChat se compromete a proporcionar una experiencia de mensajería sin anuncios.",
+    "dataPrivacy": "<strong>Tus Datos Son Tuyos:</strong> No vendemos tus datos personales a terceros. Tu privacidad es nuestra prioridad.",
+    "downloadTitle": "Descargar App",
+    "notifications": {
+        "title": "Notificaciones",
+        "notifyFor": "Notificar para",
+        "allMessages": "Todos los mensajes",
+        "filtered": "@menciones, respuestas y mensajes de contactos guardados"
+    },
+    "aboutPrivacy": "Visibilidad de Acerca de",
+    "editProfile": {
+      "title": "Editar Perfil",
+      "nameLabel": "Nombre",
+      "usernameLabel": "Nombre de usuario (no se puede cambiar)",
+      "changePhoto": "Cambiar Foto",
+      "aboutLabel": "Acerca de (Estado)",
+      "aboutPlaceholder": "Comparte un pensamiento... (máx. 60 caracteres)",
+      "durationLabel": "Desaparecer después de",
+      "colorLabel": "Color de Perfil",
+      "save": "Guardar Cambios",
+      "cancel": "Cancelar"
+    }
+  },
+  "eventCreator": {
+      "title": "Crear Evento",
+      "eventTitle": "Título del evento",
+      "description": "Descripción",
+      "date": "Fecha",
+      "time": "Hora",
+      "location": "Ubicación",
+      "send": "Enviar Evento",
+      "cancel": "Cancelar"
+  },
+  "scheduleMessage": {
+      "title": "Programar Mensaje",
+      "messageLabel": "Mensaje",
+      "dateLabel": "Fecha",
+      "timeLabel": "Hora",
+      "repeatLabel": "Repetir",
+      "repeatNone": "No se repite",
+      "repeatDaily": "Cada día",
+      "repeatWeekly": "Cada semana",
+      "repeatMonthly": "Cada mes",
+      "schedule": "Programar",
+      "cancel": "Cancelar"
+  },
+  "documentScanner": {
+      "title": "Escanear Documento",
+      "capture": "Capturar",
+      "retake": "Repetir",
+      "send": "Enviar",
+      "cancel": "Cancelar"
+  },
+  "status": {
+    "title": "Estados",
+    "myStatus": "Mi estado",
+    "addStatus": "Añadir a mi estado",
+    "recentUpdates": "Actualizaciones recientes",
+    "justNow": "Justo ahora",
+    "minutesAgo": "hace {minutes} minutos",
+    "hoursAgo": "hace {hours} horas"
+  },
+  "communities": {
+    "title": "Comunidades",
+    "myCommunities": "Mis comunidades",
+    "discover": "Descubrir",
+    "channels": "{count} canales",
+    "join": "Unirse"
+  },
+  "time": {
+    "seconds_5": "5 segundos",
+    "seconds_10": "10 segundos",
+    "minute_1": "1 minuto",
+    "off": "Desactivado",
+    "hours_24": "24 Horas",
+    "days_3": "3 Días",
+    "never": "Nunca"
+  },
+  "newChat": {
+    "title": "Nuevo Chat",
+    "newGroup": "Nuevo Grupo",
+    "newContact": "Nuevo Contacto"
+  },
+  "addContact": {
+    "title": "Añadir Contacto",
+    "myCode": "Mi Código",
+    "scanCode": "Escanear Código",
+    "scanMessage": "Tus amigos pueden escanear este código para añadirte en KuikChat."
+  },
+  "createGroup": {
+    "addParticipants": "Añadir Participantes",
+    "newGroup": "Nuevo Grupo",
+    "selected": "{count} de 999 seleccionados",
+    "searchPlaceholder": "Buscar contactos...",
+    "groupNamePlaceholder": "Nombre del grupo",
+    "participants": "{count} Participantes"
+  },
+  "messageActions": {
+    "reply": "Responder",
+    "delete": "Eliminar Mensaje",
+    "transcribe": "Transcribir audio",
+    "pin": "Fijar Mensaje",
+    "unpin": "Desfijar Mensaje"
+  },
+  "actions": {
+    "hideChat": "Ocultar Chat",
+    "unhideChat": "Mostrar Chat"
+  },
+  "hiddenChats": {
+    "title": "Chats Ocultos",
+    "unlockPrompt": "Introduce tu contraseña para ver los chats ocultos.",
+    "setPasswordPrompt": "Establece una contraseña para proteger tus chats ocultos.",
+    "changePasswordPrompt": "Introduce tu nueva contraseña.",
+    "resetWarning": "¿Estás seguro de que quieres restablecer? Esto mostrará todos tus chats y eliminará tu contraseña.",
+    "password": "Contraseña",
+    "confirm": "Confirmar",
+    "set": "Establecer Contraseña",
+    "unlock": "Desbloquear",
+    "change": "Cambiar",
+    "cancel": "Cancelar",
+    "wrongPassword": "Contraseña incorrecta. Inténtalo de nuevo."
+  },
+  "verificationModal": {
+    "title": "Verificar código de seguridad",
+    "description": "Para verificar que este chat está cifrado de extremo a extremo, escanea el código en el teléfono de {contactName} o compara el número a continuación.",
+    "cancel": "Cancelar",
+    "verify": "Verificar"
+  },
+  "app": {
+    "contactVerifiedAlert": "¡Contacto verificado!"
+  },
+  "groupInfo": {
+    "qrCodeTitle": "Código QR del Grupo",
+    "qrCodeDesc": "Escanear para unirse"
+  },
+  "themes": {
+    "title": "Tema del Chat",
+    "default": "Predeterminado",
+    "ocean": "Océano",
+    "sunset": "Atardecer",
+    "midnight": "Medianoche",
+    "love": "Amor",
+    "vanish": "Activar Modo Efímero"
+  }
+}

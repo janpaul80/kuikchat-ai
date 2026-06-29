@@ -1,0 +1,226 @@
+{
+  "sidebar": {
+    "chats": "Chats",
+    "status": "Status",
+    "communities": "Communities",
+    "settings": "Settings"
+  },
+  "contactList": {
+    "title": "Chats",
+    "newChat": "New chat",
+    "searchPlaceholder": "Search or start new chat"
+  },
+  "chatWindow": {
+    "welcomeTitle": "Welcome to KuikChat",
+    "welcomeMessage": "Select a chat to start messaging, or make crystal-clear, end-to-end encrypted voice and video calls.",
+    "encryptionNotice": "Your personal messages and calls are end-to-end encrypted.",
+    "dataCharges": "KuikChat uses your phone's internet connection (data or Wi-Fi). Data charges may apply.",
+    "typing": "typing...",
+    "online": "online",
+    "participants": "participants",
+    "viewGroupInfo": "View group info",
+    "startVoiceCall": "Start voice call",
+    "startVideoCall": "Start video call",
+    "searchMessages": "Search messages",
+    "openMediaGallery": "Open media gallery",
+    "searchPlaceholder": "Search...",
+    "noResults": "No results",
+    "of": "of",
+    "verifiedTooltip": "End-to-end encrypted. Contact verified.",
+    "unverifiedTooltip": "End-to-end encrypted. Click to verify.",
+    "encryptedTooltip": "End-to-end encrypted.",
+    "pinnedMessage": "Pinned Message",
+    "pinnedMessages": "{count} Pinned Messages",
+    "vanishModeOn": "Vanish Mode is ON",
+    "vanishModeOff": "Vanish Mode is OFF",
+    "vanishModeDescription": "Messages disappear when you turn off Vanish Mode.",
+    "turnOffVanishMode": "Turn off Vanish Mode",
+    "screenshotDetected": "📸 {user} took a screenshot!"
+  },
+  "chatInput": {
+    "placeholder": "Type a message...",
+    "placeholderDisabled": "Only admins can send messages",
+    "placeholderSending": "Sending...",
+    "placeholderRecording": "Recording...",
+    "placeholderAiAsk": "Ask AI anything...",
+    "placeholderAiArt": "Describe the art you want to create...",
+    "thinking": "Thinking...",
+    "creating": "Creating...",
+    "sendMessage": "Send message",
+    "replyingTo": "Replying to",
+    "cancelReply": "Cancel reply",
+    "videoNote": "Video Note",
+    "recordingVideoNote": "Recording Video Note...",
+    "scheduleMessage": "Schedule Message"
+  },
+  "settings": {
+    "title": "Settings",
+    "profileTitle": "Profile",
+    "username": "Username",
+    "editProfileBtn": "Edit",
+    "backupTitle": "Chat Backup",
+    "lastBackup": "Last backup:",
+    "noBackup": "No backup found",
+    "backupNow": "Backup Now",
+    "restore": "Restore from Backup",
+    "backupSuccess": "Chats backed up successfully!",
+    "backupFail": "Failed to backup chats. Local storage might be full.",
+    "restoreConfirm": "Are you sure you want to restore your chats? This will overwrite any current conversations.",
+    "restoreSuccess": "Chats restored successfully!",
+    "restoreFail": "Failed to restore chats. The backup data may be corrupted.",
+    "restoreNoBackup": "No backup found!",
+    "backupNote": "Backups are stored locally in your browser. Clearing your browser data will also remove your chat backup.",
+    "timerTitle": "Default Message Timer",
+    "timerNote": "Set a default timer for new chats. This will not affect existing chats.",
+    "languageTitle": "Language",
+    "languageNote": "Choose your preferred language for the application.",
+    "privacyTitle": "Privacy",
+    "changePassword": "Change Hidden Chats Password",
+    "resetHiddenChats": "Reset Hidden Chats",
+    "noPasswordSet": "Right-click on a chat to hide it and set a password.",
+    "aboutTitle": "About KuikChat",
+    "adFree": "<strong>Ad-Free Experience:</strong> KuikChat is committed to providing an ad-free messaging experience.",
+    "dataPrivacy": "<strong>Your Data is Yours:</strong> We do not sell your personal data to third parties. Your privacy is our priority.",
+    "downloadTitle": "Download App",
+    "notifications": {
+        "title": "Notifications",
+        "notifyFor": "Notify for",
+        "allMessages": "All messages",
+        "filtered": "@mentions, replies, and messages from saved contacts"
+    },
+    "aboutPrivacy": "About Visibility",
+    "editProfile": {
+      "title": "Edit Profile",
+      "nameLabel": "Name",
+      "usernameLabel": "Username (cannot be changed)",
+      "changePhoto": "Change Photo",
+      "aboutLabel": "About (Status)",
+      "aboutPlaceholder": "Share a thought... (60 chars max)",
+      "durationLabel": "Disappear after",
+      "colorLabel": "Profile Color",
+      "save": "Save Changes",
+      "cancel": "Cancel"
+    }
+  },
+  "eventCreator": {
+      "title": "Create Event",
+      "eventTitle": "Event Title",
+      "description": "Description",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "send": "Send Event",
+      "cancel": "Cancel"
+  },
+  "scheduleMessage": {
+      "title": "Schedule Message",
+      "messageLabel": "Message",
+      "dateLabel": "Date",
+      "timeLabel": "Time",
+      "repeatLabel": "Repeat",
+      "repeatNone": "Does not repeat",
+      "repeatDaily": "Every day",
+      "repeatWeekly": "Every week",
+      "repeatMonthly": "Every month",
+      "schedule": "Schedule",
+      "cancel": "Cancel"
+  },
+  "documentScanner": {
+      "title": "Scan Document",
+      "capture": "Capture",
+      "retake": "Retake",
+      "send": "Send",
+      "cancel": "Cancel"
+  },
+  "status": {
+    "title": "Status",
+    "myStatus": "My Status",
+    "addStatus": "Add to my status",
+    "recentUpdates": "Recent updates",
+    "justNow": "Just now",
+    "minutesAgo": "{minutes} minutes ago",
+    "hoursAgo": "{hours} hours ago"
+  },
+  "communities": {
+    "title": "Communities",
+    "myCommunities": "My Communities",
+    "discover": "Discover",
+    "channels": "{count} channels",
+    "join": "Join"
+  },
+  "time": {
+    "seconds_5": "5 seconds",
+    "seconds_10": "10 seconds",
+    "minute_1": "1 minute",
+    "off": "Off",
+    "hours_24": "24 Hours",
+    "days_3": "3 Days",
+    "never": "Never"
+  },
+  "newChat": {
+    "title": "New Chat",
+    "newGroup": "New Group",
+    "newContact": "New Contact"
+  },
+  "addContact": {
+    "title": "Add Contact",
+    "myCode": "My Code",
+    "scanCode": "Scan Code",
+    "scanMessage": "Your friends can scan this code to add you on KuikChat."
+  },
+  "createGroup": {
+    "addParticipants": "Add Participants",
+    "newGroup": "New Group",
+    "selected": "{count} of 999 selected",
+    "searchPlaceholder": "Search contacts...",
+    "groupNamePlaceholder": "Group name",
+    "participants": "{count} Participants"
+  },
+  "messageActions": {
+    "reply": "Reply",
+    "delete": "Delete Message",
+    "transcribe": "Transcribe Audio",
+    "pin": "Pin Message",
+    "unpin": "Unpin Message"
+  },
+  "actions": {
+    "hideChat": "Hide Chat",
+    "unhideChat": "Unhide Chat"
+  },
+  "hiddenChats": {
+    "title": "Hidden Chats",
+    "unlockPrompt": "Enter your password to view hidden chats.",
+    "setPasswordPrompt": "Set a password to protect your hidden chats.",
+    "changePasswordPrompt": "Enter your new password.",
+    "resetWarning": "Are you sure you want to reset? This will unhide all your chats and remove your password.",
+    "password": "Password",
+    "confirm": "Confirm",
+    "set": "Set Password",
+    "unlock": "Unlock",
+    "change": "Change",
+    "cancel": "Cancel",
+    "wrongPassword": "Wrong password. Please try again."
+  },
+  "verificationModal": {
+    "title": "Verify Security Code",
+    "description": "To verify this chat is end-to-end encrypted, scan the code below on {contactName}'s phone, or compare the number below.",
+    "cancel": "Cancel",
+    "verify": "Verify"
+  },
+  "app": {
+    "contactVerifiedAlert": "Contact has been verified!"
+  },
+  "groupInfo": {
+    "qrCodeTitle": "Group QR Code",
+    "qrCodeDesc": "Scan to join group"
+  },
+  "themes": {
+    "title": "Chat Theme",
+    "default": "Default",
+    "ocean": "Ocean",
+    "sunset": "Sunset",
+    "midnight": "Midnight",
+    "love": "Love",
+    "vanish": "Toggle Vanish Mode"
+  }
+}
