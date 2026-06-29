@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Sparkles, ArrowRight, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import heroVideo from "@/assets/hero.MP4";
 
 export const Hero = () => {
   return (
@@ -10,7 +9,7 @@ export const Hero = () => {
       {/* Video Background */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
-        src={heroVideo}
+        src="/hero.mp4"
         autoPlay
         muted
         loop
