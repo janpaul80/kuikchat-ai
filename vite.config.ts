@@ -20,6 +20,8 @@ export default defineConfig(({ mode }) => {
             'react',
             'react-dom',
             'react-dom/client',
+            'react/jsx-runtime',
+            'react/jsx-dev-runtime',
             '@google/genai',
             'framer-motion',
             'lucide-react'
