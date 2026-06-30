@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ShoppingBag,
   Megaphone,
@@ -14,13 +14,54 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PromoCard } from "./tools/PromoCard";
 import { ToolGroup, type ToolItem } from "./tools/ToolGroup";
-import { useProfile } from "@/hooks/useProfile";
 import { BusinessWizard } from "./tools/BusinessWizard";
-import { toast } from "sonner";
+import { ShareBusinessView } from "./tools/ShareBusinessView";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+interface BusinessIdentity {
+  company_name: string;
+  logo_url: string | null;
+}
 
 export const BusinessToolsHub = () => {
-  const { profile } = useProfile();
+  const { user } = useAuth();
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [showShareBusiness, setShowShareBusiness] = useState(false);
+  const [businessIdentity, setBusinessIdentity] = useState<BusinessIdentity | null>(null);
+  const businessName =
+    businessIdentity?.company_name ||
+    user?.user_metadata?.full_name ||
+    "Your Business";
+  const shareLink = user
+    ? `https://kuikchat.io/chat?business=${encodeURIComponent(user.id)}`
+    : "https://kuikchat.io/chat";
+
+  useEffect(() => {
+    if (!user || showProfileEdit) return;
+
+    let active = true;
+    const fetchBusinessIdentity = async () => {
+      const { data, error } = await supabase
+        .from("business_profiles")
+        .select("company_name, logo_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!active) return;
+      if (error) {
+        console.error("Error fetching business identity:", error);
+        return;
+      }
+
+      setBusinessIdentity(data);
+    };
+
+    fetchBusinessIdentity();
+    return () => {
+      active = false;
+    };
+  }, [showProfileEdit, user]);
 
   // WhatsApp Business "Grow" section = Catalog + Ads
   const growItems: ToolItem[] = [
@@ -99,6 +140,17 @@ export const BusinessToolsHub = () => {
     },
   ];
 
+  if (showShareBusiness) {
+    return (
+      <ShareBusinessView
+        businessName={businessName}
+        logoUrl={businessIdentity?.logo_url}
+        shareLink={shareLink}
+        onBack={() => setShowShareBusiness(false)}
+      />
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden">
       {/* Header — matches WhatsApp Business "Business" tab header */}
@@ -119,13 +171,10 @@ export const BusinessToolsHub = () => {
         <div className="pb-6">
           {/* Business profile promo card at top */}
           <PromoCard
-            businessName={profile?.display_name || "Paul-Hartmann GmbH"}
+            businessName={businessName}
             category="Business"
             onEditProfile={() => setShowProfileEdit(true)}
-            onShare={() => {
-              navigator.clipboard.writeText(window.location.origin + "/chat");
-              toast.success("Business profile link copied to clipboard!");
-            }}
+            onShare={() => setShowShareBusiness(true)}
           />
 
           {/* Tool groups — identical structure to WA Business Tools tab */}

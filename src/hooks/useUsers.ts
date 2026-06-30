@@ -3,10 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface UserProfile {
-  user_id: string;
+  id: string;
   display_name: string | null;
   avatar_url: string | null;
-  about: string | null;
+  bio: string | null;
 }
 
 export const useUsers = () => {
@@ -20,8 +20,8 @@ export const useUsers = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_id, display_name, avatar_url, about")
-        .neq("user_id", user.id);
+        .select("id, display_name, avatar_url, bio")
+        .neq("id", user.id);
 
       if (error) {
         console.error("Error fetching users:", error);

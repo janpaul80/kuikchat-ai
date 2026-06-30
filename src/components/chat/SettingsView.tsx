@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bell,
   Lock,
@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useProfile } from "@/hooks/useProfile";
 import { BusinessWizard } from "../business/tools/BusinessWizard";
 import { NotificationsSettings } from "./settings/NotificationsSettings";
 import { PrivacySettings } from "./settings/PrivacySettings";
@@ -29,6 +28,8 @@ import { HelpSettings } from "./settings/HelpSettings";
 import { AboutSettings } from "./settings/AboutSettings";
 import { SidebarView } from "./ChatSidebar";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 type SettingsPage = "main" | "notifications" | "privacy" | "appearance" | "help" | "about";
 
@@ -37,15 +38,47 @@ interface SettingsViewProps {
 }
 
 export const SettingsView = ({ onViewChange }: SettingsViewProps) => {
-  const { profile } = useProfile();
+  const { user } = useAuth();
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [currentPage, setCurrentPage] = useState<SettingsPage>("main");
+  const [businessProfile, setBusinessProfile] = useState<{
+    company_name: string;
+    logo_url: string | null;
+    description: string | null;
+  } | null>(null);
+  const displayName =
+    businessProfile?.company_name ||
+    user?.user_metadata?.full_name ||
+    "Your Business";
+
+  useEffect(() => {
+    if (!user || showProfileEdit) return;
+
+    let active = true;
+    const fetchBusinessProfile = async () => {
+      const { data, error } = await supabase
+        .from("business_profiles")
+        .select("company_name, logo_url, description")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!active) return;
+      if (error) {
+        console.error("Error fetching settings business profile:", error);
+        return;
+      }
+
+      setBusinessProfile(data);
+    };
+
+    fetchBusinessProfile();
+    return () => {
+      active = false;
+    };
+  }, [showProfileEdit, user]);
 
   const getInitials = () => {
-    if (profile?.display_name) {
-      return profile.display_name.slice(0, 2).toUpperCase();
-    }
-    return "PH";
+    return displayName.slice(0, 2).toUpperCase();
   };
 
   const handleBack = () => setCurrentPage("main");
@@ -186,25 +219,25 @@ export const SettingsView = ({ onViewChange }: SettingsViewProps) => {
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-5 pb-8">
-          {/* Profile Card — matches Paul-Hartmann GmbH style */}
+          {/* Signed-in business profile card */}
           <div
             className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border/50 hover:bg-muted/30 cursor-pointer transition-all duration-300"
             onClick={() => setShowProfileEdit(true)}
           >
             <Avatar className="w-16 h-16 border-2 border-primary/20">
-              <AvatarImage src={profile?.avatar_url || undefined} />
+              <AvatarImage src={businessProfile?.logo_url || undefined} />
               <AvatarFallback className="brand-gradient text-primary-foreground text-xl font-semibold">
                 {getInitials()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-bold text-foreground truncate">
-                {profile?.display_name || "Paul-Hartmann GmbH"}
+                {displayName}
               </h3>
               <div className="flex items-center gap-1.5 mt-0.5 text-emerald-500">
                 <Smile className="w-4 h-4 shrink-0" />
                 <p className="text-xs font-medium truncate">
-                  {profile?.about || "Who's your team today?"}
+                  {businessProfile?.description || "Business account"}
                 </p>
               </div>
             </div>

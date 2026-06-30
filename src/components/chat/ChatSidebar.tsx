@@ -12,6 +12,7 @@ import {
   LogOut,
   Lock,
   Store,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,11 +24,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/kuikchat-logo.png";
 
-export type SidebarView = "Chats" | "Status" | "Communities" | "Vanish Mode" | "Settings" | "Hidden" | "Business";
+export type SidebarView = "Chats" | "Status" | "Calls" | "Communities" | "Vanish Mode" | "Settings" | "Hidden" | "Business";
 
 const navItems: { icon: typeof MessageCircle; label: SidebarView }[] = [
   { icon: MessageCircle, label: "Chats" },
   { icon: CircleDot, label: "Status" },
+  { icon: Phone, label: "Calls" },
   { icon: Users, label: "Communities" },
   { icon: Store, label: "Business" },
   { icon: EyeOff, label: "Vanish Mode" },
@@ -193,10 +195,10 @@ export const ChatSidebar = ({ activeView, onViewChange }: ChatSidebarProps) => {
 // Mobile Bottom Navigation
 export const MobileBottomNav = ({ activeView, onViewChange }: ChatSidebarProps) => {
   const mobileNavItems = [
-    { icon: MessageCircle, label: "Chats" as SidebarView },
     { icon: CircleDot, label: "Status" as SidebarView },
+    { icon: Phone, label: "Calls" as SidebarView },
     { icon: Store, label: "Business" as SidebarView },
-    { icon: Lock, label: "Hidden" as SidebarView },
+    { icon: MessageCircle, label: "Chats" as SidebarView },
     { icon: Settings, label: "Settings" as SidebarView },
   ];
 
@@ -208,8 +210,10 @@ export const MobileBottomNav = ({ activeView, onViewChange }: ChatSidebarProps) 
             key={item.label}
             whileTap={{ scale: 0.9 }}
             onClick={() => onViewChange(item.label)}
+            aria-current={activeView === item.label ? "page" : undefined}
+            aria-label={item.label === "Status" ? "Updates" : item.label === "Business" ? "Tools" : item.label}
             className={`relative flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeView === item.label
-                ? "text-primary"
+                ? "text-white shadow-lg shadow-emerald-500/20"
                 : "text-muted-foreground"
               }`}
           >
@@ -217,16 +221,16 @@ export const MobileBottomNav = ({ activeView, onViewChange }: ChatSidebarProps) 
             {activeView === item.label && (
               <motion.div
                 layoutId="mobileNavGlow"
-                className="absolute inset-0 rounded-xl brand-gradient opacity-20"
+                className="absolute inset-0 rounded-xl brand-gradient opacity-100"
                 initial={false}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             )}
-            <item.icon className={`w-5 h-5 relative z-10 ${activeView === item.label ? "text-primary" : ""
+            <item.icon className={`w-5 h-5 relative z-10 ${activeView === item.label ? "text-white" : ""
               }`} />
-            <span className={`text-xs relative z-10 ${activeView === item.label ? "font-medium" : ""
+            <span className={`text-xs relative z-10 ${activeView === item.label ? "font-semibold text-white" : ""
               }`}>
-              {item.label === "Hidden" ? "Vault" : item.label === "Business" ? "Tools" : item.label}
+              {item.label === "Status" ? "Updates" : item.label === "Business" ? "Tools" : item.label}
             </span>
           </motion.button>
         ))}

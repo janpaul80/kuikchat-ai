@@ -8,6 +8,7 @@ import { VanishModeView } from "@/components/chat/VanishModeView";
 import { SettingsView } from "@/components/chat/SettingsView";
 import { HiddenChatsVault } from "@/components/chat/HiddenChatsVault";
 import { BusinessToolsHub } from "@/components/business/BusinessToolsHub";
+import { CallsView } from "@/components/chat/CallsView";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useUsers } from "@/hooks/useUsers";
 import logo from "@/assets/kuikchat-logo.png";
@@ -24,8 +25,8 @@ const Chat = () => {
 
   // Convert real users to contacts format
   const contacts: ChatContact[] = users.map((u) => ({
-    id: u.user_id,
-    user_id: u.user_id,
+    id: u.id,
+    user_id: u.id,
     name: u.display_name || "Unknown User",
     avatar: (u.display_name || "U").slice(0, 2).toUpperCase(),
     avatar_url: u.avatar_url,
@@ -33,7 +34,7 @@ const Chat = () => {
     time: "",
     unread: 0,
     online: false,
-    about: u.about || "Hey there! I'm using KuikChat",
+    about: u.bio || "Hey there! I'm using KuikChat",
   }));
 
   const handleSelectContact = (contact: ChatContact) => {
@@ -45,6 +46,8 @@ const Chat = () => {
     switch (activeView) {
       case "Status":
         return <StatusView />;
+      case "Calls":
+        return <CallsView onStartCall={() => setActiveView("Chats")} />;
       case "Communities":
         return <CommunitiesView />;
       case "Vanish Mode":

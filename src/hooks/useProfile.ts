@@ -5,10 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface Profile {
   id: string;
-  user_id: string;
   display_name: string | null;
   avatar_url: string | null;
-  about: string | null;
+  bio: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,7 +28,7 @@ export const useProfile = () => {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .maybeSingle();
 
     if (error) {
@@ -40,13 +39,13 @@ export const useProfile = () => {
     setLoading(false);
   }, [user]);
 
-  const updateProfile = async (updates: Partial<Pick<Profile, "display_name" | "about">>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, "display_name" | "bio">>) => {
     if (!user) return null;
 
     const { data, error } = await supabase
       .from("profiles")
       .update(updates)
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .select()
       .single();
 
@@ -98,7 +97,7 @@ export const useProfile = () => {
     const { data, error } = await supabase
       .from("profiles")
       .update({ avatar_url: avatarUrl })
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .select()
       .single();
 

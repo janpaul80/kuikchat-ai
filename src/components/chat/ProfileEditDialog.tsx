@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -21,22 +21,22 @@ interface ProfileEditDialogProps {
 export const ProfileEditDialog = ({ open, onOpenChange }: ProfileEditDialogProps) => {
   const { profile, updateProfile, uploadAvatar } = useProfile();
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
-  const [about, setAbout] = useState(profile?.about || "");
+  const [about, setAbout] = useState(profile?.bio || "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Update local state when profile changes
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
-      setAbout(profile.about || "");
+      setAbout(profile.bio || "");
     }
-  });
+  }, [profile]);
 
   const handleSave = async () => {
     setSaving(true);
-    await updateProfile({ display_name: displayName, about });
+    await updateProfile({ display_name: displayName, bio: about });
     setSaving(false);
     onOpenChange(false);
   };

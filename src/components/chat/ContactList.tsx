@@ -35,14 +35,14 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
   // Filter users that are not already in contacts
   const contactUserIds = contacts.map(c => c.user_id);
   const availableUsers = allUsers.filter(
-    user => !contactUserIds.includes(user.user_id) &&
+    user => !contactUserIds.includes(user.id) &&
     user.display_name?.toLowerCase().includes(newChatSearch.toLowerCase())
   );
 
   const handleStartChat = (user: UserProfile) => {
     const newContact: ChatContact = {
-      id: user.user_id,
-      user_id: user.user_id,
+      id: user.id,
+      user_id: user.id,
       name: user.display_name || "Unknown",
       avatar: (user.display_name || "U").charAt(0).toUpperCase(),
       avatar_url: user.avatar_url,
@@ -50,7 +50,7 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
       time: "Now",
       unread: 0,
       online: false,
-      about: user.about || "Hey there! I'm using KuikChat",
+      about: user.bio || "Hey there! I'm using KuikChat",
     };
     onSelectContact(newContact);
     setNewChatOpen(false);
@@ -106,7 +106,7 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
                     ) : (
                       availableUsers.map((user) => (
                         <motion.button
-                          key={user.user_id}
+                          key={user.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           onClick={() => handleStartChat(user)}
@@ -120,7 +120,7 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{user.display_name || "Unknown"}</p>
-                            <p className="text-sm text-muted-foreground truncate">{user.about}</p>
+                            <p className="text-sm text-muted-foreground truncate">{user.bio}</p>
                           </div>
                         </motion.button>
                       ))

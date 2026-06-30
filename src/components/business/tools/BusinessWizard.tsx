@@ -225,15 +225,17 @@ export const BusinessWizard = ({ open, onOpenChange }: BusinessWizardProps) => {
 
       if (upsertError) throw upsertError;
 
-      // 2. Also sync to profiles main display_name and about for consistency
-      await supabase
+      // 2. Also sync to the canonical user profile for consistency
+      const { error: profileSyncError } = await supabase
         .from("profiles")
         .update({
           display_name: companyName,
-          about: description,
+          bio: description,
           avatar_url: avatarUrl,
         })
-        .eq("user_id", user.id);
+        .eq("id", user.id);
+
+      if (profileSyncError) throw profileSyncError;
 
       toast.success("Business profile saved successfully!");
       refetchUserProfile();
@@ -308,7 +310,7 @@ export const BusinessWizard = ({ open, onOpenChange }: BusinessWizardProps) => {
                 id="companyName"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Enter your business name (e.g. Paul-Hartmann GmbH)"
+                placeholder="Enter your business name"
                 className="bg-[#1f2c34] border-white/10 text-white rounded-xl focus:border-emerald-500 focus:ring-emerald-500/20"
               />
             </div>
