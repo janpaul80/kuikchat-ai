@@ -97,7 +97,7 @@ const Chat = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-background overflow-hidden">
+      <div className="business-dark dark flex h-screen w-full bg-background text-foreground overflow-hidden">
         {/* Desktop Sidebar */}
         <ChatSidebar activeView={activeView} onViewChange={setActiveView} />
 

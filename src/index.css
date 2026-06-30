@@ -99,6 +99,34 @@
     --sidebar-border: 217 33% 17%;
     --sidebar-ring: 217 91% 60%;
   }
+
+  /* Authenticated app palette aligned with the Business Profile wizard. */
+  .business-dark {
+    color-scheme: dark;
+    --background: 202 32% 10%;
+    --foreground: 200 16% 93%;
+
+    --card: 203 25% 16%;
+    --card-foreground: 200 16% 93%;
+
+    --popover: 203 25% 16%;
+    --popover-foreground: 200 16% 93%;
+
+    --muted: 202 22% 21%;
+    --muted-foreground: 203 12% 58%;
+
+    --accent: 202 22% 21%;
+    --accent-foreground: 200 16% 93%;
+
+    --border: 202 22% 21%;
+    --input: 202 22% 21%;
+
+    --sidebar-background: 202 32% 10%;
+    --sidebar-foreground: 200 16% 93%;
+    --sidebar-accent: 203 25% 16%;
+    --sidebar-accent-foreground: 200 16% 93%;
+    --sidebar-border: 202 22% 21%;
+  }
 }
 
 @layer base {

@@ -92,7 +92,7 @@ export const ChatSidebar = ({ activeView, onViewChange }: ChatSidebarProps) => {
   };
 
   return (
-    <div className="hidden md:flex w-16 lg:w-20 h-full bg-muted/30 border-r border-border flex-col items-center py-4">
+    <div className="hidden md:flex w-16 lg:w-20 h-full bg-card border-r border-border flex-col items-center py-4">
       {/* Logo */}
       <motion.div
         whileHover={{ scale: 1.05 }}
@@ -201,7 +201,7 @@ export const MobileBottomNav = ({ activeView, onViewChange }: ChatSidebarProps) 
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#202c46]/95 backdrop-blur-lg border-t border-border z-50">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-50">
       <nav className="flex items-center justify-around py-2 px-4 safe-area-inset-bottom">
         {mobileNavItems.map((item) => (
           <motion.button
