@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/kuikchat-logo.png";
 
 const navLinks = [
+  { name: "Integrations", href: "/#integrations" },
   { name: "Features", href: "/features" },
   { name: "Privacy", href: "/privacy-policy" },
   { name: "Apps", href: "/download" },
