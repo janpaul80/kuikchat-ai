@@ -41,16 +41,16 @@ export class ProviderRequestError extends Error {
 
 function normalizeUsage(response: ProviderResponse): TokenUsage {
   return {
-    input: Number.isInteger(response.usage?.prompt_tokens)
-      ? response.usage?.prompt_tokens ?? null
+    input: typeof response.usage?.prompt_tokens === "number"
+      ? response.usage.prompt_tokens
       : null,
-    output: Number.isInteger(response.usage?.completion_tokens)
-      ? response.usage?.completion_tokens ?? null
+    output: typeof response.usage?.completion_tokens === "number"
+      ? response.usage.completion_tokens
       : null,
   };
 }
 
-async function requestProvider(
+export async function requestProvider(
   provider: ProviderConfig,
   messages: ChatMessage[],
   maxOutputTokens: number,
@@ -89,7 +89,12 @@ async function requestProvider(
     });
 
     if (!response.ok) {
-      throw new ProviderRequestError(provider.name, `HTTP_${response.status}`);
+      let code = "PROVIDER_ERROR";
+      if (response.status === 401 || response.status === 403) code = "PROVIDER_AUTH_ERROR";
+      else if (response.status === 429) code = "PROVIDER_RATE_LIMITED";
+      else if (response.status >= 500) code = "PROVIDER_UNAVAILABLE";
+      
+      throw new ProviderRequestError(provider.name, code);
     }
 
     const payload = (await response.json()) as ProviderResponse;
@@ -134,20 +139,33 @@ export async function runWithFailover(
       );
       return { ...result, fallbackUsed: false, fallbackReason: null };
     } catch (error) {
-      fallbackReason = error instanceof ProviderRequestError
-        ? error.code
-        : "LANGDOCK_ERROR";
+      if (error instanceof ProviderRequestError) {
+        const criticalErrors = ["PROVIDER_AUTH_ERROR", "EMPTY_RESPONSE"];
+        if (criticalErrors.includes(error.code)) {
+          throw error; 
+        }
+        fallbackReason = error.code;
+      } else {
+        fallbackReason = "LANGDOCK_UNKNOWN_ERROR";
+      }
     }
   } else {
     fallbackReason = "LANGDOCK_DISABLED";
   }
 
-  const result = await requestProvider(
-    config.openrouter,
-    messages,
-    config.maxOutputTokens,
-    config.timeoutMs,
-    fetcher,
-  );
-  return { ...result, fallbackUsed: true, fallbackReason };
+  try {
+    const result = await requestProvider(
+      config.openrouter,
+      messages,
+      config.maxOutputTokens,
+      config.timeoutMs,
+      fetcher,
+    );
+    return { ...result, fallbackUsed: true, fallbackReason };
+  } catch (error) {
+    if (error instanceof ProviderRequestError) {
+      throw error; 
+    }
+    throw error;
+  }
 }
