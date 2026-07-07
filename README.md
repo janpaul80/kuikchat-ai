@@ -1,46 +1,67 @@
-# Welcome to KuikChat
+# KuikChat AI
 
+KuikChat AI is a chat app prototype with AI features, auth, public pages, and Supabase functions. I built it to explore what a clean chat product could look like with login, protected chat, help pages, legal pages, and AI tools behind it.
 
+Live site: [kuikchat-ai.vercel.app](https://kuikchat-ai.vercel.app)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## What it does
 
-Follow these steps:
+- Public landing, pricing, feature, security, help, status, and legal pages
+- Supabase login and protected chat route
+- Chat UI built with reusable shadcn/ui components
+- Supabase functions for AI chat, image generation, translation, and voice transcription
+- PWA assets and Vercel config
+- Supabase migrations for app data
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Tech stack
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- Vite, React, TypeScript
+- Tailwind CSS, shadcn/ui, Radix UI
+- Supabase client, migrations, and functions
+- TanStack Query
+- Framer Motion and Lucide React
+- Vercel
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Run it locally
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+git clone https://github.com/janpaul80/kuikchat-ai.git
+cd kuikchat-ai
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Open the local URL printed by Vite.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Environment
 
-**Use GitHub Codespaces**
+Create a local `.env` file:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-## What technologies are used for this project?
+Put service role keys and provider secrets in Supabase or Vercel secrets. Do not expose them in browser variables.
 
-This project is built with:
+## Useful scripts
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+npm run dev        # Start Vite
+npm run build      # Build the app
+npm run build:dev  # Build in development mode
+npm run lint       # Run ESLint
+npm run preview    # Preview the build
+```
 
+## Notes
+
+- `src/pages/` has the app routes and public pages.
+- `src/components/` has UI, auth, layout, and landing components.
+- `src/contexts/` has auth state.
+- `src/integrations/supabase/` has the Supabase client and types.
+- `supabase/functions/` has AI, translation, and voice endpoints.
+
+## Status
+
+Prototype. It is a useful base for a polished chat product, but production use needs real provider secrets, Supabase policy review, and deployment checks.
