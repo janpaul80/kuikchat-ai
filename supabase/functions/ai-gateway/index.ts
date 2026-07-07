@@ -77,6 +77,7 @@ serve(async (req) => {
     const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
     const { data: { user }, error: authError } = await authClient.auth.getUser(token);
     if (authError || !user) {
+      console.error("[AUTH-FAILURE]", authError);
       return jsonResponse(req, { error: { code: "UNAUTHORIZED", message: "Invalid session." } }, 401);
     }
     userId = user.id;
