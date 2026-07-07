@@ -1,4 +1,4 @@
-export type ChatRole = "user" | "assistant";
+export type ChatRole = "user" | "assistant" | "system";
 
 export interface ChatMessage {
   role: ChatRole;
@@ -7,7 +7,11 @@ export interface ChatMessage {
 
 export interface GatewayRequest {
   operation: "chat";
+  conversation_id?: string;
   messages: ChatMessage[];
+  metadata?: {
+    language?: string;
+  };
 }
 
 export interface TokenUsage {
