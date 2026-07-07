@@ -73,8 +73,9 @@ serve(async (req) => {
       return jsonResponse(req, { error: { code: "UNAUTHORIZED", message: "Auth required." } }, 401);
     }
 
+    const token = authHeader.substring(7);
     const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
-    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    const { data: { user }, error: authError } = await authClient.auth.getUser(token);
     if (authError || !user) {
       return jsonResponse(req, { error: { code: "UNAUTHORIZED", message: "Invalid session." } }, 401);
     }
