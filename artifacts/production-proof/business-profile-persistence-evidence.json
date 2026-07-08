@@ -1,0 +1,34 @@
+{
+  "capturedAt": "2026-06-30T14:04:17.164Z",
+  "productionUrl": "https://kuikchat.io/chat",
+  "supabaseProjectRef": "fkvikwkmrlyhpjtaydln",
+  "testUserId": "98a3182b-5637-491f-8294-3092d411e2c1",
+  "createdName": "KuikChat QA 1782828117646",
+  "editedName": "KuikChat QA 1782828117646 Edited",
+  "reloadedName": "KuikChat QA 1782828117646 Edited",
+  "uiEditPersisted": true,
+  "dbStatus": 200,
+  "dbRows": [
+    {
+      "user_id": "98a3182b-5637-491f-8294-3092d411e2c1",
+      "company_name": "KuikChat QA 1782828117646 Edited",
+      "categories": [
+        "Local service"
+      ],
+      "description": "Live KuikChat persistence verification profile.",
+      "website": "https://example.com",
+      "email": "kcqaab1044f5@example.com",
+      "phone": "+1 555 010 2026",
+      "address": "100 Production Way, Chicago",
+      "updated_at": "2026-06-30T14:02:08.555384+00:00"
+    }
+  ],
+  "businessProfileNetwork": [
+    {
+      "url": "https://fkvikwkmrlyhpjtaydln.supabase.co/rest/v1/business_profiles",
+      "method": "GET",
+      "status": 200
+    }
+  ],
+  "knownDefect": "profiles.user_id queries return 42703/400 because the live profiles table lacks that column"
+}

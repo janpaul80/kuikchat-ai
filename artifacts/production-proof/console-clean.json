@@ -1,0 +1,31 @@
+{
+  "url": "https://kuikchat.io/",
+  "capturedAt": "2026-06-30T13:55:11.698Z",
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failedRequests": [
+    {
+      "url": "https://kuikchat.io/iiVLVjTEpbOc-ZK_2ou4AdLuNY_WjMEYLtZ50WtgB92CG1luvudOhF3s7rZ2rJxeo_NWOcEZyV_Mp04lDxb284idTxphvBxDaXoUaZWZL6SZNz_xCLqDMgdxMwamSZq_jB30WAydJMD3ot1px8DVvR3D6q1sWkLUZv2zKQNKqYwPJQ8s2eJpZ_83jfqZU91FdwCCEYAHFTKUuIf_rzhgg-SytNAkV2A_QxJ1e5PZQnjRnxlKGHLuZhZNAW-tkIfXLMu2uQbuI5f0YYAE-0eerEartugHTDx6L_rKLw9pb7gH1hXTbRDnUbgHJ99gVR9UXG-TPmqHz07BhtM57zX649Ti6cHjUctVFiqMQNzASo7KuQWyABkB__tWeSFGbi2ugjQEiXE6EoKA_ywLIi40wh9W6qgIuV8nirdwM1SkuKwjNXUGYst9ziqSS4nHE04",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://kuikchat.io/hero.mp4",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "missingSupabaseError": false,
+  "state": {
+    "title": "KuikChat - AI-Powered Communication Platform | Privacy-First Messaging",
+    "bodyText": "KuikChat\nFeatures\nPrivacy\nApps\nAbout\nSign In\nGet Started\nNow with Hermes AI built-in.\nChat smarter,\nwork faster.\n\nKuikChat is a real-time messaging platform: AI-powered assistants, secure file tools, and interactive cards are all built right in. Use it on the web, your desktop, or your mobile device.\n\nStart for free\nDownload the app\nPowerful Features\nEverything You Need, Nothing You Don't\n\nFrom AI-powered conversations to ironclad security, KuikChat has it all.\n\nAsk AI\n\nInline assistant for real-time answers, coding help, and creative brainstorming.\n\nAI Art Studio\n\nGenerate stunning images from text prompts directly in your conversations.\n\nMultimodal Live Call\n\nReal-time voice/video with AI that sees and hears, powered by cutting-edge models.\n\nSmart Translation\n\nOne-tap translation supporting English, Spanish, German, French, Hindi, and Chinese.\n\nVanish Mode\n\nDark UI with messages that disappear after being read. Complete privacy.\n\nScreenshot Alerts\n\nReal-time notifications whenever so",
+    "rootChildren": 3,
+    "bodyBackground": "rgb(0, 0, 0)",
+    "video": {
+      "src": "https://kuikchat.io/hero.mp4",
+      "muted": true,
+      "loop": true,
+      "playsInline": true,
+      "paused": true,
+      "readyState": 0
+    }
+  }
+}

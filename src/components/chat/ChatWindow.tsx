@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, 
@@ -19,7 +19,6 @@ import {
   Loader2,
   Scan,
   QrCode,
-  Clock,
   Timer,
   Palette,
   Bot,
@@ -37,16 +36,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMessages } from "@/hooks/useMessages";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTranslation, SupportedLanguage, languageLabels } from "@/hooks/useTranslation";
+import { useTranslation, SupportedLanguage } from "@/hooks/useTranslation";
 import { VoiceRecorder, VoiceNotePlayer } from "./VoiceRecorder";
 import { WallpaperPicker } from "./WallpaperPicker";
 import { VideoCallModal } from "./VideoCallModal";
-import { EventCreator, EventCard, CalendarEvent } from "./EventCreator";
+import { EventCreator, CalendarEvent } from "./EventCreator";
 import { DocumentScanner } from "./DocumentScanner";
 import { QRCodeScanner } from "./QRCodeScanner";
 import { VerifiedBadge, VerificationType } from "./VerifiedBadge";
 import { EncryptionBanner, EncryptionIndicator } from "./EncryptionBanner";
-import { DisappearingMessagesSettings, DisappearingDuration, DisappearingMessageIndicator } from "./DisappearingMessagesSettings";
+import { DisappearingMessagesSettings, DisappearingDuration } from "./DisappearingMessagesSettings";
 import { ScreenshotAlert } from "./ScreenshotAlert";
 import { MessageContextMenu } from "./MessageContextMenu";
 import { ScheduleMessageDialog, RepeatType } from "./ScheduleMessageDialog";
@@ -56,6 +55,7 @@ import { AIArtStudio } from "./AIArtStudio";
 import { MultimodalAICall } from "./MultimodalAICall";
 import { useToast } from "@/hooks/use-toast";
 import { EmojiPicker } from "./EmojiPicker";
+import { cn } from "@/lib/utils";
 
 export interface ChatContact {
   id: string;
@@ -93,27 +93,27 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
   const [messageText, setMessageText] = useState("");
   const [showAttachments, setShowAttachments] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
-  const [translatedMessages, setTranslatedMessages] = useState<Record<string, string>>({});
+  const [translatedMessages, setTranslatedMessages] = useState<<RecordRecord<<stringstring, string>>({});
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [isVideoCall, setIsVideoCall] = useState(true);
   const [showEventCreator, setShowEventCreator] = useState(false);
   const [showDocScanner, setShowDocScanner] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [disappearingDuration, setDisappearingDuration] = useState<DisappearingDuration>("off");
+  const [events, setEvents] = useState<<CalendarCalendarEvent[]>([]);
+  const [disappearingDuration, setDisappearingDuration] = useState<<DisDisappearingDuration>("off");
   const [showEncryptionBanner, setShowEncryptionBanner] = useState(true);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ id: string; content: string; sender: string } | null>(null);
   const [showAskAI, setShowAskAI] = useState(false);
   const [showAIArt, setShowAIArt] = useState(false);
   const [showAICall, setShowAICall] = useState(false);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [voiceNotes, setVoiceNotes] = useState<Record<string, { url: string; duration: number }>>({}); 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [longPressTimer, setLongPressTimer] = useState<<NodeNodeJS.Timeout | null>(null);
+  const [voiceNotes, setVoiceNotes] = useState<<RecordRecord<<stringstring, { url: string; duration: number }>({}); 
+  const messagesEndRef = useRef<<HTMLHTMLDivElement>(null);
+  const messageRefs = useRef<<RecordRecord<<stringstring, HTMLDivElement | null>>({});
   const { user } = useAuth();
   const { messages, sendMessage, markAsRead } = useMessages(contact.user_id);
-  const { translateText, isTranslating } = useTranslation();
+  const { translateText } = useTranslation();
   const { toast } = useToast();
 
   const scrollToBottom = () => {
@@ -130,7 +130,6 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
 
   const handleSend = async () => {
     if (!messageText.trim()) return;
-
     await sendMessage(messageText);
     setMessageText("");
     setShowAttachments(false);
@@ -141,13 +140,11 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
     const audioUrl = URL.createObjectURL(audioBlob);
     const voiceId = `voice-${Date.now()}`;
     
-    // Store the audio URL for playback
     setVoiceNotes(prev => ({
       ...prev,
       [voiceId]: { url: audioUrl, duration }
     }));
     
-    // Send message with voice marker
     await sendMessage(`[VOICE:${voiceId}:${duration}]`);
   };
 
@@ -158,13 +155,13 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
     }
   };
 
-  const handleVoiceCall = () => {
-    setIsVideoCall(false);
+  const handleVideoCall = () => {
+    setIsVideoCall(true);
     setShowVideoCall(true);
   };
 
-  const handleVideoCall = () => {
-    setIsVideoCall(true);
+  const handleVoiceCall = () => {
+    setIsVideoCall(false);
     setShowVideoCall(true);
   };
 
@@ -181,7 +178,6 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
     setShowAttachments(false);
     switch (action) {
       case "photo":
-        // Open file picker for photos and videos
         const photoInput = document.createElement('input');
         photoInput.type = 'file';
         photoInput.accept = 'image/*,video/*';
@@ -202,36 +198,21 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
         photoInput.click();
         break;
       case "location":
-        // Get user's current location
         if ('geolocation' in navigator) {
-          toast({
-            title: "Getting location...",
-            description: "Please allow location access",
-          });
+          toast({ title: "Getting location...", description: "Please allow location access" });
           navigator.geolocation.getCurrentPosition(
             async (position) => {
               const { latitude, longitude } = position.coords;
               const locationUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
               await sendMessage(`📍 Location: ${locationUrl}`);
-              toast({
-                title: "Location shared",
-                description: "Your location has been sent",
-              });
+              toast({ title: "Location shared", description: "Your location has been sent" });
             },
             (error) => {
-              toast({
-                title: "Location error",
-                description: "Could not get your location. Please enable location services.",
-                variant: "destructive",
-              });
+              toast({ title: "Location error", description: "Could not get your location. Please enable location services.", variant: "destructive" });
             }
           );
         } else {
-          toast({
-            title: "Not supported",
-            description: "Location is not supported in your browser",
-            variant: "destructive",
-          });
+          toast({ title: "Not supported", description: "Location is not supported in your browser", variant: "destructive" });
         }
         break;
       case "event":
@@ -262,15 +243,6 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
     if (msg) {
       const senderName = msg.sender_id === user?.id ? "You" : contact.name;
       setReplyingTo({ id: messageId, content: msg.content, sender: senderName });
-    }
-  };
-
-  const scrollToMessage = (messageId: string) => {
-    const element = messageRefs.current[messageId];
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-      element.classList.add("ring-2", "ring-primary");
-      setTimeout(() => element.classList.remove("ring-2", "ring-primary"), 2000);
     }
   };
 
@@ -310,9 +282,7 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
   };
 
   const getWallpaperStyle = () => {
-    if (!wallpaper || wallpaper === "transparent") {
-      return {};
-    }
+    if (!wallpaper || wallpaper === "transparent") return {};
     if (wallpaper.startsWith("http") || wallpaper.startsWith("data:")) {
       return {
         backgroundImage: `url(${wallpaper})`,
@@ -324,95 +294,76 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-muted/20 to-background">
+    <<divdiv className="flex flex-col h-full bg-gradient-to-b from-muted/20 to-background">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-card/80 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={onBack}
-          >
-            <ArrowLeft className="w-5 h-5" />
+      <<divdiv className="flex items-center justify-between p-4 border-b border-border bg-card/80 backdrop-blur-sm">
+        <<divdiv className="flex items-center gap-3">
+          <<ButtonButton variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
+            <<ArrowArrowLeft className="w-5 h-5" />
           </Button>
-
-          <div className="relative">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-primary-foreground font-semibold ${
+          <<divdiv className="relative">
+            <<divdiv className={`w-10 h-10 rounded-full flex items-center justify-center text-primary-foreground font-semibold ${
               contact.id === "ai" ? "brand-gradient" : "bg-muted-foreground/20 text-foreground"
             }`}>
               {contact.avatar_url ? (
-                <img src={contact.avatar_url} alt={contact.name} className="w-full h-full rounded-full object-cover" />
+                <<imgimg src={contact.avatar_url} alt={contact.name} className="w-full h-full rounded-full object-cover" />
               ) : (
                 contact.avatar
               )}
             </div>
             {contact.online && (
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-secondary rounded-full border-2 border-card" />
+              <<divdiv className="absolute bottom-0 right-0 w-3 h-3 bg-secondary rounded-full border-2 border-card" />
             )}
           </div>
-
-          <div>
-            <div className="flex items-center gap-1">
-              <h2 className="font-semibold">{contact.name}</h2>
-              {contact.verified && <VerifiedBadge type={contact.verified} size="sm" />}
+          <<divdiv>
+            <<divdiv className="flex items-center gap-1">
+              <<hh2 className="font-semibold">{contact.name}</h2>
+              {contact.verified && <<VerifiedVerifiedBadge type={contact.verified} size="sm" />}
             </div>
-            <div className="flex items-center gap-2">
-              <p className="text-xs text-muted-foreground">
+            <<divdiv className="flex items-center gap-2">
+              <<pp className="text-xs text-muted-foreground">
                 {contact.online ? "Online" : "Last seen recently"}
               </p>
-              <EncryptionIndicator />
+              <<EncryptionEncryptionIndicator />
               {disappearingDuration !== "off" && (
-                <DisappearingMessageIndicator duration={disappearingDuration} />
+                <<DisDisappearingMessageIndicator duration={disappearingDuration} />
               )}
             </div>
           </div>
         </div>
-
-        <div className="flex items-center gap-1">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full"
-            onClick={handleVoiceCall}
-          >
-            <Phone className="w-5 h-5" />
+        <<divdiv className="flex items-center gap-1">
+          <<ButtonButton variant="ghost" size="icon" className="rounded-full" onClick={handleVoiceCall}>
+            <<PhonePhone className="w-5 h-5" />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full"
-            onClick={handleVideoCall}
-          >
-            <Video className="w-5 h-5" />
+          <<ButtonButton variant="ghost" size="icon" className="rounded-full" onClick={handleVideoCall}>
+            <<VideoVideo className="w-5 h-5" />
           </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <MoreVertical className="w-5 h-5" />
+          <<DropdownDropdownMenu>
+            <<DropdownDropdownMenuTrigger asChild>
+              <<ButtonButton variant="ghost" size="icon" className="rounded-full">
+                <<MoreMoreVertical className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <<DropdownDropdownMenuContent align="end">
               {onWallpaperChange && (
-                <WallpaperPicker
+                <<WallpaperWallpaperPicker
                   currentWallpaper={wallpaper}
                   onWallpaperChange={onWallpaperChange}
                   trigger={
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <ImageIcon className="w-4 h-4 mr-2" />
+                    <<DropdownDropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <<ImageIconImageIcon className="w-4 h-4 mr-2" />
                       Change Wallpaper
                     </DropdownMenuItem>
                   }
                 />
               )}
-              <DropdownMenuSeparator />
-              <DisappearingMessagesSettings
+              <<DropdownDropdownMenuSeparator />
+              <<DisDisappearingMessagesSettings
                 currentDuration={disappearingDuration}
                 onDurationChange={setDisappearingDuration}
                 trigger={
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    <Timer className="w-4 h-4 mr-2" />
+                  <<DropdownDropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <<TimerTimer className="w-4 h-4 mr-2" />
                     Disappearing Messages
                   </DropdownMenuItem>
                 }
@@ -424,26 +375,26 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
 
       {/* Encryption Banner */}
       {showEncryptionBanner && (
-        <EncryptionBanner contactName={contact.name} />
+        <<EncryptionEncryptionBanner contactName={contact.name} />
       )}
 
       {/* Screenshot Alert */}
-      <ScreenshotAlert chatId={contact.id} contactName={contact.name} />
+      <<ScreenshotScreenshotAlert chatId={contact.id} contactName={contact.name} />
 
       {/* Messages */}
-      <div 
+      <<divdiv 
         className="flex-1 overflow-y-auto p-4 space-y-4"
         style={getWallpaperStyle()}
       >
         {messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center h-full">
-            <p className="text-muted-foreground bg-background/80 px-4 py-2 rounded-lg">No messages yet. Start the conversation!</p>
+          <<divdiv className="flex-1 flex items-center justify-center h-full">
+            <<pp className="text-muted-foreground bg-background/80 px-4 py-2 rounded-lg">No messages yet. Start the conversation!</p>
           </div>
         ) : (
           messages.map((msg, index) => {
             const isOwnMessage = msg.sender_id === user?.id;
             return (
-              <motion.div
+              <<motionmotion.div
                 key={msg.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -451,33 +402,26 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
                 className={`flex items-end gap-2 ${isOwnMessage ? "justify-end" : "justify-start"}`}
               >
                 {!isOwnMessage && (
-                  <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden">
-                    {contact.avatar_url ? (
-                      <img src={contact.avatar_url} alt={contact.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center text-xs font-semibold">
-                        {contact.avatar}
-                      </div>
-                    )}
+                  <<divdiv className="w-8 h-8 rounded-full shrink-0 overflow-hidden bg-muted-foreground/20 flex items-center justify-center text-xs font-semibold">
+                    {contact.avatar}
                   </div>
                 )}
                 
-                <MessageContextMenu
+                <<MessageMessageContextMenu
                   messageId={msg.id}
                   messageContent={msg.content}
                   isOwnMessage={isOwnMessage}
                   onTranslate={(id, content, lang) => handleTranslate(id, content, lang)}
                   onReply={handleReply}
                 >
-                  <div 
+                  <<divdiv 
                     ref={el => messageRefs.current[msg.id] = el}
                     className={`max-w-[75%] sm:max-w-[65%] ${
                       isOwnMessage 
-                        ? "brand-gradient text-primary-foreground rounded-2xl rounded-tr-sm" 
-                        : "glass rounded-2xl rounded-tl-sm"
+                        ? "brand-gradient text-primary-foreground rounded-2xl rounded-tr-none" 
+                        : "glass rounded-2xl rounded-tl-none"
                     } px-4 py-3 group relative cursor-pointer transition-all`}
                   >
-                    {/* Check if it's a voice message */}
                     {msg.content.startsWith("[VOICE:") ? (
                       (() => {
                         const match = msg.content.match(/\[VOICE:(voice-\d+):(\d+)\]/);
@@ -487,59 +431,36 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
                           const voiceNote = voiceNotes[voiceId];
                           
                           return voiceNote ? (
-                            <VoiceNotePlayer audioUrl={voiceNote.url} duration={voiceNote.duration} />
+                            <<VoiceVoiceNotePlayer audioUrl={voiceNote.url} duration={voiceNote.duration} />
                           ) : (
-                            <div className="flex items-center gap-2 py-1">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                isOwnMessage ? "bg-primary-foreground/20" : "bg-primary/20"
-                              }`}>
-                                <Mic className={`w-4 h-4 ${isOwnMessage ? "text-primary-foreground" : "text-primary"}`} />
+                            <<divdiv className="flex items-center gap-2 py-1">
+                              <<divdiv className={`w-8 h-8 rounded-full flex items-center justify-center ${isOwnMessage ? "bg-primary-foreground/20" : "bg-primary/20"}`}>
+                                <<MicMic className={`w-4 h-4 ${isOwnMessage ? "text-primary-foreground" : "text-primary"}`} />
                               </div>
-                              <div className="flex-1">
-                                <div className={`text-sm font-medium ${isOwnMessage ? "text-primary-foreground" : ""}`}>
-                                  Voice message
-                                </div>
-                                <div className={`text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                                  {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")}
-                                </div>
+                              <<divdiv className="flex-1">
+                                <<divdiv className={`h-1 rounded-full ${isOwnMessage ? "bg-primary-foreground/30" : "bg-muted"}`} />
                               </div>
+                              <<spanspan className={`text-xs font-mono ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                                {msg.content.match(/\(([^)]+)\)/)?.[1] || "0:00"}
+                              </span>
                             </div>
                           );
                         }
-                        return <p className="text-sm">{msg.content}</p>;
+                        return <<pp className="text-sm">{msg.content}</p>;
                       })()
-                    ) : msg.content.startsWith("🎤 Voice message") ? (
-                      // Legacy voice message format - show with play simulation
-                      <div className="flex items-center gap-2 py-1">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          isOwnMessage ? "bg-primary-foreground/20" : "bg-primary/20"
-                        }`}>
-                          <Mic className={`w-4 h-4 ${isOwnMessage ? "text-primary-foreground" : "text-primary"}`} />
-                        </div>
-                        <div className="flex-1">
-                          <div className={`h-1 rounded-full ${isOwnMessage ? "bg-primary-foreground/30" : "bg-muted"}`}>
-                            <div className={`h-full w-0 rounded-full ${isOwnMessage ? "bg-primary-foreground" : "bg-primary"}`} />
-                          </div>
-                        </div>
-                        <span className={`text-xs font-mono ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                          {msg.content.match(/\(([^)]+)\)/)?.[1] || "0:00"}
-                        </span>
-                      </div>
                     ) : (
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      <<pp className="text-sm whitespace-pre-wrap">{msg.content}</p>
                     )}
                     
                     {translatedMessages[msg.id] && (
-                      <div className="mt-2 pt-2 border-t border-white/20">
-                        <p className="text-xs opacity-70 mb-1">Translation:</p>
-                        <p className="text-sm whitespace-pre-wrap">{translatedMessages[msg.id]}</p>
+                      <<divdiv className="mt-2 pt-2 border-t border-white/20">
+                        <<pp className="text-xs opacity-70 mb-1">Translation:</p>
+                        <<pp className="text-sm whitespace-pre-wrap">{translatedMessages[msg.id]}</p>
                       </div>
                     )}
                     
-                    <div className="flex items-center justify-between mt-1">
-                      <p className={`text-xs ${
-                        isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"
-                      }`}>
+                    <<divdiv className="flex items-center justify-between mt-1">
+                      <<pp className={`text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                         {formatTime(msg.created_at)}
                       </p>
                     </div>
@@ -547,31 +468,30 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
                 </MessageContextMenu>
                 
                 {isOwnMessage && (
-                  <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden brand-gradient flex items-center justify-center">
-                    <span className="text-xs font-semibold text-primary-foreground">You</span>
+                  <<divdiv className="w-8 h-8 rounded-full shrink-0 overflow-hidden brand-gradient flex items-center justify-center">
+                    <<spanspan className="text-xs font-semibold text-primary-foreground">You</span>
                   </div>
                 )}
               </motion.div>
             );
           })
         )}
-
-        <div ref={messagesEndRef} />
+        <<divdiv ref={messagesEndRef} />
       </div>
 
       {/* Attachment Menu */}
-      <AnimatePresence>
+      <<AnAnimatePresence>
         {showAttachments && (
-          <motion.div
+          <<motionmotion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             className="px-4 pb-2"
           >
-            <div className="glass rounded-2xl p-4">
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
+            <<divdiv className="glass rounded-2xl p-4">
+              <<divdiv className="grid grid-cols-3 sm:grid-cols-6 gap-4">
                 {attachmentOptions.map((option, index) => (
-                  <motion.button
+                  <<motionmotion.button
                     key={option.label}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -581,10 +501,10 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
                     className="flex flex-col items-center gap-2"
                     onClick={() => handleAttachmentAction(option.action)}
                   >
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${option.color} flex items-center justify-center shadow-lg`}>
-                      <option.icon className="w-6 h-6 text-primary-foreground" />
+                    <<divdiv className={`w-12 h-12 rounded-xl bg-gradient-to-br ${option.color} flex items-center justify-center shadow-lg`}>
+                      <<optionoption.icon className="w-6 h-6 text-primary-foreground" />
                     </div>
-                    <span className="text-xs text-muted-foreground">{option.label}</span>
+                    <<spanspan className="text-xs text-muted-foreground">{option.label}</span>
                   </motion.button>
                 ))}
               </div>
@@ -594,10 +514,10 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
       </AnimatePresence>
 
       {/* Voice Recorder */}
-      <AnimatePresence>
+      <<AnAnimatePresence>
         {showVoiceRecorder && (
-          <div className="px-4 pb-2">
-            <VoiceRecorder
+          <<divdiv className="px-4 pb-2">
+            <<VoiceVoiceRecorder
               onSend={handleVoiceSend}
               onCancel={() => setShowVoiceRecorder(false)}
             />
@@ -607,12 +527,12 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
 
       {/* Input Area */}
       {!showVoiceRecorder && (
-        <div className="p-4 border-t border-border bg-card/80 backdrop-blur-sm">
+        <<divdiv className="p-4 border-t border-border bg-card/80 backdrop-blur-sm">
           {/* Reply Preview */}
-          <AnimatePresence>
+          <<AnAnimatePresence>
             {replyingTo && (
-              <div className="mb-2">
-                <ReplyBubble
+              <<divdiv className="mb-2">
+                <<ReplyReplyBubble
                   replyToContent={replyingTo.content}
                   replyToSender={replyingTo.sender}
                   onClear={() => setReplyingTo(null)}
@@ -621,61 +541,58 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
             )}
           </AnimatePresence>
           
-          <div className="flex items-center gap-2">
-            <Button 
+          <<divdiv className="flex items-center gap-2">
+            <<ButtonButton 
               variant="ghost" 
               size="icon" 
               className="rounded-full shrink-0"
               onClick={() => setShowAttachments(!showAttachments)}
             >
-              <Paperclip className={`w-5 h-5 transition-transform ${showAttachments ? 'rotate-45' : ''}`} />
+              <<PaperPaperclip className={`w-5 h-5 transition-transform ${showAttachments ? 'rotate-45' : ''}`} />
             </Button>
-
-            <div className="flex-1 relative">
-              <Input
+            <<divdiv className="flex-1 relative">
+              <<InputInput
                 placeholder="Type a message..."
                 className="pr-10 bg-muted/50 border-none rounded-full"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
               />
-              <EmojiPicker
+              <<EmojiEmojiPicker
                 onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
                 trigger={
-                  <Button 
+                  <<ButtonButton 
                     variant="ghost" 
                     size="icon" 
                     className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full"
                   >
-                    <Smile className="w-5 h-5" />
+                    <<SmileSmile className="w-5 h-5" />
                   </Button>
                 }
               />
             </div>
-
             {messageText.trim() ? (
-              <Button 
+              <<ButtonButton 
                 variant="default" 
                 size="icon" 
                 className="rounded-full shrink-0 brand-gradient"
                 onClick={handleSend}
                 onMouseDown={handleSendButtonDown}
                 onMouseUp={handleSendButtonUp}
-                onMouseLeave={handleSendButtonUp}
                 onTouchStart={handleSendButtonDown}
                 onTouchEnd={handleSendButtonUp}
                 title="Hold to schedule"
               >
-                <Send className="w-5 h-5" />
+                <<SendSend className="w-5 h-5" />
               </Button>
             ) : (
-              <Button 
+              <<ButtonButton 
                 variant="ghost" 
                 size="icon" 
                 className="rounded-full shrink-0"
                 onClick={() => setShowVoiceRecorder(true)}
               >
-                <Mic className="w-5 h-5" />
+                <<MicMic className="w-5 h-5" />
               </Button>
             )}
           </div>
@@ -683,50 +600,43 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
       )}
 
       {/* Modals */}
-      <VideoCallModal
+      <<VideoVideoCallModal
         open={showVideoCall}
         onClose={() => setShowVideoCall(false)}
         contact={{ ...contact, user_id: contact.user_id }}
         isVideoCall={isVideoCall}
       />
-
-      <EventCreator
+      <<EventEventCreator
         open={showEventCreator}
         onClose={() => setShowEventCreator(false)}
         onSendEvent={handleSendEvent}
       />
-
-      <DocumentScanner
+      <<DocumentDocumentScanner
         open={showDocScanner}
         onClose={() => setShowDocScanner(false)}
         onScan={handleScanDocument}
       />
-
-      <QRCodeScanner
+      <<QRCodeQRCodeScanner
         open={showQRScanner}
         onClose={() => setShowQRScanner(false)}
       />
-
-      <ScheduleMessageDialog
+      <<ScheduleScheduleMessageDialog
         open={showScheduleDialog}
         onClose={() => setShowScheduleDialog(false)}
         onSchedule={handleScheduleMessage}
         messagePreview={messageText}
       />
-
-      <AskAIDialog
+      <<AskAskAIDialog
         open={showAskAI}
         onClose={() => setShowAskAI(false)}
         onInsert={(text) => setMessageText(text)}
       />
-
-      <AIArtStudio
+      <<AIAIArtStudio
         open={showAIArt}
         onClose={() => setShowAIArt(false)}
         onSendImage={handleAIArtSend}
       />
-
-      <MultimodalAICall
+      <<MultMultimodalAICall
         open={showAICall}
         onClose={() => setShowAICall(false)}
       />
