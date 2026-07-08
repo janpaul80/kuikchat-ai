@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChatSidebar, MobileBottomNav, SidebarView } from "@/components/chat/ChatSidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ChatSidebar, SidebarView } from "@/components/chat/ChatSidebar";
 import { ContactList } from "@/components/chat/ContactList";
 import { ChatWindow, ChatContact } from "@/components/chat/ChatWindow";
 import { StatusView } from "@/components/chat/StatusView";
@@ -9,12 +10,9 @@ import { SettingsView } from "@/components/chat/SettingsView";
 import { HiddenChatsVault } from "@/components/chat/HiddenChatsVault";
 import { BusinessToolsHub } from "@/components/business/BusinessToolsHub";
 import { CallsView } from "@/components/chat/CallsView";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { ChatInterface } from "@/components/chat/ChatInterface";
 import { useUsers } from "@/hooks/useUsers";
 import logo from "@/assets/kuikchat-logo.png";
-
-// Re-export for backward compatibility
-export type Contact = ChatContact;
 
 const Chat = () => {
   const [selectedContact, setSelectedContact] = useState<ChatContact | null>(null);
@@ -23,13 +21,11 @@ const Chat = () => {
   const [chatWallpaper, setChatWallpaper] = useState<string>("transparent");
   const { users, loading } = useUsers();
 
-  // Convert real users to contacts format
   const contacts: ChatContact[] = users.map((u) => ({
     id: u.id,
     user_id: u.id,
     name: u.display_name || "Unknown User",
-    avatar: (u.display_name || "U").slice(0, 2).toUpperCase(),
-    avatar_url: u.avatar_url,
+    avatar: u.avatar_url,
     lastMessage: "Tap to start chatting",
     time: "",
     unread: 0,
@@ -40,9 +36,14 @@ const Chat = () => {
   const handleSelectContact = (contact: ChatContact) => {
     setSelectedContact(contact);
     setIsMobileContactsOpen(false);
+    setActiveView("Chats");
   };
 
   const renderContent = () => {
+    if (activeView === "Hermes AI") {
+      return <ChatInterface />;
+    }
+
     switch (activeView) {
       case "Status":
         return <StatusView />;
@@ -62,7 +63,6 @@ const Chat = () => {
       default:
         return (
           <>
-            {/* Contact List */}
             <div className={`${isMobileContactsOpen ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-96 flex-col border-r border-border bg-card`}>
               <ContactList
                 contacts={contacts}
@@ -71,8 +71,6 @@ const Chat = () => {
                 loading={loading}
               />
             </div>
-
-            {/* Chat Window */}
             <div className={`${!isMobileContactsOpen ? 'flex' : 'hidden'} md:flex flex-1 flex-col`}>
               {selectedContact ? (
                 <ChatWindow
@@ -100,17 +98,11 @@ const Chat = () => {
 
   return (
     <SidebarProvider>
-      <div className="business-dark dark flex h-screen w-full bg-background text-foreground overflow-hidden">
-        {/* Desktop Sidebar */}
+      <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
         <ChatSidebar activeView={activeView} onViewChange={setActiveView} />
-
-        {/* Content Area */}
-        <div className="flex-1 flex flex-col md:flex-row pb-16 md:pb-0">
+        <main className="flex-1 flex flex-col relative overflow-hidden">
           {renderContent()}
-        </div>
-
-        {/* Mobile Bottom Nav */}
-        <MobileBottomNav activeView={activeView} onViewChange={setActiveView} />
+        </main>
       </div>
     </SidebarProvider>
   );
