@@ -74,7 +74,10 @@ serve(async (req) => {
     }
 
     const token = authHeader.substring(7);
-    const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
+    const authClient = createClient(supabaseUrl, anonKey, {
+      auth: { persistSession: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
     const { data: { user }, error: authError } = await authClient.auth.getUser(token);
     if (authError || !user) {
       console.error("[AUTH-FAILURE]", authError);
@@ -109,6 +112,50 @@ serve(async (req) => {
       return jsonResponse(req, { error: { code: "RATE_LIMITED", message: "Quota exceeded." } }, 429);
     }
 
+    let conversationId = gatewayRequest.conversation_id;
+
+    if (conversationId) {
+      const { data: convExists, error: convCheckError } = await authClient
+        .from("ai_conversations")
+        .select("id")
+        .eq("id", conversationId)
+        .single();
+
+      if (convCheckError || !convExists) {
+        return jsonResponse(req, { error: { code: "UNAUTHORIZED", message: "Conversation not found or access denied." } }, 404);
+      }
+    } else {
+      const firstMsg = gatewayRequest.messages[0]?.content || "";
+      const title = firstMsg.slice(0, 100) || "New Conversation";
+      const { data: newConv, error: createError } = await authClient
+        .from("ai_conversations")
+        .insert({ user_id: userId, title })
+        .select("id")
+        .single();
+
+      if (createError || !newConv) {
+        console.error("[CONVERSATION-CREATE-ERROR]", createError);
+        return jsonResponse(req, { error: { code: "SERVER_ERROR", message: "Failed to create conversation." } }, 500);
+      }
+      conversationId = newConv.id;
+    }
+
+    const lastMessage = gatewayRequest.messages[gatewayRequest.messages.length - 1];
+    if (lastMessage && lastMessage.role === "user") {
+      const { error: msgInsertError } = await authClient
+        .from("ai_messages")
+        .insert({
+          conversation_id: conversationId,
+          role: lastMessage.role,
+          content: lastMessage.content,
+        });
+
+      if (msgInsertError) {
+        console.error("[MESSAGE-INSERT-ERROR]", msgInsertError);
+        return jsonResponse(req, { error: { code: "SERVER_ERROR", message: "Failed to save message." } }, 500);
+      }
+    }
+
     const result = await runWithFailover(gatewayRequest.messages, {
       langdock: { name: "langdock", endpoint: "https://api.langdock.com/openai/eu/v1/chat/completions", apiKey: langdockKey, model: langdockModel },
       openrouter: { name: "openrouter", endpoint: "https://openrouter.ai/api/v1/chat/completions", apiKey: openrouterConfig!.apiKey, model: openrouterConfig!.model },
@@ -117,8 +164,21 @@ serve(async (req) => {
       timeoutMs: AI_LIMITS.providerTimeoutMs,
     });
 
+    const { error: assistantInsertError } = await authClient
+      .from("ai_messages")
+      .insert({
+        conversation_id: conversationId,
+        role: "assistant",
+        content: result.content,
+      });
+
+    if (assistantInsertError) {
+      console.error("[ASSISTANT-INSERT-ERROR]", assistantInsertError);
+    }
+
     return jsonResponse(req, {
       request_id: requestId,
+      conversation_id: conversationId,
       message: { role: "assistant", content: result.content },
       provider: result.provider,
       usage: result.usage,

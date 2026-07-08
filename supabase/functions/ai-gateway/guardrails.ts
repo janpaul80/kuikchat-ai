@@ -81,5 +81,7 @@ export function parseGatewayRequest(value: unknown): GatewayRequest {
     );
   }
 
-  return { operation: "chat", messages };
+  const conversation_id = typeof body.conversation_id === "string" ? body.conversation_id : undefined;
+
+  return { operation: "chat", conversation_id, messages };
 }
