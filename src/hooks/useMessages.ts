@@ -12,109 +12,86 @@ export interface Message {
   created_at: string;
 }
 
-export const useMessages = (contactUserId: string | null) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
+export const useMessages = 
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [loading, setLoading] = useState(false);
+    const { user } = useAuth();
+    const { toast } = useToast();
 
-  // Fetch messages between current user and contact
-  const fetchMessages = useCallback(async () => {
-    if (!user || !contactUserId) return;
-
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .or(
-        `and(sender_id.eq.${user.id},receiver_id.eq.${contactUserId}),and(sender_id.eq.${contactUserId},receiver_id.eq.${user.id})`
-      )
-      .order("created_at", { ascending: true });
-
-    if (error) {
-      console.error("Error fetching messages:", error);
-    } else {
-      setMessages(data || []);
-    }
-    setLoading(false);
-  }, [user, contactUserId]);
-
-  // Send a message
-  const sendMessage = async (content: string) => {
-    if (!user || !contactUserId || !content.trim()) return null;
-
-    const { data, error } = await supabase
-      .from("messages")
-      .insert({
-        sender_id: user.id,
-        receiver_id: contactUserId,
-        content: content.trim(),
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    return data;
-  };
-
-  // Mark messages as read
-  const markAsRead = async () => {
-    if (!user || !contactUserId) return;
-
-    await supabase
-      .from("messages")
-      .update({ is_read: true })
-      .eq("receiver_id", user.id)
-      .eq("sender_id", contactUserId)
-      .eq("is_read", false);
-  };
-
-  // Subscribe to real-time updates
-  useEffect(() => {
-    if (!user || !contactUserId) return;
-
-    fetchMessages();
-
-    const channel = supabase
-      .channel(`messages-${user.id}-${contactUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          // Only add if it's relevant to this conversation
-          if (
-            (newMessage.sender_id === user.id && newMessage.receiver_id === contactUserId) ||
-            (newMessage.sender_id === contactUserId && newMessage.receiver_id === user.id)
-          ) {
-            setMessages((prev) => [...prev, newMessage]);
-          }
+    const fetchMessages = useCallback(async () => {
+        if (!user || !chatId) return;
+        setLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from("messages")
+                .select("*")
+                .eq("chat_id", chatId)
+                .order("created_at", { ascending: true });
+            
+            if (error) throw error;
+            setMessages(data || []);
+        } catch (err) {
+            console.error("Error fetching messages:", err);
+            toast({ title: "Error", description: "Could not load messages", variant: "destructive" });
+        } finally {
+            setLoading(false);
         }
-      )
-      .subscribe();
+    }, [user, chatId, toast]);
 
-    return () => {
-      supabase.removeChannel(channel);
+    useEffect(() => {
+        fetchMessages();
+    }, [fetchMessages]);
+
+    useEffect(() => {
+        if (!user || !chatId) return;
+
+        const channel = supabase
+            .channel(`chat:${chatId}`)
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "messages",
+                    filter: `chat_id=eq.${chatId}`,
+                },
+                (payload) => {
+                    const newMessage = payload.new as Message;
+                    // Prevent duplicates
+                    setMessages((prev) => {
+                        if (prev.find((m) => m.id === newMessage.id)) return prev;
+                        return [...prev, newMessage];
+                    });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user, chatId]);
+
+    const sendMessage = async (content: string) => {
+        if (!user || !chatId || !content.trim()) return null;
+        try {
+            const { data, error } = await supabase
+                .from("messages")
+                .insert({
+                    chat_id: chatId,
+                    sender_id: user.id,
+                    content: content.trim(),
+                    type: "text"
+                })
+                .select()
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (err) {
+            console.error("Error sending message:", err);
+            toast({ title: "Error", description: "Failed to send message", variant: "destructive" });
+            return null;
+        }
     };
-  }, [user, contactUserId, fetchMessages]);
 
-  return {
-    messages,
-    loading,
-    sendMessage,
-    markAsRead,
-    refetch: fetchMessages,
-  };
-};
+  const markAsRead = async () => {

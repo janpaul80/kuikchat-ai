@@ -89,7 +89,7 @@ const attachmentOptions = [
   { icon: PhoneCall, label: "AI Call", color: "from-cyan-500 to-blue-500", action: "ai-call" },
 ];
 
-export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallpaperChange }: ChatWindowProps) => {
+export const ChatWindow = ({ chatId, contact, onBack, wallpaper = "transparent", onWallpaperChange }: ChatWindowProps) => {
   const [messageText, setMessageText] = useState("");
   const [showAttachments, setShowAttachments] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
@@ -112,7 +112,7 @@ export const ChatWindow = ({ contact, onBack, wallpaper = "transparent", onWallp
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { user } = useAuth();
-  const { messages, sendMessage, markAsRead } = useMessages(contact.user_id);
+  const { messages, sendMessage, markAsRead } = useMessages(chatId);
   const { translateText } = useTranslation();
   const { toast } = useToast();
 
@@ -380,7 +380,7 @@ ${imageUrl}`);
       )}
 
       {/* Screenshot Alert */}
-      <ScreenshotAlert chatId={contact.id} contactName={contact.name} />
+      <ScreenshotAlert chatId={chatId} contactName={contact.name} />
 
       {/* Messages */}
       <div 
