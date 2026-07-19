@@ -70,7 +70,7 @@ export const Hero = () => {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-9 flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          <Button variant="hero" size="xl" className="w-full sm:w-auto animate-pulse hover:animate-none" asChild>
+          <Button variant="hero" size="xl" className="w-full sm:w-auto transition-transform duration-200 motion-reduce:transition-none hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary/60" asChild>
             <Link to="/auth">
               Start for free <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
