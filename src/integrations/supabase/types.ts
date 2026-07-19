@@ -343,6 +343,10 @@ export type Database = {
         Args: { target_profile_id: string }
         Returns: string
       }
+      upsert_direct_chat: {
+        Args: { p_other: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
