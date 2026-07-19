@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Send, 
@@ -6,44 +6,26 @@ import {
   MessageSquare, 
   Plus, 
   MoreVertical, 
-  History, 
-  Sparkles, 
-  AlertCircle,
-  ChevronRight
+  Sparkles,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAiChat } from "@/hooks/useAiChat";
-import { useToast } from "@/hooks/use-toast";
-
-interface ChatMessage {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
-
-interface Conversation {
-  id: string;
-  title: string;
-  updated_at: string;
-}
 
 export const ChatInterface = () => {
   const { 
     messages, 
-    conversationId, 
-    isLoading, 
-    error, 
-    sendMessage, 
-    startNewChat,
-    loadConversation 
+    isLoading,
+    error,
+    sendMessage,
+    startNewChat
   } = useAiChat();
 
   const [input, setInput] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
   // Auto-scroll to bottom
   useEffect(() => {

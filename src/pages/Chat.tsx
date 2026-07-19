@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { ChatSidebar, SidebarView } from "@/components/chat/ChatSidebar";
 import { ContactList } from "@/components/chat/ContactList";
 import { ChatWindow, ChatContact } from "@/components/chat/ChatWindow";
@@ -21,17 +21,21 @@ const Chat = () => {
   const [chatWallpaper, setChatWallpaper] = useState<string>("transparent");
   const { users, loading } = useUsers();
 
-  const contacts: ChatContact[] = users.map((u) => ({
-    id: u.id,
-    user_id: u.id,
-    name: u.display_name || "Unknown User",
-    avatar: u.avatar_url,
-    lastMessage: "Tap to start chatting",
-    time: "",
-    unread: 0,
-    online: false,
-    about: u.bio || "Hey there! I'm using KuikChat",
-  }));
+  const contacts: ChatContact[] = users.map((u) => {
+    const name = u.display_name || "Unknown User";
+    return {
+      id: u.id,
+      user_id: u.id,
+      name,
+      avatar: name.charAt(0).toUpperCase(),
+      avatar_url: u.avatar_url,
+      lastMessage: "Tap to start chatting",
+      time: "",
+      unread: 0,
+      online: false,
+      about: u.bio || "Hey there! I'm using KuikChat",
+    };
+  });
 
   const handleSelectContact = (contact: ChatContact) => {
     setSelectedContact(contact);
@@ -75,6 +79,7 @@ const Chat = () => {
               {selectedContact ? (
                 <ChatWindow
                   contact={selectedContact}
+                  chatId={selectedContact.chat_id || selectedContact.id}
                   onBack={() => setIsMobileContactsOpen(true)}
                   wallpaper={chatWallpaper}
                   onWallpaperChange={setChatWallpaper}

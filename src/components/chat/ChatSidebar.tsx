@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Send, Loader2, MessageCircle, Users, Phone, Store, EyeOff, Settings, LogOut, Plus, MoreVertical, History, MessageSquare, Clock, ChevronRight, Lock } from "lucide-react";
+import { Sparkles, Loader2, MessageCircle, Users, Phone, Store, EyeOff, LogOut, Plus, MessageSquare, CircleDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { useAiChat } from "@/hooks/useAiChat";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 export type SidebarView = "Chats" | "Status" | "Calls" | "Communities" | "Vanish Mode" | "Settings" | "Hidden" | "Business" | "Hermes AI";
@@ -31,7 +29,6 @@ const navItems: { icon: any; label: SidebarView }[] = [
 
 export const ChatSidebar = ({ activeView, onViewChange }: { activeView: SidebarView, onViewChange: (v: SidebarView) => void }) => {
   const { signOut } = useAuth();
-  const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);

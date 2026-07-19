@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Loader2, Sparkles, Minimize2, Maximize2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAiChat } from "@/hooks/useAiChat";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
     role: "user" | "assistant";
@@ -16,19 +16,13 @@ interface Message {
 export const LandingChatbot = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
     const [session, setSession] = useState<any>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { toast } = useToast();
-
-    const { 
-        messages: aiMessages, 
-        isLoading: aiLoading, 
-        error: aiError, 
-        sendMessage, 
-        startNewChat 
+    const {
+        messages: aiMessages,
+        isLoading: aiLoading,
+        sendMessage
     } = useAiChat();
 
     useEffect(() => {
@@ -52,13 +46,13 @@ export const LandingChatbot = () => {
     }, [aiMessages, isOpen, isMinimized]);
 
     const handleSend = async () => {
-        if (!input.trim() || isLoading) return;
+        if (!input.trim() || aiLoading) return;
         await sendMessage(input);
         setInput("");
     };
 
     const handleSignIn = () => {
-        window.location.href = "/login";
+        window.location.href = "/auth";
     };
 
     return (

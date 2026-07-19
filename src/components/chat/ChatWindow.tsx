@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, 
@@ -59,6 +59,7 @@ import { cn } from "@/lib/utils";
 
 export interface ChatContact {
   id: string;
+  chat_id?: string;
   user_id: string;
   name: string;
   avatar: string;
@@ -73,6 +74,7 @@ export interface ChatContact {
 
 interface ChatWindowProps {
   contact: ChatContact;
+  chatId?: string | null;
   onBack: () => void;
   wallpaper?: string;
   onWallpaperChange?: (wallpaper: string) => void;
@@ -80,7 +82,7 @@ interface ChatWindowProps {
 
 const attachmentOptions = [
   { icon: ImageIcon, label: "Photo & Video", color: "from-purple-500 to-pink-500", action: "photo" },
-  { icon: Scan, label: "Document Scan", color: "from-blue-500 to-cyan-500", action: "scan" },
+  { icon: Scan, label: "Document Scan", color: "from-primary/80 to-secondary/80", action: "scan" },
   { icon: Calendar, label: "Event", color: "from-orange-500 to-amber-500", action: "event" },
   { icon: MapPin, label: "Location", color: "from-green-500 to-emerald-500", action: "location" },
   { icon: QrCode, label: "QR Code", color: "from-pink-500 to-rose-500", action: "qr" },
@@ -108,11 +110,12 @@ export const ChatWindow = ({ chatId, contact, onBack, wallpaper = "transparent",
   const [showAIArt, setShowAIArt] = useState(false);
   const [showAICall, setShowAICall] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [voiceNotes, setVoiceNotes] = useState<Record<string, { url: string; duration: number }>({}); 
+  const [voiceNotes, setVoiceNotes] = useState<Record<string, { url: string; duration: number }>>({});
+  const resolvedChatId = chatId || contact.chat_id || contact.id;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { user } = useAuth();
-  const { messages, sendMessage, markAsRead } = useMessages(chatId);
+  const { messages, sendMessage, markAsRead } = useMessages(resolvedChatId);
   const { translateText } = useTranslation();
   const { toast } = useToast();
 
@@ -126,7 +129,7 @@ export const ChatWindow = ({ chatId, contact, onBack, wallpaper = "transparent",
 
   useEffect(() => {
     markAsRead();
-  }, [contact.user_id]);
+  }, [resolvedChatId, markAsRead]);
 
   const handleSend = async () => {
     if (!messageText.trim()) return;
@@ -171,13 +174,13 @@ export const ChatWindow = ({ chatId, contact, onBack, wallpaper = "transparent",
   };
 
   const handleScanDocument = async (imageData: string) => {
-    await sendMessage(`📄 Scanned document attached`);
+    await sendMessage(`Scanned document attached`);
   };
 
   const handleAttachmentAction = async (action: string) => {
     setShowAttachments(false);
     switch (action) {
-      case "photo":
+      case "photo": {
         const photoInput = document.createElement('input');
         photoInput.type = 'file';
         photoInput.accept = 'image/*,video/*';
@@ -191,12 +194,13 @@ export const ChatWindow = ({ chatId, contact, onBack, wallpaper = "transparent",
                 title: isVideo ? "Video attached" : "Photo attached",
                 description: `${file.name} ready to send`
               });
-              await sendMessage(`${isVideo ? '🎬' : '📷'} ${file.name}`);
+              await sendMessage(`${isVideo ? 'Video' : 'Photo'}: ${file.name}`);
             }
           }
         };
         photoInput.click();
         break;
+      }
       case "location":
         if ('geolocation' in navigator) {
           toast({ title: "Getting location...", description: "Please allow location access" });
@@ -271,7 +275,7 @@ export const ChatWindow = ({ chatId, contact, onBack, wallpaper = "transparent",
   };
 
   const handleAIArtSend = async (imageUrl: string, prompt: string) => {
-    await sendMessage(`🎨 AI Art: "${prompt}"
+    await sendMessage(`AI Art: "${prompt}"
 ${imageUrl}`);
   };
 
@@ -380,7 +384,7 @@ ${imageUrl}`);
       )}
 
       {/* Screenshot Alert */}
-      <ScreenshotAlert chatId={chatId} contactName={contact.name} />
+      <ScreenshotAlert chatId={resolvedChatId} contactName={contact.name} />
 
       {/* Messages */}
       <div 
