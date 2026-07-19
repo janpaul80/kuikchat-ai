@@ -8,10 +8,36 @@ export interface Message {
   chat_id: string;
   sender_id: string;
   content: string;
+  body?: string | null;
   type: "text" | "image" | "video" | string;
-  is_read?: boolean | null;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
 }
+
+type DbMessage = Omit<Message, "content"> & {
+  content?: string | null;
+  body?: string | null;
+};
+
+const normalizeMessage = (message: DbMessage): Message => ({
+  ...message,
+  content: message.content ?? message.body ?? "",
+});
+
+const describeMessageError = (operation: string, error: unknown, chatId?: string, userId?: string) => {
+  const candidate = error as { status?: number; code?: string; message?: string; details?: string; hint?: string };
+  console.error("[messages]", {
+    operation,
+    ok: false,
+    table: "messages",
+    status: candidate?.status,
+    code: candidate?.code,
+    message: candidate?.message,
+    hint: candidate?.hint,
+    chatId,
+    userId,
+  });
+};
 
 export const useMessages = (chatId: string | null | undefined) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -28,16 +54,16 @@ export const useMessages = (chatId: string | null | undefined) => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .from("messages")
-        .select("*")
+        .select("id,chat_id,sender_id,body,type,metadata,created_at")
         .eq("chat_id", chatId)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      setMessages((data || []) as Message[]);
+      if (error) throw { ...error, status };
+      setMessages(((data || []) as DbMessage[]).map(normalizeMessage));
     } catch (err) {
-      console.error("Error fetching messages:", err);
+      describeMessageError("fetch_messages", err, chatId, user.id);
       toast({ title: "Error", description: "Could not load messages", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -62,7 +88,7 @@ export const useMessages = (chatId: string | null | undefined) => {
           filter: `chat_id=eq.${chatId}`,
         },
         (payload) => {
-          const newMessage = payload.new as Message;
+          const newMessage = normalizeMessage(payload.new as DbMessage);
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMessage.id)) return prev;
             return [...prev, newMessage];
@@ -80,21 +106,21 @@ export const useMessages = (chatId: string | null | undefined) => {
     if (!user || !chatId || !content.trim()) return null;
 
     try {
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .from("messages")
         .insert({
           chat_id: chatId,
           sender_id: user.id,
-          content: content.trim(),
+          body: content.trim(),
           type: "text",
         })
-        .select()
+        .select("id,chat_id,sender_id,body,type,metadata,created_at")
         .single();
 
-      if (error) throw error;
-      return data as Message;
+      if (error) throw { ...error, status };
+      return normalizeMessage(data as DbMessage);
     } catch (err) {
-      console.error("Error sending message:", err);
+      describeMessageError("send_message", err, chatId, user.id);
       toast({ title: "Error", description: "Failed to send message", variant: "destructive" });
       return null;
     }
@@ -103,14 +129,23 @@ export const useMessages = (chatId: string | null | undefined) => {
   const markAsRead = async () => {
     if (!user || !chatId) return;
 
-    const { error } = await supabase
+    const { error, status } = await supabase
       .from("chat_members")
       .update({ last_read_at: new Date().toISOString() })
       .eq("chat_id", chatId)
       .eq("user_id", user.id);
 
     if (error) {
-      console.error("Error updating read state:", error);
+      console.error("[chat_members]", {
+        operation: "update_last_read_at",
+        ok: false,
+        table: "chat_members",
+        status,
+        code: error.code,
+        message: error.message,
+        chatId,
+        userId: user.id,
+      });
     }
   };
 

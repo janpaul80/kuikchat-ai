@@ -170,40 +170,17 @@
     box-shadow: 0 10px 40px -10px hsl(var(--brand-blue) / 0.4);
   }
 
-  .floating-element {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .floating-element-delayed {
-    animation: float 6s ease-in-out infinite;
-    animation-delay: -3s;
+  .floating-element,
+  .floating-element-delayed,
+  .animate-float,
+  .animate-pulse-glow {
+    animation: none;
   }
 }
 
 @layer utilities {
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(var(--brand-blue) / 0.3);
-    }
-    50% {
-      box-shadow: 0 0 40px hsl(var(--brand-blue) / 0.5);
-    }
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
+  .animate-float,
   .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+    animation: none;
   }
 }
