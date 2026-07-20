@@ -106,10 +106,17 @@ export const useMessages = (chatId: string | null | undefined) => {
     if (!user || !chatId || !content.trim()) return null;
 
     try {
+      const sessionResult = await supabase.auth.getSession();
+      const authUserId = sessionResult.data.session?.user?.id;
+      if (sessionResult.error || !authUserId) {
+        throw { ...sessionResult.error, message: sessionResult.error?.message || "No authenticated session" };
+      }
+
       const { data, error, status } = await supabase
         .from("messages")
         .insert({
           chat_id: chatId,
+          sender_id: authUserId,
           body: content.trim(),
           type: "text",
         })
@@ -117,7 +124,14 @@ export const useMessages = (chatId: string | null | undefined) => {
         .single();
 
       if (error) throw { ...error, status };
-      return normalizeMessage(data as DbMessage);
+      const savedMessage = normalizeMessage(data as DbMessage);
+
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === savedMessage.id)) return prev;
+        return [...prev, savedMessage];
+      });
+
+      return savedMessage;
     } catch (err) {
       describeMessageError("send_message", err, chatId, user.id);
       toast({ title: "Error", description: "Failed to send message", variant: "destructive" });
