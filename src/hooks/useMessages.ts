@@ -110,7 +110,6 @@ export const useMessages = (chatId: string | null | undefined) => {
         .from("messages")
         .insert({
           chat_id: chatId,
-          sender_id: user.id,
           body: content.trim(),
           type: "text",
         })
