@@ -175,26 +175,29 @@ export type Database = {
       }
       messages: {
         Row: {
+          body: string
           chat_id: string
-          content: string
           created_at: string
           id: string
+          metadata: Json | null
           sender_id: string
           type: string
         }
         Insert: {
+          body: string
           chat_id: string
-          content: string
           created_at?: string
           id?: string
-          sender_id: string
+          metadata?: Json | null
+          sender_id?: string
           type?: string
         }
         Update: {
+          body?: string
           chat_id?: string
-          content?: string
           created_at?: string
           id?: string
+          metadata?: Json | null
           sender_id?: string
           type?: string
         }

@@ -91,6 +91,7 @@ export const useChat = () => {
         currentProfileId,
         targetProfileId,
         chatId,
+        table: extras.table,
         ...extras,
       });
       toast.error(safeToastForFailure(operation, details.code));
@@ -106,7 +107,51 @@ export const useChat = () => {
       currentAuthUserId = sessionResult.data.session.user.id;
       logStep({ operation: "authenticated_session_lookup", ok: true, currentAuthUserId, targetProfileId });
 
-      if (targetProfileId === currentAuthUserId) {
+      const currentProfileResult = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", currentAuthUserId)
+        .maybeSingle();
+
+      if (currentProfileResult.error) {
+        return fail("current_profile_lookup", currentProfileResult.error, {
+          table: "profiles",
+          status: currentProfileResult.status,
+        });
+      }
+
+      if (!currentProfileResult.data?.id) {
+        const metadata = sessionResult.data.session.user.user_metadata || {};
+        const fallbackName =
+          typeof metadata.full_name === "string" ? metadata.full_name :
+          typeof metadata.name === "string" ? metadata.name :
+          sessionResult.data.session.user.email?.split("@")[0] || "KuikChat User";
+
+        const createProfileResult = await supabase
+          .from("profiles")
+          .insert({
+            id: currentAuthUserId,
+            display_name: fallbackName,
+            bio: "Hey there! I'm using KuikChat",
+          })
+          .select("id")
+          .single();
+
+        if (createProfileResult.error || !createProfileResult.data?.id) {
+          return fail("current_profile_lookup", createProfileResult.error || new Error("Authenticated profile is missing and could not be created"), {
+            table: "profiles",
+            status: createProfileResult.status,
+          });
+        }
+
+        currentProfileId = createProfileResult.data.id;
+      } else {
+        currentProfileId = currentProfileResult.data.id;
+      }
+
+      logStep({ operation: "current_profile_lookup", ok: true, currentAuthUserId, currentProfileId, targetProfileId, table: "profiles" });
+
+      if (targetProfileId === currentProfileId) {
         return fail("target_profile_lookup", new Error("Cannot start a direct chat with yourself"));
       }
 
@@ -137,27 +182,6 @@ export const useChat = () => {
 
       chatId = String(rpcResult.data);
 
-      const currentMemberResult = await supabase
-        .from("chat_members")
-        .select("user_id")
-        .eq("chat_id", chatId)
-        .neq("user_id", targetProfileId)
-        .limit(1)
-        .maybeSingle();
-
-      if (currentMemberResult.error || !currentMemberResult.data?.user_id) {
-        return fail("current_profile_lookup", currentMemberResult.error || new Error("Could not resolve authenticated member profile for direct chat"), {
-          table: "chat_members",
-          status: currentMemberResult.status,
-        });
-      }
-
-      currentProfileId = currentMemberResult.data.user_id;
-      logStep({ operation: "current_profile_lookup", ok: true, currentAuthUserId, currentProfileId, targetProfileId, chatId, table: "chat_members" });
-
-      if (targetProfileId === currentProfileId) {
-        return fail("target_profile_lookup", new Error("Cannot start a direct chat with yourself"), { table: "profiles" });
-      }
       logStep({ operation: "secure_rpc_upsert_direct_chat", ok: true, currentAuthUserId, currentProfileId, targetProfileId, chatId });
 
       const memberResult = await supabase

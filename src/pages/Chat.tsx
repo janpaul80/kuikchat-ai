@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ChatSidebar, SidebarView } from "@/components/chat/ChatSidebar";
 import { ContactList } from "@/components/chat/ContactList";
@@ -20,6 +20,13 @@ const Chat = () => {
   const [activeView, setActiveView] = useState<SidebarView>("Chats");
   const [chatWallpaper, setChatWallpaper] = useState<string>("transparent");
   const { users, loading } = useUsers();
+
+  useEffect(() => {
+    document.documentElement.classList.add("dark", "business-dark");
+    return () => {
+      document.documentElement.classList.remove("business-dark");
+    };
+  }, []);
 
   const contacts: ChatContact[] = users.map((u) => {
     const name = u.display_name || "Unknown User";
@@ -67,7 +74,7 @@ const Chat = () => {
       default:
         return (
           <>
-            <div className={`${isMobileContactsOpen ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-96 flex-col border-r border-border bg-card`}>
+            <div className={`${isMobileContactsOpen ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-96 flex-col border-r border-slate-800/80 bg-[#10202a] text-slate-100`}>
               <ContactList
                 contacts={contacts}
                 selectedContact={selectedContact}
@@ -85,7 +92,7 @@ const Chat = () => {
                   onWallpaperChange={setChatWallpaper}
                 />
               ) : (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center bg-[#0b151c] text-slate-100">
                   <div className="text-center">
                     <div className="w-40 h-40 rounded-full brand-gradient mx-auto mb-4 flex items-center justify-center p-6">
                       <img src={logo} alt="KuikChat" className="w-full h-full object-contain" />
@@ -103,7 +110,7 @@ const Chat = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+      <div className="dark business-dark flex h-screen w-full overflow-hidden bg-[#0b151c] text-slate-100">
         <ChatSidebar activeView={activeView} onViewChange={setActiveView} />
         <main className="flex-1 flex flex-col relative overflow-hidden">
           {renderContent()}

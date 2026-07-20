@@ -77,12 +77,12 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
   };
 
   return (
-    <div className="flex h-full flex-col bg-card">
-      <div className="border-b border-border p-4 space-y-4">
+    <div className="flex h-full flex-col bg-[#10202a] text-slate-100">
+      <div className="space-y-4 border-b border-slate-800/80 p-4 bg-[#10202a]">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold">Chats</h1>
-            <p className="text-xs text-muted-foreground">Secure business messaging</p>
+            <p className="text-xs text-slate-400">Secure business messaging</p>
           </div>
           <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
             <DialogTrigger asChild>
@@ -90,27 +90,27 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
                 <Plus className="h-5 w-5" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="border-slate-800 bg-[#10202a] text-slate-100 sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Start a direct chat</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                   <Input
                     value={newChatSearch}
                     onChange={(event) => setNewChatSearch(event.target.value)}
                     placeholder="Search people"
-                    className="pl-9"
+                    className="border-slate-800 bg-[#0b151c] pl-9 text-slate-100 placeholder:text-slate-500 focus-visible:ring-blue-500"
                   />
                 </div>
                 <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
                   {usersLoading ? (
-                    <div className="flex items-center justify-center py-8 text-muted-foreground">
+                    <div className="flex items-center justify-center py-8 text-slate-400">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading people...
                     </div>
                   ) : availableUsers.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                    <div className="rounded-xl border border-dashed border-slate-800 p-6 text-center text-sm text-slate-400">
                       <UserPlus className="mx-auto mb-2 h-6 w-6" />
                       No matching users found.
                     </div>
@@ -123,7 +123,7 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
                           type="button"
                           onClick={() => handleStartChat(profile)}
                           disabled={isResolving}
-                          className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-muted disabled:opacity-60"
+                          className="flex w-full items-center gap-3 rounded-xl p-3 text-left text-slate-100 transition-colors hover:bg-slate-800/70 disabled:opacity-60"
                         >
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={profile.avatar_url || undefined} />
@@ -131,7 +131,7 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
                           </Avatar>
                           <div className="min-w-0 flex-1">
                             <p className="truncate font-medium">{name}</p>
-                            <p className="truncate text-xs text-muted-foreground">
+                            <p className="truncate text-xs text-slate-400">
                               {profile.bio || "Hey there! I'm using KuikChat"}
                             </p>
                           </div>
@@ -145,23 +145,23 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
           </Dialog>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <Input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search chats"
-            className="pl-9"
+            className="border-slate-800 bg-[#0b151c] pl-9 text-slate-100 placeholder:text-slate-500 focus-visible:ring-blue-500"
           />
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
         {loading ? (
-          <div className="flex items-center justify-center py-10 text-muted-foreground">
+          <div className="flex items-center justify-center py-10 text-slate-400">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading chats...
           </div>
         ) : filteredContacts.length === 0 ? (
-          <div className="m-4 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+          <div className="m-4 rounded-2xl border border-dashed border-slate-800 p-6 text-center text-sm text-slate-400">
             No chats yet. Tap + to start a conversation.
           </div>
         ) : (
@@ -170,10 +170,10 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
               key={`${contact.chat_id || contact.id}-${contact.user_id}`}
               type="button"
               onClick={() => resolveAndSelectContact(contact)}
-              className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors ${
+              className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left text-slate-100 transition-colors ${
                 selectedContact?.chat_id === contact.chat_id && selectedContact?.user_id === contact.user_id
-                  ? "bg-primary/10"
-                  : "hover:bg-muted/70"
+                  ? "bg-blue-500/15 ring-1 ring-blue-500/30"
+                  : "hover:bg-slate-800/70"
               }`}
             >
               <Avatar className="h-12 w-12">
@@ -183,9 +183,9 @@ export const ContactList = ({ contacts, selectedContact, onSelectContact, loadin
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate font-medium">{contact.name}</p>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">{contact.time}</span>
+                  <span className="shrink-0 text-[11px] text-slate-500">{contact.time}</span>
                 </div>
-                <p className="truncate text-sm text-muted-foreground">{contact.lastMessage || contact.about}</p>
+                <p className="truncate text-sm text-slate-400">{contact.lastMessage || contact.about}</p>
               </div>
               {contact.unread > 0 && (
                 <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
