@@ -110,26 +110,6 @@ export const useChat = () => {
         return fail("target_profile_lookup", new Error("Cannot start a direct chat with yourself"));
       }
 
-      const currentProfileResult = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", currentAuthUserId)
-        .maybeSingle();
-
-      if (currentProfileResult.error || !currentProfileResult.data?.id) {
-        return fail("current_profile_lookup", currentProfileResult.error || new Error("Authenticated user has no matching profile.id"), {
-          table: "profiles",
-          status: currentProfileResult.status,
-        });
-      }
-
-      currentProfileId = currentProfileResult.data.id;
-      logStep({ operation: "current_profile_lookup", ok: true, currentAuthUserId, currentProfileId, targetProfileId, table: "profiles" });
-
-      if (targetProfileId === currentProfileId) {
-        return fail("target_profile_lookup", new Error("Cannot start a direct chat with yourself"), { table: "profiles" });
-      }
-
       const targetProfileResult = await supabase
         .from("profiles")
         .select("id")
@@ -143,7 +123,7 @@ export const useChat = () => {
         });
       }
 
-      logStep({ operation: "target_profile_lookup", ok: true, currentAuthUserId, currentProfileId, targetProfileId, table: "profiles" });
+      logStep({ operation: "target_profile_lookup", ok: true, currentAuthUserId, targetProfileId, table: "profiles" });
 
       const rpcResult = await supabase.rpc("upsert_direct_chat", {
         p_other: targetProfileId,
@@ -156,6 +136,28 @@ export const useChat = () => {
       }
 
       chatId = String(rpcResult.data);
+
+      const currentMemberResult = await supabase
+        .from("chat_members")
+        .select("user_id")
+        .eq("chat_id", chatId)
+        .neq("user_id", targetProfileId)
+        .limit(1)
+        .maybeSingle();
+
+      if (currentMemberResult.error || !currentMemberResult.data?.user_id) {
+        return fail("current_profile_lookup", currentMemberResult.error || new Error("Could not resolve authenticated member profile for direct chat"), {
+          table: "chat_members",
+          status: currentMemberResult.status,
+        });
+      }
+
+      currentProfileId = currentMemberResult.data.user_id;
+      logStep({ operation: "current_profile_lookup", ok: true, currentAuthUserId, currentProfileId, targetProfileId, chatId, table: "chat_members" });
+
+      if (targetProfileId === currentProfileId) {
+        return fail("target_profile_lookup", new Error("Cannot start a direct chat with yourself"), { table: "profiles" });
+      }
       logStep({ operation: "secure_rpc_upsert_direct_chat", ok: true, currentAuthUserId, currentProfileId, targetProfileId, chatId });
 
       const memberResult = await supabase
