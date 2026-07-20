@@ -299,9 +299,9 @@ ${imageUrl}`);
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-muted/20 to-background">
+    <div className="flex h-full min-h-0 flex-col bg-[#0b151c] text-slate-100">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-card/80 backdrop-blur-sm">
+      <div className="flex items-center justify-between p-4 border-b border-slate-800/80 bg-[#10202a] shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
             <ArrowLeft className="w-5 h-5" />
@@ -322,11 +322,11 @@ ${imageUrl}`);
           </div>
           <div>
             <div className="flex items-center gap-1">
-              <h2 className="font-semibold">{contact.name}</h2>
+              <h2 className="font-semibold text-slate-100">{contact.name}</h2>
               {contact.verified && <VerifiedBadge type={contact.verified} size="sm" />}
             </div>
             <div className="flex items-center gap-2">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-400">
                 {contact.online ? "Online" : "Last seen recently"}
               </p>
               <EncryptionBanner />
@@ -387,13 +387,13 @@ ${imageUrl}`);
       <ScreenshotAlert chatId={resolvedChatId} contactName={contact.name} />
 
       {/* Messages */}
-      <div 
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+      <div
+        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4"
         style={getWallpaperStyle()}
       >
         {messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center h-full">
-            <p className="text-muted-foreground bg-background/80 px-4 py-2 rounded-lg">No messages yet. Start the conversation!</p>
+          <div className="flex h-full items-center justify-center">
+            <p className="text-slate-400 bg-slate-900/60 px-4 py-2 rounded-lg">No messages yet. Start the conversation!</p>
           </div>
         ) : (
           messages.map((msg, index) => {
@@ -518,6 +518,149 @@ ${imageUrl}`);
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Voice Recorder */}
+      <AnimatePresence>
+        {showVoiceRecorder && (
+          <div className="px-4 pb-2">
+            <VoiceRecorder
+              onSend={handleVoiceSend}
+              onCancel={() => setShowVoiceRecorder(false)}
+            />
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Input Area */}
+      {!showVoiceRecorder && (
+        <div className="p-4 border-t border-slate-800/80 bg-[#10202a] shrink-0">
+          {/* Reply Preview */}
+          <AnimatePresence>
+            {replyingTo && (
+              <div className="mb-2">
+                <ReplyBubble
+                  replyToContent={replyingTo.content}
+                  replyToSender={replyingTo.sender}
+                  onClear={() => setReplyingTo(null)}
+                />
+              </div>
+            )}
+          </AnimatePresence>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full shrink-0 text-slate-300 hover:text-slate-100"
+              onClick={() => setShowAttachments(!showAttachments)}
+            >
+              <Paperclip className={`w-5 h-5 transition-transform ${showAttachments ? 'rotate-45' : ''}`} />
+            </Button>
+
+            <div className="flex-1 relative">
+              <Input
+                placeholder="Type a message..."
+                className="pr-10 bg-slate-900/60 border-slate-800 text-slate-100 placeholder:text-slate-500 rounded-full"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+              />
+              <EmojiPicker
+                onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full text-slate-300 hover:text-slate-100"
+                  >
+                    <Smile className="w-5 h-5" />
+                  </Button>
+                }
+              />
+            </div>
+
+            {messageText.trim() ? (
+              <Button
+                variant="default"
+                size="icon"
+                className="rounded-full shrink-0 brand-gradient"
+                onClick={handleSend}
+                onMouseDown={handleSendButtonDown}
+                onMouseUp={handleSendButtonUp}
+                onMouseLeave={handleSendButtonUp}
+                onTouchStart={handleSendButtonDown}
+                onTouchEnd={handleSendButtonUp}
+                title="Hold to schedule"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full shrink-0 text-slate-300 hover:text-slate-100"
+                onClick={() => setShowVoiceRecorder(true)}
+              >
+                <Mic className="w-5 h-5" />
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
+      <VideoCallModal
+        open={showVideoCall}
+        onClose={() => setShowVideoCall(false)}
+        contact={{ ...contact, user_id: contact.user_id }}
+        isVideoCall={isVideoCall}
+      />
+
+      <EventCreator
+        open={showEventCreator}
+        onClose={() => setShowEventCreator(false)}
+        onSendEvent={handleSendEvent}
+      />
+
+      <DocumentScanner
+        open={showDocScanner}
+        onClose={() => setShowDocScanner(false)}
+        onScan={handleScanDocument}
+      />
+
+      <QRCodeScanner
+        open={showQRScanner}
+        onClose={() => setShowQRScanner(false)}
+      />
+
+      <ScheduleMessageDialog
+        open={showScheduleDialog}
+        onClose={() => setShowScheduleDialog(false)}
+        onSchedule={handleScheduleMessage}
+        messagePreview={messageText}
+      />
+
+      <AskAIDialog
+        open={showAskAI}
+        onClose={() => setShowAskAI(false)}
+        onInsert={(text) => setMessageText(text)}
+      />
+
+      <AIArtStudio
+        open={showAIArt}
+        onClose={() => setShowAIArt(false)}
+        onSendImage={handleAIArtSend}
+      />
+
+      <MultimodalAICall
+        open={showAICall}
+        onClose={() => setShowAICall(false)}
+      />
     </div>
   );
 };

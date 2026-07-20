@@ -73,8 +73,8 @@ const Chat = () => {
       case "Chats":
       default:
         return (
-          <>
-            <div className={`${isMobileContactsOpen ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-96 flex-col border-r border-slate-800/80 bg-[#10202a] text-slate-100`}>
+          <div className="flex h-full min-h-0 w-full flex-1">
+            <div className={`${isMobileContactsOpen ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-96 flex-col min-h-0 border-r border-slate-800/80 bg-[#10202a] text-slate-100`}>
               <ContactList
                 contacts={contacts}
                 selectedContact={selectedContact}
@@ -82,7 +82,7 @@ const Chat = () => {
                 loading={loading}
               />
             </div>
-            <div className={`${!isMobileContactsOpen ? 'flex' : 'hidden'} md:flex flex-1 flex-col`}>
+            <div className={`${!isMobileContactsOpen ? 'flex' : 'hidden'} md:flex flex-1 flex-col min-h-0`}>
               {selectedContact ? (
                 <ChatWindow
                   contact={selectedContact}
@@ -98,12 +98,12 @@ const Chat = () => {
                       <img src={logo} alt="KuikChat" className="w-full h-full object-contain" />
                     </div>
                     <h2 className="text-xl font-semibold mb-2">Welcome to KuikChat</h2>
-                    <p className="text-muted-foreground">Select a conversation to start chatting</p>
+                    <p className="text-slate-400">Select a conversation to start chatting</p>
                   </div>
                 </div>
               )}
             </div>
-          </>
+          </div>
         );
     }
   };
@@ -112,7 +112,7 @@ const Chat = () => {
     <SidebarProvider>
       <div className="dark business-dark flex h-screen w-full overflow-hidden bg-[#0b151c] text-slate-100">
         <ChatSidebar activeView={activeView} onViewChange={setActiveView} />
-        <main className="flex-1 flex flex-col relative overflow-hidden">
+        <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
           {renderContent()}
         </main>
       </div>
